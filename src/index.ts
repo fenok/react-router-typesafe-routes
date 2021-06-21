@@ -4,7 +4,11 @@ import queryString, { ParseOptions, StringifiableRecord, StringifyOptions } from
 import { ExtractRouteParams, generatePath, match } from "react-router";
 
 // TODO: allow to override inferred path type
-export type OuterParams<TQuery extends StringifiableRecord = {}, THash extends string = string, TState = unknown> = {
+export type OuterParams<
+    TQuery extends StringifiableRecord = StringifiableRecord,
+    THash extends string = string,
+    TState = unknown
+> = {
     query?: TQuery;
     hash?: THash;
     state?: TState;
@@ -133,7 +137,7 @@ export function routeGroup<TBaseParams extends OuterParams>(baseOptions: Options
 
             function parseLocation(location?: H.Location): ParsedLocation<TBaseParams, TParams> {
                 const query = location && queryString.parse(location.search, mergedOptions.parse);
-                const hash = location ? normalizeHash(location.hash) : "";
+                const hash = location && normalizeHash(location.hash);
 
                 return { query: query as any, hash, state: location?.state as any };
             }
