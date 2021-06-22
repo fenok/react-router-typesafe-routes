@@ -4,12 +4,6 @@ import { HashProcessor } from "./hash-processors";
 import { match } from "react-router";
 import * as H from "history";
 
-export interface RouteParams<Path extends string, InPath, OutPath, InQuery, OutQuery, InHash, OutHash> {
-    path: PathProcessor<Path, InPath, OutPath>;
-    query?: QueryProcessor<InQuery, OutQuery>;
-    hash?: HashProcessor<InHash, OutHash>;
-}
-
 export type BuildParams<InPath, InQuery, InHash> = (keyof InPath extends never ? { path?: InPath } : { path: InPath }) &
     (keyof InQuery extends never ? { query?: InQuery } : { query: InQuery }) &
     (keyof InHash extends never ? { hash?: InHash } : { hash: InHash });
@@ -18,11 +12,11 @@ export type OutPathPart<OutPath> = { path: OutPath };
 export type OutLocationPart<OutQuery, OutHash> = { query: OutQuery; hash: OutHash };
 export type OutEmptyLocationPart = { query: undefined; hash: undefined };
 
-export function route<Path extends string, InPath, OutPath, InQuery, OutQuery, InHash, OutHash>({
-    path,
-    query,
-    hash,
-}: RouteParams<Path, InPath, OutPath, InQuery, OutQuery, InHash, OutHash>) {
+export function route<Path extends string, InPath, OutPath, InQuery, OutQuery, InHash, OutHash>(
+    path: PathProcessor<Path, InPath, OutPath>,
+    query?: QueryProcessor<InQuery, OutQuery> | null,
+    hash?: HashProcessor<InHash, OutHash> | null
+) {
     function build(params: BuildParams<InPath, InQuery, InHash>) {
         return `${params.path ? buildPath(params.path) : path.path}${params.query ? buildQuery(params.query) : ""}${
             params.hash ? buildHash(params.hash) : ""
@@ -52,14 +46,6 @@ export function route<Path extends string, InPath, OutPath, InQuery, OutQuery, I
     ): OutPathPart<OutPath> & Partial<OutLocationPart<OutQuery, OutHash>> {
         return {
             path: parsePath(matchOrParams),
-            ...parseLocation(location),
-        };
-    }
-
-    function parseLocation(): OutEmptyLocationPart;
-    function parseLocation(location?: H.Location): OutLocationPart<OutQuery, OutHash>;
-    function parseLocation(location?: H.Location) {
-        return {
             query: location && parseQuery(location.search),
             hash: location && parseHash(location.hash),
         };
@@ -84,7 +70,6 @@ export function route<Path extends string, InPath, OutPath, InQuery, OutQuery, I
         buildQuery,
         buildHash,
         parse,
-        parseLocation,
         parsePath,
         parseQuery,
         parseHash,
