@@ -8,7 +8,7 @@ export type ToGenericPathParams<T> = {
 
 export function path<Path extends string>(
     path: Path
-): PathProcessor<Path, ExtractRouteParams<Path>, ToGenericPathParams<ExtractRouteParams<Path>>> {
+): PathProcessor<Path, ExtractRouteParams<Path>, ToGenericPathParams<ExtractRouteParams<Path>> | undefined> {
     let requiredParams: string[];
 
     function areParamsSufficient(params: GenericPathParams) {
