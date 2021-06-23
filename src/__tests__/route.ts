@@ -1,7 +1,7 @@
-import { createQuery, hash, path, route, valid } from "../index";
+import { cast, createQuery, hash, path, route, valid } from "../index";
 
 it("infers path params from path", () => {
-    const testRoute = route(path("/test/:id/:id2/:id3"));
+    const testRoute = route(path("/test/:id/:id2/:id3", { id: cast.number }));
 
     expect(testRoute.build({ id: 1, id2: "2", id3: true })).toBe("/test/1/2/true");
 });
