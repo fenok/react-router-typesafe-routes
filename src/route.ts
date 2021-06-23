@@ -4,13 +4,6 @@ import { HashProcessor } from "./hash-processors";
 import { match } from "react-router";
 import * as H from "history";
 
-export type BuildParams<InPath, InQuery, InHash> = (keyof InPath extends never
-    ? { path?: InPath }
-    : { path: InPath }) & {
-    query?: InQuery;
-    hash?: InHash;
-};
-
 export type OutPathPart<OutPath> = { path: OutPath };
 export type OutLocationPart<OutQuery, OutHash> = { query: OutQuery; hash: OutHash };
 export type OutEmptyLocationPart = { query: undefined; hash: undefined };
@@ -24,26 +17,26 @@ export function route<
     InHash = never,
     OutHash = never
 >(
-    path: PathProcessor<Path, InPath, OutPath>,
-    query?: QueryProcessor<InQuery, OutQuery> | null,
-    hash?: HashProcessor<InHash, OutHash> | null
+    pathProcessor: PathProcessor<Path, InPath, OutPath>,
+    queryProcessor?: QueryProcessor<InQuery, OutQuery> | null,
+    hashProcessor?: HashProcessor<InHash, OutHash> | null
 ) {
-    function build(params: BuildParams<InPath, InQuery, InHash>) {
-        return `${params.path ? buildPath(params.path) : path.path}${params.query ? buildQuery(params.query) : ""}${
-            params.hash ? buildHash(params.hash) : ""
+    function build(path: InPath, query?: InQuery | null, hash?: InHash | null) {
+        return `${path ? buildPath(path) : pathProcessor.path}${query ? buildQuery(query) : ""}${
+            hash ? buildHash(hash) : ""
         }`;
     }
 
     function buildPath(pathParams: InPath): string {
-        return path.stringify(pathParams);
+        return pathProcessor.stringify(pathParams);
     }
 
     function buildQuery(queryParams: InQuery): string {
-        return query?.stringify(queryParams) || "";
+        return queryProcessor?.stringify(queryParams) || "";
     }
 
     function buildHash(hashValue: InHash): string {
-        return hash?.stringify(hashValue) || "";
+        return hashProcessor?.stringify(hashValue) || "";
     }
 
     function parse(matchOrParams: GenericPathParams | match | null): OutPathPart<OutPath> & OutEmptyLocationPart;
@@ -63,19 +56,19 @@ export function route<
     }
 
     function parsePath(matchOrParams: GenericPathParams | match | null): OutPath {
-        return path.parse(matchOrParams);
+        return pathProcessor.parse(matchOrParams);
     }
 
     function parseQuery(queryString: string): OutQuery {
-        return query?.parse(queryString) as OutQuery;
+        return queryProcessor?.parse(queryString) as OutQuery;
     }
 
     function parseHash(hashString: string): OutHash {
-        return hash?.parse(hashString) as OutHash;
+        return hashProcessor?.parse(hashString) as OutHash;
     }
 
     return {
-        path: path.path,
+        path: pathProcessor.path,
         build,
         buildPath,
         buildQuery,

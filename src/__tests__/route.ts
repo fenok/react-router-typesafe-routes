@@ -3,15 +3,15 @@ import { route, path, query, hash } from "../index";
 it("infers path params from path", () => {
     const testRoute = route(path("/test/:id/:id2/:id3"));
 
-    expect(testRoute.build({ path: { id: 1, id2: "2", id3: true } })).toBe("/test/1/2/true");
+    expect(testRoute.build({ id: 1, id2: "2", id3: true })).toBe("/test/1/2/true");
 });
 
 it("works with optional path parameters", () => {
     const testRoute = route(path("/test/:id?/other-test/:id2*"));
 
-    expect(testRoute.build({ path: { id2: 1 } })).toBe("/test/other-test/1");
-    expect(testRoute.build({ path: { id: 1 } })).toBe("/test/1/other-test");
-    expect(testRoute.build({ path: { id: 1, id2: 2 } })).toBe("/test/1/other-test/2");
+    expect(testRoute.build({ id2: 1 })).toBe("/test/other-test/1");
+    expect(testRoute.build({ id: 1 })).toBe("/test/1/other-test");
+    expect(testRoute.build({ id: 1, id2: 2 })).toBe("/test/1/other-test/2");
 });
 
 it("does not require empty path argument", () => {
@@ -26,7 +26,7 @@ it("allows to specify query params", () => {
         query<{ a: string; b: boolean; c: number; d: null; e: undefined; f: number[] }>()
     );
 
-    expect(testRoute.build({ query: { a: "a", b: true, c: 1, d: null, e: undefined, f: [1, 2] } })).toBe(
+    expect(testRoute.build({}, { a: "a", b: true, c: 1, d: null, e: undefined, f: [1, 2] })).toBe(
         "/test?a=a&b=true&c=1&d&f=1&f=2"
     );
 });
@@ -34,7 +34,7 @@ it("allows to specify query params", () => {
 it("allows to specify hash", () => {
     const testRoute = route(path("/test"), null, hash(["foo", "bar"] as const));
 
-    expect(testRoute.build({ hash: "foo" })).toBe("/test#foo");
+    expect(testRoute.build({}, null, "foo")).toBe("/test#foo");
 });
 
 it("can parse params", () => {
