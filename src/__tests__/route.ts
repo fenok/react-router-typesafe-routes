@@ -1,4 +1,4 @@
-import { route, path, query, hash, valid } from "../index";
+import { createQuery, hash, path, route, valid } from "../index";
 
 it("infers path params from path", () => {
     const testRoute = route(path("/test/:id/:id2/:id3"));
@@ -21,6 +21,8 @@ it("does not require empty path argument", () => {
 });
 
 it("allows to specify query params", () => {
+    const query = createQuery({ parse: { parseNumbers: true, parseBooleans: true } });
+
     const testRoute = route(
         path("/test"),
         query({ a: valid.string, b: valid.boolean, c: valid.number, d: valid.null, f: valid.arrayOf(valid.number) })
