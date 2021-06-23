@@ -32,7 +32,7 @@ it("allows to specify query params", () => {
 });
 
 it("allows to specify hash", () => {
-    const testRoute = route(path("/test"), null, hash<"foo" | "bar">());
+    const testRoute = route(path("/test"), null, hash(["foo", "bar"] as const));
 
     expect(testRoute.build({ hash: "foo" })).toBe("/test#foo");
 });
