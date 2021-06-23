@@ -4,9 +4,12 @@ import { HashProcessor } from "./hash-processors";
 import { match } from "react-router";
 import * as H from "history";
 
-export type BuildParams<InPath, InQuery, InHash> = (keyof InPath extends never ? { path?: InPath } : { path: InPath }) &
-    (keyof InQuery extends never ? { query?: InQuery } : { query: InQuery }) &
-    (keyof InHash extends never ? { hash?: InHash } : { hash: InHash });
+export type BuildParams<InPath, InQuery, InHash> = (keyof InPath extends never
+    ? { path?: InPath }
+    : { path: InPath }) & {
+    query?: InQuery;
+    hash?: InHash;
+};
 
 export type OutPathPart<OutPath> = { path: OutPath };
 export type OutLocationPart<OutQuery, OutHash> = { query: OutQuery; hash: OutHash };
