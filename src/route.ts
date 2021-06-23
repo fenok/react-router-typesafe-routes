@@ -15,7 +15,15 @@ export type OutPathPart<OutPath> = { path: OutPath };
 export type OutLocationPart<OutQuery, OutHash> = { query: OutQuery; hash: OutHash };
 export type OutEmptyLocationPart = { query: undefined; hash: undefined };
 
-export function route<Path extends string, InPath, OutPath, InQuery, OutQuery, InHash, OutHash>(
+export function route<
+    Path extends string,
+    InPath,
+    OutPath,
+    InQuery = never,
+    OutQuery = never,
+    InHash = never,
+    OutHash = never
+>(
     path: PathProcessor<Path, InPath, OutPath>,
     query?: QueryProcessor<InQuery, OutQuery> | null,
     hash?: HashProcessor<InHash, OutHash> | null
