@@ -1,4 +1,4 @@
-import { route, path, query, hash } from "../index";
+import { route, path, query, hash, valid } from "../index";
 
 it("infers path params from path", () => {
     const testRoute = route(path("/test/:id/:id2/:id3"));
@@ -23,12 +23,10 @@ it("does not require empty path argument", () => {
 it("allows to specify query params", () => {
     const testRoute = route(
         path("/test"),
-        query<{ a: string; b: boolean; c: number; d: null; e: undefined; f: number[] }>()
+        query({ a: valid.string, b: valid.boolean, c: valid.number, d: valid.null, f: valid.arrayOf(valid.number) })
     );
 
-    expect(testRoute.build({}, { a: "a", b: true, c: 1, d: null, e: undefined, f: [1, 2] })).toBe(
-        "/test?a=a&b=true&c=1&d&f=1&f=2"
-    );
+    expect(testRoute.build({}, { a: "a", b: true, c: 1, d: null, f: [1, 2] })).toBe("/test?a=a&b=true&c=1&d&f=1&f=2");
 });
 
 it("allows to specify hash", () => {
