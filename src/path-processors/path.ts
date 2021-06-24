@@ -8,22 +8,28 @@ export type ToGenericPathParams<T> = {
 };
 
 export type ParamsFromCasters<T> = {
-    [Key in keyof T]: T[Key] extends Caster<infer Type> | Caster<infer Type>[] ? Type : never;
-};
+    [TKey in keyof T]?: T[TKey] extends Caster<infer Type> ? Type : never;
+} &
+    {
+        [TKey in RequiredKeys<T>]: T[TKey] extends Caster<infer Type> ? Type : never;
+    };
+
+export type RequiredKeys<T> = {
+    [TKey in keyof T]: T[TKey] extends Caster<infer Type> ? (undefined extends Type ? never : TKey) : never;
+}[keyof T];
 
 export function path<
     Path extends string,
-    ExtractedPath = ExtractRouteParams<Path>,
     T extends {
-        [Key in keyof Partial<ExtractedPath>]?: Caster<string | number | boolean> | Caster<string | number | boolean>[];
+        [Key in string]: Caster<string | number | boolean | undefined>;
     } = {}
 >(
     path: Path,
     shape?: T
 ): PathProcessor<
     Path,
-    ExtractRouteParams<Path> & ParamsFromCasters<T>,
-    (ToGenericPathParams<ExtractRouteParams<Path>> & ParamsFromCasters<T>) | undefined
+    {} extends T ? ExtractRouteParams<Path> : ParamsFromCasters<T>,
+    ({} extends T ? ToGenericPathParams<ExtractRouteParams<Path>> : ParamsFromCasters<T>) | undefined
 > {
     let requiredParams: string[];
 
@@ -47,10 +53,7 @@ export function path<
         const result: Record<string, any> = {};
 
         Object.keys(params).forEach((key) => {
-            const casterOrCasterArray = shape && shape[key as keyof ExtractedPath];
-            const caster: Caster<string | number | boolean> | undefined = Array.isArray(casterOrCasterArray)
-                ? casterOrCasterArray[0]
-                : casterOrCasterArray;
+            const caster = shape && shape[key];
             result[key] = caster ? caster.cast(params[key]) : params[key];
         });
 
@@ -59,12 +62,12 @@ export function path<
 
     return {
         path,
-        stringify(params: ExtractRouteParams<Path>): string {
-            return generatePath(path, params);
+        stringify(params: {} extends T ? ExtractRouteParams<Path> : ParamsFromCasters<T>): string {
+            return generatePath(path, params as any);
         },
         parse(
             matchOrParams: GenericPathParams | match | null
-        ): ToGenericPathParams<ExtractRouteParams<Path>> | undefined {
+        ): ({} extends T ? ToGenericPathParams<ExtractRouteParams<Path>> : ParamsFromCasters<T>) | undefined {
             if (isMatch(matchOrParams)) {
                 if (matchOrParams && matchOrParams.path === path) {
                     return cast(matchOrParams.params) as ToGenericPathParams<ExtractRouteParams<Path>> &

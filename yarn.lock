@@ -1599,6 +1599,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"conditional-type-checks@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "conditional-type-checks@npm:1.0.5"
+  checksum: a86e3d2d4afd561492d1e555be3146e599189e462e4f10a56050dfbd6f80c79d8eeee730d87982614828eb2a27ce81fedcc3f0cf7bf9c34f673b7b6b4ed581f0
+  languageName: node
+  linkType: hard
+
 "console-control-strings@npm:^1.0.0, console-control-strings@npm:~1.1.0":
   version: 1.1.0
   resolution: "console-control-strings@npm:1.1.0"
@@ -4100,6 +4107,7 @@ fsevents@^2.3.2:
     "@types/react-router": ^5.1.15
     "@typescript-eslint/eslint-plugin": ^4.27.0
     "@typescript-eslint/parser": ^4.27.0
+    conditional-type-checks: ^1.0.5
     eslint: ^7.29.0
     eslint-config-prettier: ^8.3.0
     jest: ^27.0.4

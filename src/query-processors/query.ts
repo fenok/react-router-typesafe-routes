@@ -1,23 +1,22 @@
 import queryString, { ParsedQuery, ParseOptions, StringifyOptions } from "query-string";
 import { QueryProcessor } from "./interface";
-import { ArrayQueryValueValidator, QueryValueValidator } from "./validators";
+import { QueryValueValidator } from "./validators";
 
-export interface QueryOptions {
-    stringify?: StringifyOptions;
-    parse?: ParseOptions;
-}
+export type QueryOptions = StringifyOptions & ParseOptions;
 
-export type QueryParamsFromValidators<T, AllowedTypes> = {} extends T
+export type QueryParamsFromValidators<T, AllowedTypes, Options extends QueryOptions> = {} extends T
     ? ParsedQuery<AllowedTypes>
     : {
           [Key in keyof T]?: T[Key] extends QueryValueValidator<infer Type>[] | QueryValueValidator<infer Type>
-              ? Type
-              : T[Key] extends ArrayQueryValueValidator<infer ArrayType>
-              ? ArrayType[]
+              ? Type extends unknown[]
+                  ? true extends IsArrayInfoStored<Options>
+                      ? Type
+                      : Type | Type[number]
+                  : Type
               : never;
       };
 
-export type GetAllowedTypes<T extends QueryOptions["parse"]> = T extends {}
+export type GetAllowedTypes<T extends QueryOptions> = T extends {}
     ? T["parseBooleans"] extends true
         ? T["parseNumbers"] extends true
             ? string | number | boolean
@@ -27,47 +26,58 @@ export type GetAllowedTypes<T extends QueryOptions["parse"]> = T extends {}
         : string
     : string;
 
-export function createQuery<Options extends QueryOptions, AllowedTypes = GetAllowedTypes<Options["parse"]>>(
+export type IsArrayInfoStored<Options extends QueryOptions> = undefined extends Options["arrayFormat"]
+    ? false
+    : Options["arrayFormat"] extends "bracket" | "index" | "bracket-separator"
+    ? true
+    : false;
+
+export function query<
+    Options extends QueryOptions,
+    AllowedTypes = GetAllowedTypes<Options>,
+    T extends {
+        [Key in keyof T]:
+            | QueryValueValidator<AllowedTypes | AllowedTypes[] | null>
+            | QueryValueValidator<AllowedTypes | AllowedTypes[] | null>[];
+    } = {}
+>(
+    shape?: T,
     options: Options = {} as Options
-) {
-    return function query<
-        T extends {
-            [Key in keyof T]:
-                | QueryValueValidator<AllowedTypes | null>
-                | QueryValueValidator<AllowedTypes | null>[]
-                | ArrayQueryValueValidator<AllowedTypes>;
-        } = {}
-    >(
-        shape?: T
-    ): QueryProcessor<QueryParamsFromValidators<T, AllowedTypes>, QueryParamsFromValidators<T, AllowedTypes>> {
-        function validate(object: ParsedQuery<string | number | boolean>) {
-            const result: Partial<ParsedQuery<string | number | boolean>> = object;
+): QueryProcessor<QueryParamsFromValidators<T, any, Options>, QueryParamsFromValidators<T, AllowedTypes, Options>> {
+    const isArrayAware = isArrayInfoStored(options);
 
-            for (const key in shape) {
-                const validatorOrValidatorArray = shape[key];
-                const value = object[key];
+    function validate(object: ParsedQuery<string | number | boolean>) {
+        const result: Partial<ParsedQuery<string | number | boolean>> = object;
 
-                if (Array.isArray(validatorOrValidatorArray)) {
-                    if (!validatorOrValidatorArray.some((validator) => validator.validate(value))) {
-                        result[key] = undefined;
-                    }
-                } else {
-                    if (!validatorOrValidatorArray.validate(value)) {
-                        result[key] = undefined;
-                    }
-                }
+        for (const key in shape) {
+            const validatorOrValidatorArray = shape[key];
+            const value = object[key];
+            const validators: QueryValueValidator<unknown>[] = Array.isArray(validatorOrValidatorArray)
+                ? validatorOrValidatorArray
+                : [validatorOrValidatorArray];
+
+            if (
+                !validators.some((validator) =>
+                    validator.validate(validator.isArray && !isArrayAware && !Array.isArray(value) ? [value] : value)
+                )
+            ) {
+                result[key] = undefined;
             }
-
-            return result;
         }
 
-        return {
-            stringify(query: QueryParamsFromValidators<T, AllowedTypes>): string {
-                return query && Object.keys(query).length ? `?${queryString.stringify(query, options.stringify)}` : "";
-            },
-            parse(query: string): QueryParamsFromValidators<T, AllowedTypes> {
-                return validate(queryString.parse(query, options.parse)) as QueryParamsFromValidators<T, AllowedTypes>;
-            },
-        };
+        return result;
+    }
+
+    return {
+        stringify(query: QueryParamsFromValidators<T, AllowedTypes, Options>): string {
+            return query && Object.keys(query).length ? `?${queryString.stringify(query, options)}` : "";
+        },
+        parse(query: string): QueryParamsFromValidators<T, AllowedTypes, Options> {
+            return validate(queryString.parse(query, options)) as QueryParamsFromValidators<T, AllowedTypes, Options>;
+        },
     };
+}
+
+function isArrayInfoStored(options: QueryOptions = {}) {
+    return ["bracket", "index", "bracket-separator"].includes(options.arrayFormat || "none");
 }
