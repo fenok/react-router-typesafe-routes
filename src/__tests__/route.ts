@@ -1,15 +1,6 @@
 import { cast, query, hash, path, route, valid } from "../index";
 import { assert, IsExact } from "conditional-type-checks";
 
-interface TestQuery {
-    a: string;
-    b: boolean;
-    c: number;
-    d: null;
-    f: number[];
-    g: undefined;
-}
-
 it("allows path without parameters", () => {
     const testRoute = route(path("/test"));
 
@@ -107,30 +98,32 @@ it("allows to redefine and narrow path params", () => {
 });
 
 it("allows to use query params", () => {
-    // Note how parseNumbers, parseBooleans and arrayFormat options affect available types
-    const testRoute = route(path("/test"), query({}, { parseNumbers: true }));
+    const testRoute = route(
+        path("/test"),
+        query({}, { parseNumbers: true, parseBooleans: true, arrayFormat: "bracket" })
+    );
 
     // Build params are typed as Record<string, any> due to https://github.com/sindresorhus/query-string/issues/298
     assert<IsExact<Parameters<typeof testRoute.build>[1], Record<string, any> | null | undefined>>(true);
+    assert<
+        IsExact<
+            ReturnType<typeof testRoute.parseQuery>,
+            Record<string, (string | number | boolean)[] | string | number | boolean | null>
+        >
+    >(true);
 
-    const testQuery: TestQuery = { a: "a", b: true, c: 1, d: null, f: [1, 2], g: undefined };
-
-    expect(testRoute.build({}, testQuery)).toBe("/test?a=a&b=true&c=1&d&f=1&f=2");
-
-    const parseResult = testRoute.parse(null, {
-        pathname: "/test",
-        search: "?a=a&b=true&c=1&d&f=1&f=2",
-        hash: "",
-        state: undefined,
+    expect(
+        testRoute.parseQuery(testRoute.buildQuery({ a: "a", b: true, c: 1, d: null, f: [1, 2], g: undefined }))
+    ).toEqual({
+        a: "a",
+        b: true,
+        c: 1,
+        d: null,
+        f: [1, 2],
     });
-
-    assert<IsExact<typeof parseResult["query"], Record<string, (string | number)[] | string | number | null>>>(true);
-
-    expect(parseResult).toMatchObject({ query: { a: "a", b: "true", c: 1, d: null, f: [1, 2] } });
 });
 
 it("allows to redefine and narrow query params", () => {
-    // Note how parseNumbers, parseBooleans and arrayFormat options affect available types
     const testRoute = route(
         path("/test"),
         query(
@@ -147,29 +140,19 @@ it("allows to redefine and narrow query params", () => {
 
     assert<
         IsExact<
-            Parameters<typeof testRoute.build>[1],
-            | {
-                  a?: string;
-                  b?: boolean;
-                  c?: number;
-                  d?: null;
-                  f?: number[];
-              }
-            | null
-            | undefined
+            Parameters<typeof testRoute.buildQuery>[0],
+            {
+                a?: string;
+                b?: boolean;
+                c?: number;
+                d?: null;
+                f?: number[];
+            }
         >
     >(true);
-
-    const parseResult = testRoute.parse(null, {
-        pathname: "/test",
-        search: "?a=abc&b=true&c=1&d&f[]=1&f[]=2&foo=bar",
-        hash: "",
-        state: undefined,
-    });
-
     assert<
         IsExact<
-            typeof parseResult["query"],
+            ReturnType<typeof testRoute.parseQuery>,
             {
                 a?: string;
                 b?: boolean;
@@ -180,9 +163,19 @@ it("allows to redefine and narrow query params", () => {
         >
     >(true);
 
-    expect(parseResult).toMatchObject({
-        query: { a: "abc", b: true, c: 1, d: null, f: [1, 2], foo: "bar" },
+    expect(testRoute.parseQuery(testRoute.buildQuery({ a: "abc", b: true, c: 1, d: null, f: [1, 2] }))).toEqual({
+        a: "abc",
+        b: true,
+        c: 1,
+        d: null,
+        f: [1, 2],
     });
+});
+
+it("preserves unknown (and therefore untyped) query keys", () => {
+    const testRoute = route(path("/test"), query({ a: valid.string }));
+
+    expect(testRoute.parseQuery("?a=abc&b=bar")).toEqual({ a: "abc", b: "bar" });
 });
 
 it("detects whether single value can be stored as array in query", () => {
