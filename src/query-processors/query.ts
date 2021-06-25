@@ -4,17 +4,24 @@ import { QueryValueValidator } from "./validators";
 
 export type QueryOptions = StringifyOptions & ParseOptions;
 
-export type QueryParamsFromValidators<T, AllowedArrayTypes, Options extends QueryOptions> = {} extends T
+export type QueryParamsFromValidators<
+    T,
+    AllowedArrayTypes,
+    Options extends QueryOptions,
+    AddUndefinedToArray extends boolean
+> = {} extends T
     ? ParsedQuery<AllowedArrayTypes>
     : {
           [Key in keyof T]?: T[Key] extends QueryValueValidator<infer Type>[] | QueryValueValidator<infer Type>
-              ? Type extends unknown[]
+              ? Type extends (infer ArrayType)[]
                   ? true extends IsArrayInfoStored<Options>
-                      ? Type
-                      : Type | Type[number]
+                      ? AddUndefined<ArrayType, AddUndefinedToArray>[]
+                      : AddUndefined<ArrayType, AddUndefinedToArray>[] | ArrayType
                   : Type
               : never;
       };
+
+export type AddUndefined<T, Add extends boolean> = true extends Add ? T | undefined : T;
 
 export type GetAllowedArrayTypes<T extends QueryOptions> = T extends {}
     ? T["parseBooleans"] extends true
@@ -50,8 +57,8 @@ export function query<
     shape?: T,
     options: Options = {} as Options
 ): QueryProcessor<
-    QueryParamsFromValidators<T, any, Options>,
-    QueryParamsFromValidators<T, AllowedArrayTypes, Options>
+    QueryParamsFromValidators<T, any, Options, true>,
+    QueryParamsFromValidators<T, AllowedArrayTypes, Options, false>
 > {
     const isArrayAware = isArrayInfoStored(options);
 
@@ -78,14 +85,15 @@ export function query<
     }
 
     return {
-        stringify(query: QueryParamsFromValidators<T, any, Options>): string {
+        stringify(query: QueryParamsFromValidators<T, any, Options, true>): string {
             return query && Object.keys(query).length ? `?${queryString.stringify(query, options)}` : "";
         },
-        parse(query: string): QueryParamsFromValidators<T, AllowedArrayTypes, Options> {
+        parse(query: string): QueryParamsFromValidators<T, AllowedArrayTypes, Options, false> {
             return validate(queryString.parse(query, options)) as QueryParamsFromValidators<
                 T,
                 AllowedArrayTypes,
-                Options
+                Options,
+                false
             >;
         },
     };
