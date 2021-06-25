@@ -3,10 +3,14 @@ export interface QueryValueValidator<T> {
     isArray: boolean;
 }
 
+export interface WithUnionValidator<T> {
+    oneOf<A extends readonly T[]>(values: A): QueryValueValidator<A[number]>;
+}
+
 export interface Valid {
-    string: QueryValueValidator<string>;
+    string: QueryValueValidator<string> & WithUnionValidator<string>;
     boolean: QueryValueValidator<boolean>;
-    number: QueryValueValidator<number>;
+    number: QueryValueValidator<number> & WithUnionValidator<number>;
     null: QueryValueValidator<null>;
     arrayOf<T>(validators: QueryValueValidator<T> | QueryValueValidator<T>[]): QueryValueValidator<T[]>;
 }
@@ -15,6 +19,14 @@ export const valid: Valid = {
     string: {
         validate(value): value is string {
             return typeof value === "string";
+        },
+        oneOf(values) {
+            return {
+                validate(value): value is typeof values[number] {
+                    return typeof value === "string" && values.includes(value);
+                },
+                isArray: false,
+            };
         },
         isArray: false,
     },
@@ -27,6 +39,14 @@ export const valid: Valid = {
     number: {
         validate(value): value is number {
             return typeof value === "number";
+        },
+        oneOf(values) {
+            return {
+                validate(value): value is typeof values[number] {
+                    return typeof value === "number" && values.includes(value);
+                },
+                isArray: false,
+            };
         },
         isArray: false,
     },

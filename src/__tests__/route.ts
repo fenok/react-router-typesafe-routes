@@ -296,6 +296,27 @@ it("allows types that are either array or single value in query", () => {
     expect(testRoute.parseQuery("?a[]=1")).toEqual({ a: undefined });
 });
 
+it("allows to specify unions for query keys", () => {
+    const testRoute = route(
+        path("/test"),
+        query(
+            {
+                n: valid.number.oneOf([1, 2, 3] as const),
+                f: valid.arrayOf(valid.string.oneOf(["foo", "bar"] as const)),
+            },
+            { parseNumbers: true, arrayFormat: "bracket" }
+        )
+    );
+
+    assert<IsExact<Parameters<typeof testRoute.buildQuery>[0], { n?: 1 | 2 | 3; f?: ("foo" | "bar")[] }>>(true);
+
+    expect(testRoute.parseQuery(testRoute.buildQuery({ n: 3, f: ["foo", "bar"] }))).toEqual({
+        n: 3,
+        f: ["foo", "bar"],
+    });
+    expect(testRoute.parseQuery("?n=4&f[]=baz")).toEqual({ n: undefined, f: undefined });
+});
+
 it("allows to specify hash", () => {
     const testRoute = route(path("/test"), null, hash(["foo", "bar"] as const));
 
