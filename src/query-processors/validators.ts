@@ -4,7 +4,7 @@ export interface QueryValueValidator<T> {
 }
 
 export interface WithUnionValidator<T> {
-    oneOf<A extends readonly T[]>(values: A): QueryValueValidator<A[number]>;
+    oneOf<A extends readonly T[]>(...values: A): QueryValueValidator<A[number]>;
 }
 
 export interface Valid {
@@ -20,7 +20,7 @@ export const valid: Valid = {
         validate(value): value is string {
             return typeof value === "string";
         },
-        oneOf(values) {
+        oneOf(...values) {
             return {
                 validate(value): value is typeof values[number] {
                     return typeof value === "string" && values.includes(value);
@@ -40,7 +40,7 @@ export const valid: Valid = {
         validate(value): value is number {
             return typeof value === "number";
         },
-        oneOf(values) {
+        oneOf(...values) {
             return {
                 validate(value): value is typeof values[number] {
                     return typeof value === "number" && values.includes(value);

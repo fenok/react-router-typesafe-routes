@@ -309,8 +309,8 @@ it("allows to specify unions for query keys", () => {
         path("/test"),
         query(
             {
-                n: valid.number.oneOf([1, 2, 3] as const),
-                f: valid.arrayOf(valid.string.oneOf(["foo", "bar"] as const)),
+                n: valid.number.oneOf(1, 2, 3),
+                f: valid.arrayOf(valid.string.oneOf("foo", "bar")),
             },
             { parseNumbers: true, arrayFormat: "bracket" }
         )
@@ -328,7 +328,7 @@ it("allows to specify unions for query keys", () => {
 });
 
 it("allows to specify hash", () => {
-    const testRoute = route(path("/test"), null, hash(["foo", "bar"] as const));
+    const testRoute = route(path("/test"), null, hash("foo", "bar"));
 
     expect(testRoute.build({}, null, "foo")).toBe("/test#foo");
 });
