@@ -108,7 +108,7 @@ it("allows to use query params", () => {
     assert<
         IsExact<
             ReturnType<typeof testRoute.parseQuery>,
-            Record<string, (string | number | boolean)[] | string | number | boolean | null>
+            Record<string, (string | number | boolean | null)[] | string | number | boolean | null>
         >
     >(true);
 
@@ -223,6 +223,59 @@ it("detects whether single value can be stored as array in query", () => {
     expect(separatorRoute.parseQuery("?a=abc")).toEqual({ a: "abc" });
     expect(bracketSeparatorRoute.parseQuery("?a=abc")).toEqual({ a: undefined });
     expect(noneRoute.parseQuery("?a=abc")).toEqual({ a: "abc" });
+});
+
+it("detects whether it is possible to store null values in array", () => {
+    const arrayNull = { a: valid.arrayOf([valid.number, valid.null]) };
+    const flatNull = { a: [valid.number, valid.null] };
+
+    const defaultRoute = route(path("/test"), query(arrayNull, { parseNumbers: true }));
+    const bracketRoute = route(path("/test"), query(arrayNull, { arrayFormat: "bracket", parseNumbers: true }));
+    const indexRoute = route(path("/test"), query(arrayNull, { arrayFormat: "index", parseNumbers: true }));
+    const commaRoute = route(path("/test"), query(flatNull, { arrayFormat: "comma", parseNumbers: true }));
+    const separatorRoute = route(path("/test"), query(flatNull, { arrayFormat: "separator", parseNumbers: true }));
+    const bracketSeparatorRoute = route(
+        path("/test"),
+        query(flatNull, { arrayFormat: "bracket-separator", parseNumbers: true })
+    );
+    const noneRoute = route(path("/test"), query(arrayNull, { arrayFormat: "none", parseNumbers: true }));
+
+    type ArrayNull = { a?: (number | null)[] };
+    type ArrayAndFlatNull = { a?: (number | null)[] | number | null };
+    type FlatNull = { a?: number | null };
+
+    assert<IsExact<Parameters<typeof defaultRoute.buildQuery>[0], ArrayAndFlatNull>>(true);
+    assert<IsExact<Parameters<typeof bracketRoute.buildQuery>[0], ArrayNull>>(true);
+    assert<IsExact<Parameters<typeof indexRoute.buildQuery>[0], ArrayNull>>(true);
+    assert<IsExact<Parameters<typeof commaRoute.buildQuery>[0], FlatNull>>(true);
+    assert<IsExact<Parameters<typeof separatorRoute.buildQuery>[0], FlatNull>>(true);
+    assert<IsExact<Parameters<typeof bracketSeparatorRoute.buildQuery>[0], FlatNull>>(true);
+    assert<IsExact<Parameters<typeof noneRoute.buildQuery>[0], ArrayAndFlatNull>>(true);
+
+    assert<IsExact<ReturnType<typeof defaultRoute.parseQuery>, ArrayAndFlatNull>>(true);
+    assert<IsExact<ReturnType<typeof bracketRoute.parseQuery>, ArrayNull>>(true);
+    assert<IsExact<ReturnType<typeof indexRoute.parseQuery>, ArrayNull>>(true);
+    assert<IsExact<ReturnType<typeof commaRoute.parseQuery>, FlatNull>>(true);
+    assert<IsExact<ReturnType<typeof separatorRoute.parseQuery>, FlatNull>>(true);
+    assert<IsExact<ReturnType<typeof bracketSeparatorRoute.parseQuery>, FlatNull>>(true);
+    assert<IsExact<ReturnType<typeof noneRoute.parseQuery>, ArrayAndFlatNull>>(true);
+
+    expect(defaultRoute.parseQuery(defaultRoute.buildQuery({ a: [] }))).toEqual({ a: undefined });
+    expect(defaultRoute.parseQuery(defaultRoute.buildQuery({ a: [null] }))).toEqual({ a: null });
+    expect(defaultRoute.parseQuery(defaultRoute.buildQuery({ a: [null, null] }))).toEqual({ a: [null, null] });
+    expect(bracketRoute.parseQuery(bracketRoute.buildQuery({ a: [] }))).toEqual({ a: undefined });
+    expect(bracketRoute.parseQuery(bracketRoute.buildQuery({ a: [null] }))).toEqual({ a: [null] });
+    expect(bracketRoute.parseQuery(bracketRoute.buildQuery({ a: [null, null] }))).toEqual({ a: [null, null] });
+    expect(indexRoute.parseQuery(indexRoute.buildQuery({ a: [] }))).toEqual({ a: undefined });
+    expect(indexRoute.parseQuery(indexRoute.buildQuery({ a: [null] }))).toEqual({ a: [null] });
+    expect(indexRoute.parseQuery(indexRoute.buildQuery({ a: [null, null] }))).toEqual({ a: [null, null] });
+    expect(commaRoute.parseQuery(commaRoute.buildQuery({ a: null }))).toEqual({ a: null });
+    expect(separatorRoute.parseQuery(separatorRoute.buildQuery({ a: null }))).toEqual({ a: null });
+    expect(bracketSeparatorRoute.parseQuery(bracketSeparatorRoute.buildQuery({ a: null }))).toEqual({ a: null });
+
+    expect(noneRoute.parseQuery(noneRoute.buildQuery({ a: [] }))).toEqual({ a: undefined });
+    expect(noneRoute.parseQuery(noneRoute.buildQuery({ a: [null] }))).toEqual({ a: null });
+    expect(noneRoute.parseQuery(noneRoute.buildQuery({ a: [null, null] }))).toEqual({ a: [null, null] });
 });
 
 it("allows types that are either array or single value in query", () => {
