@@ -228,7 +228,7 @@ it("detects whether single value can be stored as array in query", () => {
 });
 
 it("detects whether it is possible to store null values in array", () => {
-    const arrayNull = { a: valid.arrayOf([valid.number, valid.null]) };
+    const arrayNull = { a: valid.arrayOf(valid.number, valid.null) };
     const flatNull = { a: [valid.number, valid.null] };
 
     const defaultRoute = route(path("/test"), query(arrayNull, { parseNumbers: true }));
@@ -288,7 +288,7 @@ it("allows types that are either array or single value in query", () => {
     const testRoute = route(
         path("/test"),
         query(
-            { a: [valid.number, valid.arrayOf<string | boolean>([valid.boolean, valid.string])] },
+            { a: [valid.number, valid.arrayOf<string | boolean>(valid.boolean, valid.string)] },
             { arrayFormat: "bracket", parseNumbers: true, parseBooleans: true }
         )
     );

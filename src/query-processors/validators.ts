@@ -12,7 +12,7 @@ export interface Valid {
     boolean: QueryValueValidator<boolean>;
     number: QueryValueValidator<number> & WithUnionValidator<number>;
     null: QueryValueValidator<null>;
-    arrayOf<T>(validators: QueryValueValidator<T> | QueryValueValidator<T>[]): QueryValueValidator<T[]>;
+    arrayOf<T>(...validators: QueryValueValidator<T>[]): QueryValueValidator<T[]>;
 }
 
 export const valid: Valid = {
@@ -56,7 +56,7 @@ export const valid: Valid = {
         },
         isArray: false,
     },
-    arrayOf<T>(validators: QueryValueValidator<T> | QueryValueValidator<T>[]): QueryValueValidator<T[]> {
+    arrayOf<T>(...validators: QueryValueValidator<T>[]): QueryValueValidator<T[]> {
         const validatorsArray = Array.isArray(validators) ? validators : [validators];
 
         return {
