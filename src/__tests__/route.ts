@@ -353,19 +353,23 @@ it("allows to specify unions for query keys", () => {
         path("/test"),
         query(
             {
-                n: valid.number.oneOf(1, 2, 3),
-                f: valid.arrayOf(valid.string.oneOf("foo", "bar")),
+                n: valid.oneOf(1, 2, "abc"),
+                f: valid.arrayOf(valid.oneOf("foo", "bar")),
             },
             { parseNumbers: true, arrayFormat: "bracket" }
         )
     );
 
-    assert<IsExact<Parameters<typeof testRoute.buildQuery>[0], { n?: 1 | 2 | 3; f?: ("foo" | "bar" | undefined)[] }>>(
-        true
-    );
+    assert<
+        IsExact<Parameters<typeof testRoute.buildQuery>[0], { n?: 1 | 2 | "abc"; f?: ("foo" | "bar" | undefined)[] }>
+    >(true);
 
-    expect(testRoute.parseQuery(testRoute.buildQuery({ n: 3, f: ["foo", "bar"] }))).toEqual({
-        n: 3,
+    expect(testRoute.parseQuery(testRoute.buildQuery({ n: "abc", f: ["foo", "bar"] }))).toEqual({
+        n: "abc",
+        f: ["foo", "bar"],
+    });
+    expect(testRoute.parseQuery(testRoute.buildQuery({ n: 2, f: ["foo", "bar"] }))).toEqual({
+        n: 2,
         f: ["foo", "bar"],
     });
     expect(testRoute.parseQuery("?n=4&f[]=baz")).toEqual({ n: undefined, f: undefined });

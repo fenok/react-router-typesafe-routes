@@ -3,15 +3,12 @@ export interface QueryValueValidator<T> {
     isArray: boolean;
 }
 
-export interface WithUnionValidator<T> {
-    oneOf<A extends readonly T[]>(...values: A): QueryValueValidator<A[number]>;
-}
-
 export interface Valid {
-    string: QueryValueValidator<string> & WithUnionValidator<string>;
+    string: QueryValueValidator<string>;
     boolean: QueryValueValidator<boolean>;
-    number: QueryValueValidator<number> & WithUnionValidator<number>;
+    number: QueryValueValidator<number>;
     null: QueryValueValidator<null>;
+    oneOf<A extends readonly (string | boolean | number | null)[]>(...values: A): QueryValueValidator<A[number]>;
     arrayOf<T>(...validators: QueryValueValidator<T>[]): QueryValueValidator<T[]>;
 }
 
@@ -19,14 +16,6 @@ export const valid: Valid = {
     string: {
         validate(value): value is string {
             return typeof value === "string";
-        },
-        oneOf(...values) {
-            return {
-                validate(value): value is typeof values[number] {
-                    return typeof value === "string" && values.includes(value);
-                },
-                isArray: false,
-            };
         },
         isArray: false,
     },
@@ -40,14 +29,6 @@ export const valid: Valid = {
         validate(value): value is number {
             return typeof value === "number";
         },
-        oneOf(...values) {
-            return {
-                validate(value): value is typeof values[number] {
-                    return typeof value === "number" && values.includes(value);
-                },
-                isArray: false,
-            };
-        },
         isArray: false,
     },
     null: {
@@ -55,6 +36,14 @@ export const valid: Valid = {
             return !value && typeof value === "object";
         },
         isArray: false,
+    },
+    oneOf(...values) {
+        return {
+            validate(value): value is typeof values[number] {
+                return values.includes(value as any);
+            },
+            isArray: false,
+        };
     },
     arrayOf<T>(...validators: QueryValueValidator<T>[]): QueryValueValidator<T[]> {
         const validatorsArray = Array.isArray(validators) ? validators : [validators];
