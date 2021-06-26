@@ -97,6 +97,50 @@ it("allows to redefine and narrow path params", () => {
     expect(testRoute.parse({ foo: "abc" })).toMatchObject({ path: undefined });
 });
 
+it("allows to specify unions for path params", () => {
+    const testRoute = route(path("/test/:id", { id: cast.oneOf("1", "2") }));
+    const testOptionalRoute = route(path("/test/:id?", { id: cast.oneOf("1", "2").optional }));
+
+    assert<IsExact<Parameters<typeof testRoute.buildPath>[0], { id: "1" | "2" }>>(true);
+    assert<IsExact<ReturnType<typeof testRoute.parsePath>, { id: "1" | "2" } | undefined>>(true);
+
+    assert<IsExact<Parameters<typeof testOptionalRoute.buildPath>[0], { id?: "1" | "2" }>>(true);
+    assert<IsExact<ReturnType<typeof testOptionalRoute.parsePath>, { id?: "1" | "2" } | undefined>>(true);
+
+    expect(testRoute.parsePath({ id: "1" })).toEqual({ id: "1" });
+    expect(testRoute.parsePath({ id: "2" })).toEqual({ id: "2" });
+    expect(() => testRoute.parsePath({ id: "3" })).toThrow();
+    expect(testRoute.parsePath({})).toEqual(undefined);
+
+    expect(testOptionalRoute.parsePath({ id: "1" })).toEqual({ id: "1" });
+    expect(testOptionalRoute.parsePath({ id: "2" })).toEqual({ id: "2" });
+    expect(() => testOptionalRoute.parsePath({ id: "3" })).toThrow();
+    expect(testOptionalRoute.parsePath({})).toEqual({ id: undefined });
+});
+
+it("allows to specify array of casters", () => {
+    const testRoute = route(path("/test/:id", { id: [cast.number, cast.oneOf("abc", true)] }));
+    const testOptionalRoute = route(path("/test/:id?", { id: [cast.number, cast.oneOf("abc", true).optional] }));
+
+    assert<IsExact<Parameters<typeof testRoute.buildPath>[0], { id: number | "abc" | true }>>(true);
+    assert<IsExact<ReturnType<typeof testRoute.parsePath>, { id: number | "abc" | true } | undefined>>(true);
+
+    assert<IsExact<Parameters<typeof testOptionalRoute.buildPath>[0], { id?: number | "abc" | true }>>(true);
+    assert<IsExact<ReturnType<typeof testOptionalRoute.parsePath>, { id?: number | "abc" | true } | undefined>>(true);
+
+    expect(testRoute.parsePath({ id: "abc" })).toEqual({ id: "abc" });
+    expect(testRoute.parsePath({ id: "true" })).toEqual({ id: true });
+    expect(testRoute.parsePath({ id: "42" })).toEqual({ id: 42 });
+    expect(() => testRoute.parsePath({ id: "false" })).toThrow();
+    expect(testRoute.parsePath({})).toEqual(undefined);
+
+    expect(testOptionalRoute.parsePath({ id: "abc" })).toEqual({ id: "abc" });
+    expect(testOptionalRoute.parsePath({ id: "true" })).toEqual({ id: true });
+    expect(testOptionalRoute.parsePath({ id: "42" })).toEqual({ id: 42 });
+    expect(() => testOptionalRoute.parsePath({ id: "false" })).toThrow();
+    expect(testOptionalRoute.parsePath({})).toEqual({ id: undefined });
+});
+
 it("allows to use query params", () => {
     const testRoute = route(
         path("/test"),

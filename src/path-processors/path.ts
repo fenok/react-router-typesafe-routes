@@ -8,20 +8,26 @@ export type ToGenericPathParams<T> = {
 };
 
 export type ParamsFromCasters<T> = {
-    [TKey in keyof T]?: T[TKey] extends Caster<infer Type> ? Type : never;
+    [TKey in keyof T]?: T[TKey] extends Caster<infer Type> | Caster<infer Type>[] ? Type : never;
 } &
     {
-        [TKey in RequiredKeys<T>]: T[TKey] extends Caster<infer Type> ? Type : never;
+        [TKey in RequiredKeys<T>]: T[TKey] extends Caster<infer Type> | Caster<infer Type>[] ? Type : never;
     };
 
 export type RequiredKeys<T> = {
-    [TKey in keyof T]: T[TKey] extends Caster<infer Type> ? (undefined extends Type ? never : TKey) : never;
+    [TKey in keyof T]: T[TKey] extends Caster<infer Type> | Caster<infer Type>[]
+        ? undefined extends Type
+            ? never
+            : TKey
+        : never;
 }[keyof T];
 
 export function path<
     Path extends string,
     T extends {
-        [Key in string]: Caster<string | number | boolean | undefined>;
+        [Key in string]:
+            | Caster<string | number | boolean | undefined>
+            | Caster<string | number | boolean | undefined>[];
     } = {}
 >(
     path: Path,
@@ -50,14 +56,37 @@ export function path<
     }
 
     function cast(params: GenericPathParams) {
-        const result: Record<string, any> = {};
+        if (shape) {
+            const result: Record<string, any> = {};
+            Object.keys(params).forEach((key) => {
+                const casterOrArray = shape[key];
 
-        Object.keys(params).forEach((key) => {
-            const caster = shape && shape[key];
-            result[key] = caster ? caster.cast(params[key]) : params[key];
-        });
+                if (casterOrArray) {
+                    const casters: Caster<string | number | boolean | undefined>[] = Array.isArray(casterOrArray)
+                        ? casterOrArray
+                        : [casterOrArray];
 
-        return result;
+                    for (const caster of casters) {
+                        try {
+                            result[key] = caster.cast(params[key]);
+                            break;
+                        } catch {
+                            if (casters[casters.length - 1] === caster) {
+                                throw new Error(
+                                    `Couldn't cast parameter ${key}:${params[key]!} with any of the given casters`
+                                );
+                            }
+                            // Otherwise try next caster
+                        }
+                    }
+                } else {
+                    result[key] = params[key];
+                }
+            });
+            return result;
+        }
+
+        return params;
     }
 
     return {
