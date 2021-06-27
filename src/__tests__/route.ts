@@ -375,6 +375,14 @@ it("allows to specify unions for query keys", () => {
     expect(testRoute.parseQuery("?n=4&f[]=baz")).toEqual({ n: undefined, f: undefined });
 });
 
+it("loses string values if they are converted to another type", () => {
+    const testRouteNumbers = route(path("/test"), query({ a: valid.string }, { parseNumbers: true }));
+    const testRouteBooleans = route(path("/test"), query({ a: valid.string }, { parseBooleans: true }));
+
+    expect(testRouteNumbers.parseQuery(testRouteNumbers.buildQuery({ a: "1" }))).toEqual({ a: undefined });
+    expect(testRouteBooleans.parseQuery(testRouteNumbers.buildQuery({ a: "true" }))).toEqual({ a: undefined });
+});
+
 it("allows to specify hash", () => {
     const testRoute = route(path("/test"), null, hash("foo", "bar"));
 
