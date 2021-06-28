@@ -1,7 +1,7 @@
 import { ExtractRouteParams, generatePath, match } from "react-router";
 import { GenericPathParams, PathProcessor } from "./interface";
 import { Key, parse } from "path-to-regexp";
-import { Caster } from "./casters";
+import { applyCasters, Caster } from "./casters";
 
 export type ToGenericPathParams<T> = {
     [TKey in keyof T]: T[TKey] extends string | undefined ? T[TKey] : string;
@@ -56,37 +56,13 @@ export function path<
     }
 
     function cast(params: GenericPathParams) {
-        if (shape) {
-            const result: Record<string, any> = {};
-            Object.keys(params).forEach((key) => {
-                const casterOrArray = shape[key];
+        const result: Record<string, any> = {};
 
-                if (casterOrArray) {
-                    const casters: Caster<string | number | boolean | undefined>[] = Array.isArray(casterOrArray)
-                        ? casterOrArray
-                        : [casterOrArray];
+        Object.keys(params).forEach((key) => {
+            result[key] = shape && shape[key] ? applyCasters(params[key], ...[shape[key]].flat()) : params[key];
+        });
 
-                    for (const caster of casters) {
-                        try {
-                            result[key] = caster.cast(params[key]);
-                            break;
-                        } catch {
-                            if (casters[casters.length - 1] === caster) {
-                                throw new Error(
-                                    `Couldn't cast parameter ${key}:${params[key]!} with any of the given casters`
-                                );
-                            }
-                            // Otherwise try next caster
-                        }
-                    }
-                } else {
-                    result[key] = params[key];
-                }
-            });
-            return result;
-        }
-
-        return params;
+        return result;
     }
 
     return {
