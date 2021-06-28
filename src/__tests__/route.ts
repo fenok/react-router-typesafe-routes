@@ -186,7 +186,7 @@ it("allows to redefine and narrow query param", () => {
         IsExact<
             Parameters<typeof testRoute.buildQuery>[0],
             {
-                a?: string;
+                a?: string | number | boolean;
                 b?: boolean;
                 c?: number;
                 d?: null;
@@ -233,7 +233,7 @@ it("allows single value to be stored as array regardless of array format", () =>
     const bracketSeparatorRoute = route(path("/test"), query(queryShape, { arrayFormat: "bracket-separator" }));
     const noneRoute = route(path("/test"), query(queryShape, { arrayFormat: "none" }));
 
-    type ArrayAwareParamsIn = { a?: (string | undefined)[] };
+    type ArrayAwareParamsIn = { a?: (string | number | boolean | undefined)[] };
     type ArrayAwareParamsOut = { a?: string[] };
 
     assert<IsExact<Parameters<typeof defaultRoute.buildQuery>[0], ArrayAwareParamsIn>>(true);
@@ -330,9 +330,9 @@ it("allows types that are either array or single value in query", () => {
         )
     );
 
-    assert<IsExact<Parameters<typeof testRoute.buildQuery>[0], { a?: (string | boolean | undefined)[] | number }>>(
-        true
-    );
+    assert<
+        IsExact<Parameters<typeof testRoute.buildQuery>[0], { a?: (string | number | boolean | undefined)[] | number }>
+    >(true);
 
     expect(testRoute.parseQuery(testRoute.buildQuery({ a: 1 }))).toEqual({ a: 1 });
     expect(testRoute.parseQuery(testRoute.buildQuery({ a: ["abc", true] }))).toEqual({ a: ["abc", true] });
@@ -376,6 +376,13 @@ it("respects param order", () => {
 
     expect(testRouteNumbers.parseQuery(testRouteNumbers.buildQuery({ a: "1" }))).toEqual({ a: 1 });
     expect(testRouteBooleans.parseQuery(testRouteBooleans.buildQuery({ a: true }))).toEqual({ a: "true" });
+});
+
+it("allows to pass numbers and booleans to string query parameter", () => {
+    const testRoute = route(path("/test"), query({ a: param.string }));
+
+    expect(testRoute.parseQuery(testRoute.buildQuery({ a: 1 }))).toEqual({ a: "1" });
+    expect(testRoute.parseQuery(testRoute.buildQuery({ a: true }))).toEqual({ a: "true" });
 });
 
 it("allows to specify hash", () => {
