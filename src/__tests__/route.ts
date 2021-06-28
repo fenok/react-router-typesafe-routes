@@ -25,7 +25,7 @@ it("allows path without parameters", () => {
     ).toMatchObject({ path: undefined });
 });
 
-it("infers path params from path", () => {
+it("infers path param from path", () => {
     const testRoute = route(path("/test/:id(\\d+)/:id2?/:id3*"));
 
     assert<
@@ -60,7 +60,7 @@ it("infers path params from path", () => {
     expect(testRoute.parse({ foo: "abc" })).toMatchObject({ path: undefined });
 });
 
-it("allows to redefine and narrow path params", () => {
+it("allows to redefine and narrow path param", () => {
     // Parameters of this path are inferred incorrectly
     const testRoute = route(
         path("/test/:id(true|false)/:id2(\\d+)?/:id3*", {
@@ -97,7 +97,7 @@ it("allows to redefine and narrow path params", () => {
     expect(testRoute.parse({ foo: "abc" })).toMatchObject({ path: undefined });
 });
 
-it("allows to specify unions for path params", () => {
+it("allows to specify unions for path param", () => {
     const testRoute = route(path("/test/:id", { id: param.oneOf("1", "2") }));
     const testOptionalRoute = route(path("/test/:id?", { id: param.oneOf("1", "2").optional }));
 
@@ -118,7 +118,7 @@ it("allows to specify unions for path params", () => {
     expect(testOptionalRoute.parsePath({})).toEqual({ id: undefined });
 });
 
-it("allows to specify array of casters", () => {
+it("allows to specify array of param", () => {
     const testRoute = route(path("/test/:id", { id: [param.number, param.oneOf("abc", true)] }));
     const testOptionalRoute = route(path("/test/:id?", { id: [param.number, param.oneOf("abc", true).optional] }));
 
@@ -141,13 +141,13 @@ it("allows to specify array of casters", () => {
     expect(testOptionalRoute.parsePath({})).toEqual({ id: undefined });
 });
 
-it("allows to use query params", () => {
+it("allows to use query param", () => {
     const testRoute = route(
         path("/test"),
         query(null, { parseNumbers: true, parseBooleans: true, arrayFormat: "bracket" })
     );
 
-    // Build params are typed as Record<string, any> due to https://github.com/sindresorhus/query-string/issues/298
+    // Build param are typed as Record<string, any> due to https://github.com/sindresorhus/query-string/issues/298
     assert<IsExact<Parameters<typeof testRoute.build>[1], Record<string, any> | null | undefined>>(true);
     assert<
         IsExact<
@@ -167,7 +167,7 @@ it("allows to use query params", () => {
     });
 });
 
-it("allows to redefine and narrow query params", () => {
+it("allows to redefine and narrow query param", () => {
     const testRoute = route(
         path("/test"),
         query(
@@ -370,7 +370,7 @@ it("allows to specify unions for query keys", () => {
     expect(testRoute.parseQuery("?n=4&f[]=baz")).toEqual({ n: undefined, f: undefined });
 });
 
-it("respects casters order", () => {
+it("respects param order", () => {
     const testRouteNumbers = route(path("/test"), query({ a: [param.number, param.string] }));
     const testRouteBooleans = route(path("/test"), query({ a: [param.string, param.boolean] }));
 

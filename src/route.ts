@@ -1,6 +1,6 @@
-import { GenericPathParams, PathProcessor } from "./path-processors";
-import { QueryProcessor } from "./query-processors";
-import { HashProcessor } from "./hash-processors";
+import { GenericPathParams, PathProcessor } from "./path";
+import { QueryProcessor } from "./query";
+import { HashProcessor } from "./hash";
 import { match } from "react-router";
 import * as H from "history";
 

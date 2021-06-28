@@ -19,7 +19,7 @@ import { route, path, query, hash } from "react-router-typesafe-routes";
 const routes = {
     MAIN: route(
         // Any string that react-router can work with
-        // Path params type for build is inferred as {}
+        // Path param type for build is inferred as {}
         path("/main"),
         // No query on this route
         null,
@@ -27,10 +27,10 @@ const routes = {
         hash<"" | "about" | "subscribe">()
     ),
     PRODUCT: route(
-        // Path params type for build is inferred as { id: number | string | boolean }
-        // Optional params are also recognized
+        // Path param type for build is inferred as { id: number | string | boolean }
+        // Optional param are also recognized
         path("/product/:id(\\d+)"),
-        // Query params for build and options for query-string
+        // Query param for build and options for query-string
         query<{ search: string }>({ stringify: { skipEmptyString: true } })
     ),
 };
@@ -83,14 +83,14 @@ import { routes } from "./path/to/routes";
 import { useParams, useLocation, useRouteMatch } from "react-router";
 
 const Component = () => {
-    // Parse all params
+    // Parse all param
     // 'path' is typed as { id: string } | undefined
     // 'path' is undefined if we are not on expected route
     // 'query' is typed as { search?: AnyParsedValue }, where AnyParsedValue is anything that can come from query-string
     // 'hash' is typed as unknown since we didn't specify it for that route
     const { path, query, hash } = routes.PRODUCT.parse(useRouteMatch(), useLocation());
 
-    // Parse all params, slightly less reliable
+    // Parse all param, slightly less reliable
     const paramsResult = routes.PRODUCT.parse(useParams(), useLocation());
 
     // Parse only path

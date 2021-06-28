@@ -1,7 +1,7 @@
 import { ExtractRouteParams, generatePath, match } from "react-router";
 import { GenericPathParams, PathProcessor } from "./interface";
 import { Key, parse } from "path-to-regexp";
-import { applyCasters, Caster } from "../casters";
+import { applyCasters, Caster } from "../param";
 
 export type ToGenericPathParams<T> = {
     [TKey in keyof T]: T[TKey] extends string | undefined ? T[TKey] : string;
