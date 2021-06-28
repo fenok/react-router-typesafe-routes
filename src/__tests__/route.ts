@@ -70,7 +70,9 @@ it("allows to redefine and narrow path param", () => {
         })
     );
 
-    assert<IsExact<Parameters<typeof testRoute.build>[0], { id: boolean; id2?: number; id3?: string }>>(true);
+    assert<
+        IsExact<Parameters<typeof testRoute.build>[0], { id: boolean; id2?: number; id3?: string | number | boolean }>
+    >(true);
 
     expect(testRoute.build({ id: true })).toBe("/test/true");
     expect(testRoute.build({ id: true, id2: 2 })).toBe("/test/true/2");
@@ -95,6 +97,13 @@ it("allows to redefine and narrow path param", () => {
     });
     expect(testRoute.parse({ id2: "1", id3: "abc" })).toMatchObject({ path: undefined });
     expect(testRoute.parse({ foo: "abc" })).toMatchObject({ path: undefined });
+});
+
+it("allows to specify number and booleans for string path param", () => {
+    const testRoute = route(path("/test/:id", { id: param.string }));
+
+    expect(testRoute.buildPath({ id: 1 })).toBe("/test/1");
+    expect(testRoute.buildPath({ id: true })).toBe("/test/true");
 });
 
 it("allows to specify unions for path param", () => {

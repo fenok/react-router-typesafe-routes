@@ -12,14 +12,14 @@ export type QueryTypes<TOptions extends QueryOptions = Record<string, unknown>, 
 export type QueryParams<TCasters, TLoose extends boolean = false> = {
     [Key in keyof TCasters]?: TCasters[Key] extends Caster<infer TType>[] | Caster<infer TType>
         ? TType extends (infer TArrayType)[]
-            ? (TLoose extends true ? Loosify<TArrayType> : TArrayType)[]
+            ? (TLoose extends true ? LoosifyQueryType<TArrayType> : TArrayType)[]
             : TLoose extends true
-            ? Loosify<TType>
+            ? LoosifyQueryType<TType>
             : TType
         : never;
 };
 
-export type Loosify<T> = string extends T ? T | number | boolean | undefined : T | undefined;
+export type LoosifyQueryType<T> = string extends T ? T | number | boolean | undefined : T | undefined;
 
 export type KnownTypes<Options extends QueryOptions> = Options["parseBooleans"] extends true
     ? Options["parseNumbers"] extends true

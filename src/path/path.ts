@@ -7,12 +7,22 @@ export type ToGenericPathParams<T> = {
     [TKey in keyof T]: T[TKey] extends string | undefined ? T[TKey] : string;
 };
 
-export type ParamsFromCasters<T> = {
-    [TKey in keyof T]?: T[TKey] extends Caster<infer Type> | Caster<infer Type>[] ? Type : never;
+export type ParamsFromCasters<T, Loosify extends boolean = false> = {
+    [TKey in keyof T]?: T[TKey] extends Caster<infer Type> | Caster<infer Type>[]
+        ? Loosify extends true
+            ? LoosifyPathType<Type>
+            : Type
+        : never;
 } &
     {
-        [TKey in RequiredKeys<T>]: T[TKey] extends Caster<infer Type> | Caster<infer Type>[] ? Type : never;
+        [TKey in RequiredKeys<T>]: T[TKey] extends Caster<infer Type> | Caster<infer Type>[]
+            ? Loosify extends true
+                ? LoosifyPathType<Type>
+                : Type
+            : never;
     };
+
+export type LoosifyPathType<T> = string extends T ? T | number | boolean : T;
 
 export type RequiredKeys<T> = {
     [TKey in keyof T]: T[TKey] extends Caster<infer Type> | Caster<infer Type>[]
@@ -34,7 +44,7 @@ export function path<
     shape?: T
 ): PathProcessor<
     Path,
-    {} extends T ? ExtractRouteParams<Path> : ParamsFromCasters<T>,
+    {} extends T ? ExtractRouteParams<Path> : ParamsFromCasters<T, true>,
     ({} extends T ? ToGenericPathParams<ExtractRouteParams<Path>> : ParamsFromCasters<T>) | undefined
 > {
     let requiredParams: string[];
