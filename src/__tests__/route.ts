@@ -1,4 +1,4 @@
-import { cast, query, hash, path, route, valid } from "../index";
+import { query, hash, path, route, param } from "../index";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("allows path without parameters", () => {
@@ -64,9 +64,9 @@ it("allows to redefine and narrow path params", () => {
     // Parameters of this path are inferred incorrectly
     const testRoute = route(
         path("/test/:id(true|false)/:id2(\\d+)?/:id3*", {
-            id: cast.boolean,
-            id2: cast.number.optional,
-            id3: cast.string.optional,
+            id: param.boolean,
+            id2: param.number.optional,
+            id3: param.string.optional,
         })
     );
 
@@ -98,8 +98,8 @@ it("allows to redefine and narrow path params", () => {
 });
 
 it("allows to specify unions for path params", () => {
-    const testRoute = route(path("/test/:id", { id: cast.oneOf("1", "2") }));
-    const testOptionalRoute = route(path("/test/:id?", { id: cast.oneOf("1", "2").optional }));
+    const testRoute = route(path("/test/:id", { id: param.oneOf("1", "2") }));
+    const testOptionalRoute = route(path("/test/:id?", { id: param.oneOf("1", "2").optional }));
 
     assert<IsExact<Parameters<typeof testRoute.buildPath>[0], { id: "1" | "2" }>>(true);
     assert<IsExact<ReturnType<typeof testRoute.parsePath>, { id: "1" | "2" } | undefined>>(true);
@@ -119,8 +119,8 @@ it("allows to specify unions for path params", () => {
 });
 
 it("allows to specify array of casters", () => {
-    const testRoute = route(path("/test/:id", { id: [cast.number, cast.oneOf("abc", true)] }));
-    const testOptionalRoute = route(path("/test/:id?", { id: [cast.number, cast.oneOf("abc", true).optional] }));
+    const testRoute = route(path("/test/:id", { id: [param.number, param.oneOf("abc", true)] }));
+    const testOptionalRoute = route(path("/test/:id?", { id: [param.number, param.oneOf("abc", true).optional] }));
 
     assert<IsExact<Parameters<typeof testRoute.buildPath>[0], { id: number | "abc" | true }>>(true);
     assert<IsExact<ReturnType<typeof testRoute.parsePath>, { id: number | "abc" | true } | undefined>>(true);
@@ -172,11 +172,11 @@ it("allows to redefine and narrow query params", () => {
         path("/test"),
         query(
             {
-                a: cast.string,
-                b: cast.boolean,
-                c: cast.number,
-                d: cast.null,
-                f: cast.arrayOf(cast.number),
+                a: param.string,
+                b: param.boolean,
+                c: param.number,
+                d: param.null,
+                f: param.arrayOf(param.number),
             },
             { arrayFormat: "bracket" }
         )
@@ -217,13 +217,13 @@ it("allows to redefine and narrow query params", () => {
 });
 
 it("preserves unknown (and therefore untyped) query keys", () => {
-    const testRoute = route(path("/test"), query({ a: cast.string }));
+    const testRoute = route(path("/test"), query({ a: param.string }));
 
     expect(testRoute.parseQuery("?a=abc&b=bar")).toEqual({ a: "abc", b: "bar" });
 });
 
 it("allows single value to be stored as array regardless of array format", () => {
-    const queryShape = { a: cast.arrayOf(cast.string) };
+    const queryShape = { a: param.arrayOf(param.string) };
 
     const defaultRoute = route(path("/test"), query(queryShape));
     const bracketRoute = route(path("/test"), query(queryShape, { arrayFormat: "bracket" }));
@@ -270,8 +270,8 @@ it("allows single value to be stored as array regardless of array format", () =>
 });
 
 it("detects whether it is possible to store null values in array", () => {
-    const arrayNull = { a: cast.arrayOf(cast.number, cast.null) };
-    const flatNull = { a: [cast.number, cast.null] };
+    const arrayNull = { a: param.arrayOf(param.number, param.null) };
+    const flatNull = { a: [param.number, param.null] };
 
     const defaultRoute = route(path("/test"), query(arrayNull));
     const bracketRoute = route(path("/test"), query(arrayNull, { arrayFormat: "bracket" }));
@@ -325,7 +325,7 @@ it("allows types that are either array or single value in query", () => {
     const testRoute = route(
         path("/test"),
         query(
-            { a: [cast.number, cast.arrayOf<string | boolean>(cast.boolean, cast.string)] },
+            { a: [param.number, param.arrayOf<string | boolean>(param.boolean, param.string)] },
             { arrayFormat: "bracket" }
         )
     );
@@ -346,8 +346,8 @@ it("allows to specify unions for query keys", () => {
         path("/test"),
         query(
             {
-                n: cast.oneOf(1, 2, "abc"),
-                f: cast.arrayOf(cast.oneOf("foo", "bar")),
+                n: param.oneOf(1, 2, "abc"),
+                f: param.arrayOf(param.oneOf("foo", "bar")),
             },
             { arrayFormat: "bracket" }
         )
@@ -371,8 +371,8 @@ it("allows to specify unions for query keys", () => {
 });
 
 it("respects casters order", () => {
-    const testRouteNumbers = route(path("/test"), query({ a: [cast.number, cast.string] }));
-    const testRouteBooleans = route(path("/test"), query({ a: [cast.string, cast.boolean] }));
+    const testRouteNumbers = route(path("/test"), query({ a: [param.number, param.string] }));
+    const testRouteBooleans = route(path("/test"), query({ a: [param.string, param.boolean] }));
 
     expect(testRouteNumbers.parseQuery(testRouteNumbers.buildQuery({ a: "1" }))).toEqual({ a: 1 });
     expect(testRouteBooleans.parseQuery(testRouteBooleans.buildQuery({ a: true }))).toEqual({ a: "true" });

@@ -10,13 +10,13 @@ export interface WithOptional<T> {
     optional: Caster<T | undefined>;
 }
 
-function assertDefined<T>(value: T): asserts value is Exclude<T, undefined> {
+export function assertDefined<T>(value: T): asserts value is Exclude<T, undefined> {
     if (typeof value === "undefined") {
         throw new Error("Got undefined in required field");
     }
 }
 
-function assertSingle<TArray extends ArrayValueFromString, TSingle extends SingleValueFromString>(
+export function assertSingle<TArray extends ArrayValueFromString, TSingle extends SingleValueFromString>(
     value: TArray | TSingle
 ): asserts value is TSingle {
     if (Array.isArray(value)) {
@@ -24,13 +24,13 @@ function assertSingle<TArray extends ArrayValueFromString, TSingle extends Singl
     }
 }
 
-function assertNonNull<T>(value: T): asserts value is Exclude<T, null> {
+export function assertNonNull<T>(value: T): asserts value is Exclude<T, null> {
     if (value === null) {
         throw new Error("Got unexpected null value");
     }
 }
 
-function castNumber(value: ValueFromString): number {
+export function castNumber(value: ValueFromString): number {
     assertDefined(value);
     assertSingle(value);
     assertNonNull(value);
@@ -44,7 +44,7 @@ function castNumber(value: ValueFromString): number {
     return result;
 }
 
-function castBoolean(value: ValueFromString): boolean {
+export function castBoolean(value: ValueFromString): boolean {
     assertDefined(value);
     assertSingle(value);
     assertNonNull(value);
@@ -55,7 +55,7 @@ function castBoolean(value: ValueFromString): boolean {
     throw new Error(`Failed to convert ${value} to boolean`);
 }
 
-function castString(value: ValueFromString): string {
+export function castString(value: ValueFromString): string {
     assertDefined(value);
     assertSingle(value);
     assertNonNull(value);
@@ -63,7 +63,7 @@ function castString(value: ValueFromString): string {
     return value;
 }
 
-function castNull(value: ValueFromString): null {
+export function castNull(value: ValueFromString): null {
     if (value === null) {
         return null;
     }
@@ -71,7 +71,7 @@ function castNull(value: ValueFromString): null {
     throw new Error("Got non-null value where null expected");
 }
 
-function castOneOf<T extends string | number | boolean>(values: T[], value: ValueFromString): T {
+export function castOneOf<T extends string | number | boolean>(values: T[], value: ValueFromString): T {
     assertDefined(value);
     assertSingle(value);
     assertNonNull(value);
@@ -92,13 +92,14 @@ function castOneOf<T extends string | number | boolean>(values: T[], value: Valu
             if (canonicalValue === values[values.length - 1]) {
                 throw new Error("Couldn't cast value to any of the given variants");
             }
+            // Otherwise try next value
         }
     }
 
     throw new Error(`No matching value for ${value}`);
 }
 
-function castArrayOf<T>(casters: Caster<T>[], value: ValueFromString): T[] {
+export function castArrayOf<T>(casters: Caster<T>[], value: ValueFromString): T[] {
     const arrayValue = Array.isArray(value) ? value : [value];
 
     return arrayValue.map((item) => applyCasters(item, ...casters));
@@ -121,7 +122,7 @@ export function applyCasters<T>(value: ValueFromString, ...casters: Caster<T>[])
     throw new Error("No casters provided");
 }
 
-function optional<T>(cast: (value: ValueFromString) => T): (value: ValueFromString) => T | undefined {
+export function optional<T>(cast: (value: ValueFromString) => T): (value: ValueFromString) => T | undefined {
     return (value) => {
         if (typeof value === "undefined") {
             return value;
@@ -139,7 +140,7 @@ export interface Cast {
     arrayOf<T>(...casters: Caster<T>[]): Caster<T[]> & WithOptional<T[]>;
 }
 
-export const cast: Cast = {
+export const param: Cast = {
     string: {
         cast: castString,
         optional: {
