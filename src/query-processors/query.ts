@@ -4,20 +4,20 @@ import { applyCasters, Caster } from "../path-processors";
 
 export type QueryOptions = StringifyOptions & ParseOptions;
 
-export type QueryTypes<Options extends QueryOptions = Record<string, unknown>, T = string | number | boolean> =
+export type QueryTypes<TOptions extends QueryOptions = Record<string, unknown>, T = string | number | boolean> =
     | T
     | null
-    | (CanStoreNullInArray<Options> extends true ? T | null : T)[];
+    | (NullInArray<TOptions> extends true ? T | null : T)[];
 
-export type QueryParamsFromCasters<T, Loose extends boolean = false> = {
-    [Key in keyof T]?: T[Key] extends Caster<infer Type>[] | Caster<infer Type>
-        ? Type extends (infer ArrayType)[]
-            ? AddUndefined<ArrayType, Loose>[]
-            : Type
+export type QueryParams<TCasters, TLoose extends boolean = false> = {
+    [Key in keyof TCasters]?: TCasters[Key] extends Caster<infer TType>[] | Caster<infer TType>
+        ? TType extends (infer TArrayType)[]
+            ? AddUndefined<TArrayType, TLoose>[]
+            : TType
         : never;
 };
 
-export type AddUndefined<T, Add extends boolean> = true extends Add ? T | undefined : T;
+export type AddUndefined<T, Add extends boolean> = Add extends true ? T | undefined : T;
 
 export type KnownTypes<Options extends QueryOptions> = Options["parseBooleans"] extends true
     ? Options["parseNumbers"] extends true
@@ -27,7 +27,7 @@ export type KnownTypes<Options extends QueryOptions> = Options["parseBooleans"] 
     ? string | number
     : string;
 
-export type CanStoreNullInArray<Options extends QueryOptions> = undefined extends Options["arrayFormat"]
+export type NullInArray<Options extends QueryOptions> = undefined extends Options["arrayFormat"]
     ? true
     : Options["arrayFormat"] extends "bracket" | "index" | "none"
     ? true
@@ -41,13 +41,13 @@ export function query<Options extends QueryOptions>(
 export function query<
     Options extends QueryOptions & { parseBooleans?: false; parseNumbers?: false },
     T extends Record<string, Caster<QueryTypes<Options>> | Caster<QueryTypes<Options>>[]>
->(shape?: T, options?: Options): QueryProcessor<QueryParamsFromCasters<T, true>, QueryParamsFromCasters<T>>;
+>(shape?: T, options?: Options): QueryProcessor<QueryParams<T, true>, QueryParams<T>>;
 
 export function query(
     shape?: null | Record<string, Caster<QueryTypes> | Caster<QueryTypes>[]>,
     options: QueryOptions = {}
 ): QueryProcessor<Record<string, any>, Record<string, any>> {
-    function cast(object: Record<string, any>) {
+    function cast(object: Record<string, QueryTypes<Record<string, unknown>, string>>) {
         const result: Record<string, any> = {};
 
         Object.keys(object).forEach((key) => {
