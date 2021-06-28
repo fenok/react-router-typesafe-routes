@@ -100,7 +100,7 @@ const locationResult = fullRoute.parse(null, useLocation());
 
 ### `param`
 
-The `param` helper is used to define types for path and query params. Internally it transforms values to desired types and throws if it's not possible.
+The `param` helper is used to define types for path and query params. Internally it transforms values from path and query to desired types and throws if it's not possible.
 
 The possible values are:
 
@@ -111,6 +111,8 @@ The possible values are:
 -   `param.oneOf()` - one of the given single values, for instance `param.oneOf(1, 'a', true)`
 -   `param.arrayOf()` - array of the given params, for instance `param.arrayOf(param.number)`
 
+All the above values also have an `.optional` modifier, which means that the corresponding field may be `undefined`.
+
 While you most likely won't need this, for the sake of completeness you can combine them into arrays like this: `[param.number, param.boolean]`. That means `number | boolean` in terms of TS.
 
 In fact, you can combine them in any way that processors allow, for instance `[param.arrayOf(param.oneOf('a', 'b'), param.number), param.boolean]` means `('a' | 'b' | number)[] | boolean`. Use with caution.
@@ -120,6 +122,36 @@ It's important to understand that URL doesn't store type information. It means t
 In practice, it means that you should always specify the string transformer last, otherwise you may get a string value that is technically correct, but likely not what you expected.
 
 It's also important to avoid overlapping transformers. For instance, `param.oneOf(1, '1')` is useless, because `'1'` will never be reached.
+
+There is one more nuance specific to `param.string`. On build, such a field will also accept `number` and `boolean` values, since they are trivially convertable to string. On parse, though, such a field will always be `string`.
+
+### `path`
+
+A path processor is created via the `path` helper. In a simple scenario, you can just pass a URL path to it and already have some typing. That's exactly how `generatePath` from react-router works.
+
+```typescript
+const myRoute = route(path("/test/:id"));
+
+// { id: string | number | boolean }
+const url = myRoute.build({ id: 1 });
+
+// { id: string }
+const { path } = myRoute.parse({ id: "1" });
+```
+
+In a lot of cases you can get away with that. However, at the time of this writing it breaks on complex scenarios like this: `/test/:id(\\d+)?`. It likely will improve, but what if we want to fix it right now? What if we want more precise typing on parsed params?
+
+In that case we can completely override inferred type with our own:
+
+```typescript
+const myRoute = route(path("/test/:id(\\d+)?", { id: param.number.optional }));
+
+// { id?: number }
+const url = myRoute.build({ id: 1 });
+
+// { id?: number }
+const { path } = myRoute.parse({ id: "1" });
+```
 
 ## How is it different from existing solutions?
 
