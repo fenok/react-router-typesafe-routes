@@ -4,7 +4,8 @@
     "types": "dist/index.d.ts",
     "scripts": {
         "lint": "eslint .",
-        "build": "rimraf dist && tsc"
+        "build": "rimraf dist && tsc",
+        "test": "jest"
     },
     "devDependencies": {
         "@types/history": "^4.7.8",
