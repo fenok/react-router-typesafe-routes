@@ -4,14 +4,14 @@ import { assert, IsExact } from "conditional-type-checks";
 it("allows path without parameters", () => {
     const testRoute = route(path("/test"));
 
-    assert<IsExact<Parameters<typeof testRoute.build>[0], {}>>(true);
+    assert<IsExact<Parameters<typeof testRoute.build>[0], Record<string, unknown>>>(true);
 
     expect(testRoute.build({})).toBe("/test");
 
     // Reminder that any truthy value can be passed, but that's how react-router generatePath is typed
     expect(testRoute.build({ any: "value" })).toBe("/test");
 
-    assert<IsExact<ReturnType<typeof testRoute.parse>["path"], {} | undefined>>(true);
+    assert<IsExact<ReturnType<typeof testRoute.parse>["path"], Record<string, unknown> | undefined>>(true);
 
     expect(testRoute.parse({})).toMatchObject({ path: {} });
     expect(testRoute.parse({ params: {}, isExact: false, path: "/test", url: "/test" })).toMatchObject({ path: {} });

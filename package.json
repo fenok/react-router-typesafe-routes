@@ -2,6 +2,9 @@
     "name": "react-router-typesafe-routes",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "scripts": {
+        "lint": "eslint ."
+    },
     "devDependencies": {
         "@types/history": "^4.7.8",
         "@types/jest": "^26.0.23",
