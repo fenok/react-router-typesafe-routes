@@ -7,46 +7,50 @@ export type ToGenericPathParams<T> = {
     [TKey in keyof T]: T[TKey] extends string | undefined ? T[TKey] : string;
 };
 
-export type ParamsFromCasters<T, Loosify extends boolean = false> = {
-    [TKey in keyof T]?: T[TKey] extends Caster<infer Type> | Caster<infer Type>[]
-        ? Loosify extends true
-            ? LoosifyPathType<Type>
-            : Type
+export type PathParams<TCasters, TLoose extends boolean = false> = {
+    [TKey in keyof TCasters]?: TCasters[TKey] extends Caster<infer TType> | Caster<infer TType>[]
+        ? TLoose extends true
+            ? LoosePathType<TType>
+            : TType
         : never;
 } &
     {
-        [TKey in RequiredKeys<T>]: T[TKey] extends Caster<infer Type> | Caster<infer Type>[]
-            ? Loosify extends true
-                ? LoosifyPathType<Type>
-                : Type
+        [TKey in RequiredKeys<TCasters>]: TCasters[TKey] extends Caster<infer TType> | Caster<infer TType>[]
+            ? TLoose extends true
+                ? LoosePathType<TType>
+                : TType
             : never;
     };
 
-export type LoosifyPathType<T> = string extends T ? T | number | boolean : T;
+export type LoosePathType<T> = string extends T ? T | number | boolean : T;
 
 export type RequiredKeys<T> = {
-    [TKey in keyof T]: T[TKey] extends Caster<infer Type> | Caster<infer Type>[]
-        ? undefined extends Type
+    [TKey in keyof T]: T[TKey] extends Caster<infer TType> | Caster<infer TType>[]
+        ? undefined extends TType
             ? never
             : TKey
         : never;
 }[keyof T];
 
+export function path<TPath extends string>(
+    path: TPath
+): PathProcessor<TPath, ExtractRouteParams<TPath>, ToGenericPathParams<ExtractRouteParams<TPath>> | undefined>;
+
 export function path<
-    Path extends string,
-    T extends {
-        [Key in string]:
-            | Caster<string | number | boolean | undefined>
-            | Caster<string | number | boolean | undefined>[];
-    } = {}
->(
-    path: Path,
-    shape?: T
-): PathProcessor<
-    Path,
-    {} extends T ? ExtractRouteParams<Path> : ParamsFromCasters<T, true>,
-    ({} extends T ? ToGenericPathParams<ExtractRouteParams<Path>> : ParamsFromCasters<T>) | undefined
-> {
+    TPath extends string,
+    TCasters extends Record<
+        string,
+        Caster<string | number | boolean | undefined> | Caster<string | number | boolean | undefined>[]
+    >
+>(path: TPath, shape: TCasters): PathProcessor<TPath, PathParams<TCasters, true>, PathParams<TCasters> | undefined>;
+
+export function path(
+    path: string,
+    shape?: Record<
+        string,
+        Caster<string | number | boolean | undefined> | Caster<string | number | boolean | undefined>[]
+    >
+): PathProcessor<string, Record<string, any>, Record<string, any> | undefined> {
     let requiredParams: string[];
 
     function areParamsSufficient(params: GenericPathParams) {
@@ -77,19 +81,16 @@ export function path<
 
     return {
         path,
-        stringify(params: {} extends T ? ExtractRouteParams<Path> : ParamsFromCasters<T>): string {
+        stringify(params: Record<string, any>): string {
             return generatePath(path, params as any);
         },
-        parse(
-            matchOrParams: GenericPathParams | match | null
-        ): ({} extends T ? ToGenericPathParams<ExtractRouteParams<Path>> : ParamsFromCasters<T>) | undefined {
+        parse(matchOrParams: GenericPathParams | match | null): Record<string, any> | undefined {
             if (isMatch(matchOrParams)) {
                 if (matchOrParams && matchOrParams.path === path) {
-                    return cast(matchOrParams.params) as ToGenericPathParams<ExtractRouteParams<Path>> &
-                        ParamsFromCasters<T>;
+                    return cast(matchOrParams.params);
                 }
             } else if (areParamsSufficient(matchOrParams)) {
-                return cast(matchOrParams) as ToGenericPathParams<ExtractRouteParams<Path>> & ParamsFromCasters<T>;
+                return cast(matchOrParams);
             }
         },
     };

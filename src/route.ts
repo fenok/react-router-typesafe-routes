@@ -4,50 +4,50 @@ import { HashProcessor } from "./hash";
 import { match } from "react-router";
 import * as H from "history";
 
-export type OutPathPart<OutPath> = { path: OutPath };
-export type OutLocationPart<OutQuery, OutHash> = { query: OutQuery; hash: OutHash };
+export type OutPathPart<TOutPath> = { path: TOutPath };
+export type OutLocationPart<TOutQuery, TOutHash> = { query: TOutQuery; hash: TOutHash };
 export type OutEmptyLocationPart = { query: undefined; hash: undefined };
 
 export function route<
-    Path extends string,
-    InPath,
-    OutPath,
-    InQuery = never,
-    OutQuery = never,
-    InHash = never,
-    OutHash = never
+    TPath extends string,
+    TInPath,
+    TOutPath,
+    TInQuery = never,
+    TOutQuery = never,
+    TInHash = never,
+    TOutHash = never
 >(
-    pathProcessor: PathProcessor<Path, InPath, OutPath>,
-    queryProcessor?: QueryProcessor<InQuery, OutQuery> | null,
-    hashProcessor?: HashProcessor<InHash, OutHash> | null
+    pathProcessor: PathProcessor<TPath, TInPath, TOutPath>,
+    queryProcessor?: QueryProcessor<TInQuery, TOutQuery> | null,
+    hashProcessor?: HashProcessor<TInHash, TOutHash> | null
 ) {
-    function build(path: InPath, query?: InQuery | null, hash?: InHash | null) {
+    function build(path: TInPath, query?: TInQuery | null, hash?: TInHash | null) {
         return `${path ? buildPath(path) : pathProcessor.path}${query ? buildQuery(query) : ""}${
             hash ? buildHash(hash) : ""
         }`;
     }
 
-    function buildPath(pathParams: InPath): string {
+    function buildPath(pathParams: TInPath): string {
         return pathProcessor.stringify(pathParams);
     }
 
-    function buildQuery(queryParams: InQuery): string {
+    function buildQuery(queryParams: TInQuery): string {
         return queryProcessor?.stringify(queryParams) || "";
     }
 
-    function buildHash(hashValue: InHash): string {
+    function buildHash(hashValue: TInHash): string {
         return hashProcessor?.stringify(hashValue) || "";
     }
 
-    function parse(matchOrParams: GenericPathParams | match | null): OutPathPart<OutPath> & OutEmptyLocationPart;
+    function parse(matchOrParams: GenericPathParams | match | null): OutPathPart<TOutPath> & OutEmptyLocationPart;
     function parse(
         matchOrParams: GenericPathParams | match | null,
         location?: H.Location
-    ): OutPathPart<OutPath> & OutLocationPart<OutQuery, OutHash>;
+    ): OutPathPart<TOutPath> & OutLocationPart<TOutQuery, TOutHash>;
     function parse(
         matchOrParams: GenericPathParams | match | null,
         location?: H.Location
-    ): OutPathPart<OutPath> & Partial<OutLocationPart<OutQuery, OutHash>> {
+    ): OutPathPart<TOutPath> & Partial<OutLocationPart<TOutQuery, TOutHash>> {
         return {
             path: parsePath(matchOrParams),
             query: location && parseQuery(location.search),
@@ -55,16 +55,16 @@ export function route<
         };
     }
 
-    function parsePath(matchOrParams: GenericPathParams | match | null): OutPath {
+    function parsePath(matchOrParams: GenericPathParams | match | null): TOutPath {
         return pathProcessor.parse(matchOrParams);
     }
 
-    function parseQuery(queryString: string): OutQuery {
-        return queryProcessor?.parse(queryString) as OutQuery;
+    function parseQuery(queryString: string): TOutQuery {
+        return queryProcessor?.parse(queryString) as TOutQuery;
     }
 
-    function parseHash(hashString: string): OutHash {
-        return hashProcessor?.parse(hashString) as OutHash;
+    function parseHash(hashString: string): TOutHash {
+        return hashProcessor?.parse(hashString) as TOutHash;
     }
 
     return {

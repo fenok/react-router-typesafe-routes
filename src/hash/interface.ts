@@ -1,4 +1,4 @@
-export interface HashProcessor<InHash, OutHash> {
-    stringify(hash: InHash): string;
-    parse(hash: string): OutHash;
+export interface HashProcessor<TInHash, TOutHash> {
+    stringify(hash: TInHash): string;
+    parse(hash: string): TOutHash;
 }

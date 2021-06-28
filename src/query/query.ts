@@ -12,38 +12,38 @@ export type QueryTypes<TOptions extends QueryOptions = Record<string, unknown>, 
 export type QueryParams<TCasters, TLoose extends boolean = false> = {
     [Key in keyof TCasters]?: TCasters[Key] extends Caster<infer TType>[] | Caster<infer TType>
         ? TType extends (infer TArrayType)[]
-            ? (TLoose extends true ? LoosifyQueryType<TArrayType> : TArrayType)[]
+            ? (TLoose extends true ? LooseQueryType<TArrayType> : TArrayType)[]
             : TLoose extends true
-            ? LoosifyQueryType<TType>
+            ? LooseQueryType<TType>
             : TType
         : never;
 };
 
-export type LoosifyQueryType<T> = string extends T ? T | number | boolean | undefined : T | undefined;
+export type LooseQueryType<T> = string extends T ? T | number | boolean | undefined : T | undefined;
 
-export type KnownTypes<Options extends QueryOptions> = Options["parseBooleans"] extends true
-    ? Options["parseNumbers"] extends true
+export type KnownTypes<TOptions extends QueryOptions> = TOptions["parseBooleans"] extends true
+    ? TOptions["parseNumbers"] extends true
         ? string | number | boolean
         : string | boolean
-    : Options["parseNumbers"] extends true
+    : TOptions["parseNumbers"] extends true
     ? string | number
     : string;
 
-export type NullInArray<Options extends QueryOptions> = undefined extends Options["arrayFormat"]
+export type NullInArray<TOptions extends QueryOptions> = undefined extends TOptions["arrayFormat"]
     ? true
-    : Options["arrayFormat"] extends "bracket" | "index" | "none"
+    : TOptions["arrayFormat"] extends "bracket" | "index" | "none"
     ? true
     : false;
 
-export function query<Options extends QueryOptions>(
+export function query<TOptions extends QueryOptions>(
     shape?: null,
-    options?: Options
-): QueryProcessor<Record<string, any>, Record<string, QueryTypes<Options, KnownTypes<Options>>>>;
+    options?: TOptions
+): QueryProcessor<Record<string, any>, Record<string, QueryTypes<TOptions, KnownTypes<TOptions>>>>;
 
 export function query<
-    Options extends QueryOptions & { parseBooleans?: false; parseNumbers?: false },
-    T extends Record<string, Caster<QueryTypes<Options>> | Caster<QueryTypes<Options>>[]>
->(shape?: T, options?: Options): QueryProcessor<QueryParams<T, true>, QueryParams<T>>;
+    TOptions extends QueryOptions & { parseBooleans?: false; parseNumbers?: false },
+    TCasters extends Record<string, Caster<QueryTypes<TOptions>> | Caster<QueryTypes<TOptions>>[]>
+>(shape?: TCasters, options?: TOptions): QueryProcessor<QueryParams<TCasters, true>, QueryParams<TCasters>>;
 
 export function query(
     shape?: null | Record<string, Caster<QueryTypes> | Caster<QueryTypes>[]>,
