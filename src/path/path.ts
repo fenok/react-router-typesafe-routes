@@ -82,7 +82,7 @@ export function path(
     return {
         path,
         stringify(params: Record<string, any>): string {
-            return generatePath(path, params as any);
+            return generatePath(path, params);
         },
         parse(matchOrParams: GenericPathParams | match | null): Record<string, any> | undefined {
             if (isMatch(matchOrParams)) {

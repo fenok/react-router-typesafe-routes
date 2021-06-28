@@ -22,9 +22,7 @@ export function route<
     hashProcessor?: HashProcessor<TInHash, TOutHash> | null
 ) {
     function build(path: TInPath, query?: TInQuery | null, hash?: TInHash | null) {
-        return `${path ? buildPath(path) : pathProcessor.path}${query ? buildQuery(query) : ""}${
-            hash ? buildHash(hash) : ""
-        }`;
+        return `${buildPath(path)}${query ? buildQuery(query) : ""}${hash ? buildHash(hash) : ""}`;
     }
 
     function buildPath(pathParams: TInPath): string {
