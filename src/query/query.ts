@@ -38,12 +38,13 @@ export type NullInArray<TOptions extends QueryOptions> = undefined extends TOpti
 export function query<TOptions extends QueryOptions>(
     shape?: null,
     options?: TOptions
+    // Record<string, any> due to https://github.com/sindresorhus/query-string/issues/298
 ): QueryProcessor<Record<string, any>, Record<string, QueryTypes<TOptions, KnownTypes<TOptions>>>>;
 
 export function query<
     TOptions extends QueryOptions & { parseBooleans?: false; parseNumbers?: false },
     TCasters extends Record<string, Caster<QueryTypes<TOptions>> | Caster<QueryTypes<TOptions>>[]>
->(shape?: TCasters, options?: TOptions): QueryProcessor<QueryParams<TCasters, true>, QueryParams<TCasters>>;
+>(shape: TCasters, options?: TOptions): QueryProcessor<QueryParams<TCasters, true>, QueryParams<TCasters>>;
 
 export function query(
     shape?: null | Record<string, Caster<QueryTypes> | Caster<QueryTypes>[]>,
