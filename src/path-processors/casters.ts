@@ -77,15 +77,21 @@ function castOneOf<T extends string | number | boolean>(values: T[], value: Valu
     assertNonNull(value);
 
     for (const canonicalValue of values) {
-        switch (typeof canonicalValue) {
-            case "string":
-                if (castString(value) === canonicalValue) return canonicalValue;
-                break;
-            case "number":
-                if (castNumber(value) === canonicalValue) return canonicalValue;
-                break;
-            case "boolean":
-                if (castBoolean(value) === canonicalValue) return canonicalValue;
+        try {
+            switch (typeof canonicalValue) {
+                case "string":
+                    if (castString(value) === canonicalValue) return canonicalValue;
+                    break;
+                case "number":
+                    if (castNumber(value) === canonicalValue) return canonicalValue;
+                    break;
+                case "boolean":
+                    if (castBoolean(value) === canonicalValue) return canonicalValue;
+            }
+        } catch {
+            if (canonicalValue === values[values.length - 1]) {
+                throw new Error("Couldn't cast value to any of the given variants");
+            }
         }
     }
 

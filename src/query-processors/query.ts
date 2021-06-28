@@ -1,29 +1,20 @@
 import queryString, { ParsedQuery, ParseOptions, StringifyOptions } from "query-string";
 import { QueryProcessor } from "./interface";
-import { QueryValueValidator } from "./validators";
+import { applyCasters, Caster } from "../path-processors";
 
 export type QueryOptions = StringifyOptions & ParseOptions;
 
-export type QueryParamsFromValidators<
-    T,
-    AllowedArrayTypes,
-    Options extends QueryOptions,
-    AddUndefinedToArray extends boolean
-> = {} extends T
-    ? ParsedQuery<AllowedArrayTypes>
-    : {
-          [Key in keyof T]?: T[Key] extends QueryValueValidator<infer Type>[] | QueryValueValidator<infer Type>
-              ? Type extends (infer ArrayType)[]
-                  ? true extends IsArrayInfoStored<Options>
-                      ? AddUndefined<ArrayType, AddUndefinedToArray>[]
-                      : AddUndefined<ArrayType, AddUndefinedToArray>[] | ArrayType
-                  : Type
-              : never;
-      };
+export type QueryParamsFromCasters<T, AddUndefinedToArray extends boolean> = {
+    [Key in keyof T]?: T[Key] extends Caster<infer Type>[] | Caster<infer Type>
+        ? Type extends (infer ArrayType)[]
+            ? AddUndefined<ArrayType, AddUndefinedToArray>[]
+            : Type
+        : never;
+};
 
 export type AddUndefined<T, Add extends boolean> = true extends Add ? T | undefined : T;
 
-export type GetAllowedArrayTypes<T extends QueryOptions> = T extends {}
+export type GetKnownTypes<T extends QueryOptions> = T extends {}
     ? T["parseBooleans"] extends true
         ? T["parseNumbers"] extends true
             ? string | number | boolean | (true extends CanStoreNullInArray<T> ? null : string)
@@ -33,72 +24,56 @@ export type GetAllowedArrayTypes<T extends QueryOptions> = T extends {}
         : string | (true extends CanStoreNullInArray<T> ? null : string)
     : string | (true extends CanStoreNullInArray<T> ? null : string);
 
-export type IsArrayInfoStored<Options extends QueryOptions> = undefined extends Options["arrayFormat"]
-    ? false
-    : Options["arrayFormat"] extends "bracket" | "index" | "bracket-separator"
-    ? true
-    : false;
-
 export type CanStoreNullInArray<Options extends QueryOptions> = undefined extends Options["arrayFormat"]
     ? true
     : Options["arrayFormat"] extends "bracket" | "index" | "none"
     ? true
     : false;
 
+export function query<Options extends QueryOptions = {}, KnownTypes = GetKnownTypes<Options>, T extends null = null>(
+    shape?: T,
+    options?: Options
+): QueryProcessor<Record<string, any>, ParsedQuery<KnownTypes>>;
+
+export function query<
+    Options extends QueryOptions & { parseBooleans?: false; parseNumbers?: false } = {},
+    KnownTypes = string | number | boolean | (true extends CanStoreNullInArray<Options> ? null : string),
+    T extends {
+        [Key in string]: Caster<KnownTypes | null | KnownTypes[]> | Caster<KnownTypes | null | KnownTypes[]>[];
+    } = {}
+>(shape: T, options?: Options): QueryProcessor<QueryParamsFromCasters<T, true>, QueryParamsFromCasters<T, false>>;
+
 export function query<
     Options extends QueryOptions,
-    AllowedArrayTypes = GetAllowedArrayTypes<Options>,
-    T extends {
-        [Key in keyof T]:
-            | QueryValueValidator<AllowedArrayTypes | null | AllowedArrayTypes[]>
-            | QueryValueValidator<AllowedArrayTypes | null | AllowedArrayTypes[]>[];
-    } = {}
->(
-    shape?: T,
-    options: Options = {} as Options
-): QueryProcessor<
-    QueryParamsFromValidators<T, any, Options, true>,
-    QueryParamsFromValidators<T, AllowedArrayTypes, Options, false>
-> {
-    const isArrayAware = isArrayInfoStored(options);
+    AllowedTypes = string | number | boolean | null,
+    T extends
+        | {
+              [Key in string]:
+                  | Caster<AllowedTypes | null | AllowedTypes[]>
+                  | Caster<AllowedTypes | null | AllowedTypes[]>[];
+          }
+        | null = null
+>(shape?: T, options: Options = {} as Options): QueryProcessor<Record<string, any>, Record<string, any>> {
+    function cast(object: ParsedQuery<string | null>) {
+        const result: Record<string, any> = {};
 
-    function validate(object: ParsedQuery<string | number | boolean>) {
-        const result: Partial<ParsedQuery<string | number | boolean>> = object;
-
-        for (const key in shape) {
-            const validatorOrValidatorArray = shape[key];
-            const value = object[key];
-            const validators: QueryValueValidator<unknown>[] = Array.isArray(validatorOrValidatorArray)
-                ? validatorOrValidatorArray
-                : [validatorOrValidatorArray];
-
-            if (
-                !validators.some((validator) =>
-                    validator.validate(validator.isArray && !isArrayAware && !Array.isArray(value) ? [value] : value)
-                )
-            ) {
-                result[key] = undefined;
+        Object.keys(object).forEach((key) => {
+            try {
+                result[key] = shape && shape[key] ? applyCasters(object[key], ...[shape[key]].flat()) : object[key];
+            } catch {
+                // Casting failed, but that's okay, we just omit this field
             }
-        }
+        });
 
         return result;
     }
 
     return {
-        stringify(query: QueryParamsFromValidators<T, any, Options, true>): string {
+        stringify(query: Record<string, any>): string {
             return query && Object.keys(query).length ? `?${queryString.stringify(query, options)}` : "";
         },
-        parse(query: string): QueryParamsFromValidators<T, AllowedArrayTypes, Options, false> {
-            return validate(queryString.parse(query, options)) as QueryParamsFromValidators<
-                T,
-                AllowedArrayTypes,
-                Options,
-                false
-            >;
+        parse(query: string): Record<string, any> {
+            return cast(queryString.parse(query, options));
         },
     };
-}
-
-function isArrayInfoStored(options: QueryOptions = {}) {
-    return ["bracket", "index", "bracket-separator"].includes(options.arrayFormat || "none");
 }
