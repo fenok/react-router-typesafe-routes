@@ -1,156 +1,10 @@
-import { query, hash, path, route, param } from "../index";
+import { route } from "../route";
+import { path } from "../path";
+import { query } from "../query";
+import { param } from "../param";
 import { assert, IsExact } from "conditional-type-checks";
 
-it("allows path without parameters", () => {
-    const testRoute = route(path("/test"));
-
-    assert<IsExact<Parameters<typeof testRoute.build>[0], Record<string, unknown>>>(true);
-
-    expect(testRoute.build({})).toBe("/test");
-
-    // Reminder that any truthy value can be passed, but that's how react-router generatePath is typed
-    expect(testRoute.build({ any: "value" })).toBe("/test");
-
-    assert<IsExact<ReturnType<typeof testRoute.parse>["path"], Record<string, unknown> | undefined>>(true);
-
-    expect(testRoute.parse({})).toMatchObject({ path: {} });
-    expect(testRoute.parse({ params: {}, isExact: false, path: "/test", url: "/test" })).toMatchObject({ path: {} });
-    expect(
-        testRoute.parse({
-            params: {},
-            isExact: false,
-            path: "/other-path/:id",
-            url: "/other-path/1",
-        })
-    ).toMatchObject({ path: undefined });
-});
-
-it("infers path param from path", () => {
-    const testRoute = route(path("/test/:id(\\d+)/:id2?/:id3*"));
-
-    assert<
-        IsExact<
-            Parameters<typeof testRoute.build>[0],
-            { id: string | number | boolean; id2?: string | number | boolean; id3?: string | number | boolean }
-        >
-    >(true);
-
-    expect(testRoute.build({ id: 1 })).toBe("/test/1");
-    expect(testRoute.build({ id: 1, id2: "abc" })).toBe("/test/1/abc");
-    expect(testRoute.build({ id: 1, id3: true })).toBe("/test/1/true");
-    expect(testRoute.build({ id: 1, id2: "abc", id3: true })).toBe("/test/1/abc/true");
-
-    assert<
-        IsExact<
-            ReturnType<typeof testRoute.parse>["path"],
-            | {
-                  id: string;
-                  id2?: string;
-                  id3?: string;
-              }
-            | undefined
-        >
-    >(true);
-
-    expect(testRoute.parse({ id: "1" })).toMatchObject({ path: { id: "1" } });
-    expect(testRoute.parse({ id: "1", id2: "abc", id3: "true", foo: "12" })).toMatchObject({
-        path: { id: "1", id2: "abc", id3: "true", foo: "12" },
-    });
-    expect(testRoute.parse({ id2: "abc", id3: "true" })).toMatchObject({ path: undefined });
-    expect(testRoute.parse({ foo: "abc" })).toMatchObject({ path: undefined });
-});
-
-it("allows to redefine and narrow path param", () => {
-    // Parameters of this path are inferred incorrectly
-    const testRoute = route(
-        path("/test/:id(true|false)/:id2(\\d+)?/:id3*", {
-            id: param.boolean,
-            id2: param.number.optional,
-            id3: param.string.optional,
-        })
-    );
-
-    assert<
-        IsExact<Parameters<typeof testRoute.build>[0], { id: boolean; id2?: number; id3?: string | number | boolean }>
-    >(true);
-
-    expect(testRoute.build({ id: true })).toBe("/test/true");
-    expect(testRoute.build({ id: true, id2: 2 })).toBe("/test/true/2");
-    expect(testRoute.build({ id: true, id3: "abc" })).toBe("/test/true/abc");
-    expect(testRoute.build({ id: true, id2: 2, id3: "abc" })).toBe("/test/true/2/abc");
-
-    assert<
-        IsExact<
-            ReturnType<typeof testRoute.parse>["path"],
-            | {
-                  id: boolean;
-                  id2?: number;
-                  id3?: string;
-              }
-            | undefined
-        >
-    >(true);
-
-    expect(testRoute.parse({ id: "true" })).toMatchObject({ path: { id: true } });
-    expect(testRoute.parse({ id: "true", id2: "1", id3: "abc", foo: "12" })).toMatchObject({
-        path: { id: true, id2: 1, id3: "abc", foo: "12" },
-    });
-    expect(testRoute.parse({ id2: "1", id3: "abc" })).toMatchObject({ path: undefined });
-    expect(testRoute.parse({ foo: "abc" })).toMatchObject({ path: undefined });
-});
-
-it("allows to specify number and booleans for string path param", () => {
-    const testRoute = route(path("/test/:id", { id: param.string }));
-
-    expect(testRoute.buildPath({ id: 1 })).toBe("/test/1");
-    expect(testRoute.buildPath({ id: true })).toBe("/test/true");
-});
-
-it("allows to specify unions for path param", () => {
-    const testRoute = route(path("/test/:id", { id: param.oneOf("1", "2") }));
-    const testOptionalRoute = route(path("/test/:id?", { id: param.oneOf("1", "2").optional }));
-
-    assert<IsExact<Parameters<typeof testRoute.buildPath>[0], { id: "1" | "2" }>>(true);
-    assert<IsExact<ReturnType<typeof testRoute.parsePath>, { id: "1" | "2" } | undefined>>(true);
-
-    assert<IsExact<Parameters<typeof testOptionalRoute.buildPath>[0], { id?: "1" | "2" }>>(true);
-    assert<IsExact<ReturnType<typeof testOptionalRoute.parsePath>, { id?: "1" | "2" } | undefined>>(true);
-
-    expect(testRoute.parsePath({ id: "1" })).toEqual({ id: "1" });
-    expect(testRoute.parsePath({ id: "2" })).toEqual({ id: "2" });
-    expect(testRoute.parsePath({ id: "3" })).toEqual(undefined);
-    expect(testRoute.parsePath({})).toEqual(undefined);
-
-    expect(testOptionalRoute.parsePath({ id: "1" })).toEqual({ id: "1" });
-    expect(testOptionalRoute.parsePath({ id: "2" })).toEqual({ id: "2" });
-    expect(testOptionalRoute.parsePath({ id: "3" })).toEqual(undefined);
-    expect(testOptionalRoute.parsePath({})).toEqual({ id: undefined });
-});
-
-it("allows to specify array of param", () => {
-    const testRoute = route(path("/test/:id", { id: [param.number, param.oneOf("abc", true)] }));
-    const testOptionalRoute = route(path("/test/:id?", { id: [param.number, param.oneOf("abc", true).optional] }));
-
-    assert<IsExact<Parameters<typeof testRoute.buildPath>[0], { id: number | "abc" | true }>>(true);
-    assert<IsExact<ReturnType<typeof testRoute.parsePath>, { id: number | "abc" | true } | undefined>>(true);
-
-    assert<IsExact<Parameters<typeof testOptionalRoute.buildPath>[0], { id?: number | "abc" | true }>>(true);
-    assert<IsExact<ReturnType<typeof testOptionalRoute.parsePath>, { id?: number | "abc" | true } | undefined>>(true);
-
-    expect(testRoute.parsePath({ id: "abc" })).toEqual({ id: "abc" });
-    expect(testRoute.parsePath({ id: "true" })).toEqual({ id: true });
-    expect(testRoute.parsePath({ id: "42" })).toEqual({ id: 42 });
-    expect(testRoute.parsePath({ id: "false" })).toEqual(undefined);
-    expect(testRoute.parsePath({})).toEqual(undefined);
-
-    expect(testOptionalRoute.parsePath({ id: "abc" })).toEqual({ id: "abc" });
-    expect(testOptionalRoute.parsePath({ id: "true" })).toEqual({ id: true });
-    expect(testOptionalRoute.parsePath({ id: "42" })).toEqual({ id: 42 });
-    expect(testOptionalRoute.parsePath({ id: "false" })).toEqual(undefined);
-    expect(testOptionalRoute.parsePath({})).toEqual({ id: undefined });
-});
-
-it("allows to use query param", () => {
+it("allows to use query params", () => {
     const testRoute = route(
         path("/test"),
         query(null, { parseNumbers: true, parseBooleans: true, arrayFormat: "bracket" })
@@ -176,7 +30,7 @@ it("allows to use query param", () => {
     });
 });
 
-it("allows to redefine and narrow query param", () => {
+it("allows to redefine and narrow query params", () => {
     const testRoute = route(
         path("/test"),
         query(
@@ -225,7 +79,7 @@ it("allows to redefine and narrow query param", () => {
     });
 });
 
-it("preserves unknown (and therefore untyped) query keys", () => {
+it("preserves unknown (and therefore untyped) params", () => {
     const testRoute = route(path("/test"), query({ a: param.string }));
 
     expect(testRoute.parseQuery("?a=abc&b=bar")).toEqual({ a: "abc", b: "bar" });
@@ -330,7 +184,7 @@ it("detects whether it is possible to store null values in array", () => {
     expect(noneRoute.parseQuery(noneRoute.buildQuery({ a: [null, null] }))).toEqual({ a: [null, null] });
 });
 
-it("allows types that are either array or single value in query", () => {
+it("allows types that are either array or single value", () => {
     const testRoute = route(
         path("/test"),
         query(
@@ -350,7 +204,7 @@ it("allows types that are either array or single value in query", () => {
     expect(testRoute.parseQuery("?a[]=1")).toEqual({ a: ["1"] });
 });
 
-it("allows to specify unions for query keys", () => {
+it("allows to specify unions of values", () => {
     const testRoute = route(
         path("/test"),
         query(
@@ -379,7 +233,7 @@ it("allows to specify unions for query keys", () => {
     expect(testRoute.parseQuery("?n=4&f[]=baz")).toEqual({ n: undefined, f: undefined });
 });
 
-it("respects param order", () => {
+it("respects order in unions of params", () => {
     const testRouteNumbers = route(path("/test"), query({ a: [param.number, param.string] }));
     const testRouteBooleans = route(path("/test"), query({ a: [param.string, param.boolean] }));
 
@@ -387,15 +241,9 @@ it("respects param order", () => {
     expect(testRouteBooleans.parseQuery(testRouteBooleans.buildQuery({ a: true }))).toEqual({ a: "true" });
 });
 
-it("allows to pass numbers and booleans to string query parameter", () => {
+it("allows to pass numbers and booleans to string params", () => {
     const testRoute = route(path("/test"), query({ a: param.string }));
 
     expect(testRoute.parseQuery(testRoute.buildQuery({ a: 1 }))).toEqual({ a: "1" });
     expect(testRoute.parseQuery(testRoute.buildQuery({ a: true }))).toEqual({ a: "true" });
-});
-
-it("allows to specify hash", () => {
-    const testRoute = route(path("/test"), null, hash("foo", "bar"));
-
-    expect(testRoute.build({}, null, "foo")).toBe("/test#foo");
 });
