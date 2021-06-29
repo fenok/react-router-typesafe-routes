@@ -1,7 +1,18 @@
 {
     "name": "react-router-typesafe-routes",
+    "description": "Comprehensive type-safe routes for react-router.",
+    "keywords": [
+        "typesafe",
+        "type-safe",
+        "react-router",
+        "react"
+    ],
+    "repository": "github:fenok/react-router-typesafe-routes",
+    "license": "MIT",
+    "author": "Leonid Fenko <fenok2112@gmail.com>",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "sideEffects": false,
     "scripts": {
         "lint": "eslint .",
         "build": "rimraf dist && tsc",
