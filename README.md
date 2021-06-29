@@ -141,7 +141,7 @@ const { path } = myRoute.parse({ id: "1" });
 
 In a lot of cases you can get away with that. However, at the time of this writing it breaks on complex scenarios like this: `/test/:id(\\d+)?`. It likely will improve, but what if we want to fix it right now? What if we want more precise typing on parsed params?
 
-In that case we can completely override inferred type with our own:
+In that case we can completely override inferred type with our own. Note that it's your responsibility to sync this type with the actual path string.
 
 ```typescript
 const myRoute = route(path("/test/:id(\\d+)?", { id: param.number.optional }));
@@ -152,6 +152,95 @@ const url = myRoute.build({ id: 1 });
 // { id?: number }
 const { path } = myRoute.parse({ id: "1" });
 ```
+
+#### Parsing details
+
+We're parsing the `match` or `match.params` object from react-router to get valid params of the given route.
+
+If we didn't specify custom type, and we're parsing `match` object, we simply compare `match.path` with the path of the given route. If they match, `match.params` are considered valid. If we're parsing `match.params`, we check that they have all the required fields of the path of the given route. If they do, `match.params` are considered valid.
+
+If we specified a custom type, we simply try to transform the given `match.params`. If we could transform every parameter, transformed `match.params` are considered valid. Additionally, if we're parsing the `match` object, we check the `match.path` field as well.
+
+If we couldn't get valid params, the result of the parsing is `undefined`.
+
+### `query`
+
+A query processor is created via the `query` helper. It wraps the `query-string` package behind it, and you can pass its options directly to it.
+
+If you want, you can create a processor without custom type and have types from the `query-string` with a minor improvement. The minor improvement is that the ability to store `null` values inside arrays is now checked and depends on the `arrayFormat` option.
+
+```typescript
+const myRoute = route(path("/test"), query());
+const myCommaRoute = route(path("/test"), query(null, { arrayFormat: "comma", parseNumbers: true }));
+
+// Record<string, any> due to https://github.com/sindresorhus/query-string/issues/298
+const url = myRoute.build({}, { foo: "foo" });
+const commaUrl = myCommaRoute.build({}, { foo: "foo" });
+
+// Record<string, string | null | (string | null)[]>
+const { query } = myRoute.parse(null, useLocation());
+// Record<string, string | number | null | (string | number)[]>
+const { query: commaQuery } = myCommaRoute.parse(null, useLocation());
+```
+
+You can make types more specific by providing a custom type. Note that, due to its nature, all query params are optional. Therefore, you can't use the `.optional` param modifier. Also note that you can put `undefined` values to array, but you won't get them back, since they are always omitted by `query-string`.
+
+There is another catch: if you specify a custom type, you can't set the `parseNumbers` and `parseBooleans` options to `true`, because in that case the parsing is done by the specified transformers.
+
+All these quirks are type-checked.
+
+```typescript
+const myRoute = route(path("/test"), query({ foo: param.number }));
+const myCommaRoute = route(path("/test"), query({ foo: param.string }, { arrayFormat: "comma" }));
+
+// { foo?: number }
+const url = myRoute.build({}, { foo: 1 });
+// { foo?: string | number | boolean }
+const commaUrl = myCommaRoute.build({}, { foo: "abc" });
+
+// { foo?: number }
+const { query } = myRoute.parse(null, useLocation());
+// { foo?: string }
+const { query: commaQuery } = myCommaRoute.parse(null, useLocation());
+```
+
+If some value can't be transformed, it's simply omitted.
+
+### `hash`
+
+A hash processor is created via the `hash` helper. It's the simplest of all. You can call it without parameters:
+
+```typescript
+const myRoute = route(path("/test"), null, hash());
+
+// string
+const url = myRoute.build({}, null, "foo");
+
+// string
+const { hash } = myRoute.parse(null, useLocation());
+```
+
+Or you can specify the allowed values:
+
+```typescript
+const myRoute = route(path("/test"), null, hash("foo", "bar"));
+
+// 'foo' | 'bar'
+const url = myRoute.build({}, null, "foo");
+
+// '' | 'foo' | 'bar'
+const { hash } = myRoute.parse(null, useLocation());
+```
+
+## What can be improved
+
+-   There should be warnings when the user is doing something wrong, like placing `param.string` before `param.number`.
+
+-   It would be nice to have type-checking for route state. It requires deep object validation and can be added without breaking changes.
+
+-   It may be a good idea to convert values from path like `'one/two/three'` into arrays. It's not clear what is the best way to do it, though.
+
+-   `param` API can potentially be simplified. We could use something like this: `oneOf(String, [Number], true, undefined)`. However, for simple cases (which are the vast majority of real-life cases, I believe) the difference between APIs is marginal, so it's probably not worth it.
 
 ## How is it different from existing solutions?
 
