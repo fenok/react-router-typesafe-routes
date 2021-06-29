@@ -45,7 +45,7 @@ import { routes } from "./path/to/routes";
 Use `Link` components as usual:
 
 ```typescript jsx
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { routes } from "./path/to/routes";
 
 <Link to={routes.PRODUCT.build({ id: 1 }, { age: 12 }, "about")} />;
