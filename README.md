@@ -1,4 +1,8 @@
-# React router: typesafe routes
+# React-Router-Typesafe-Routes
+
+[![npm](https://img.shields.io/npm/v/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
+
+Comprehensive type-safe routes for react-router.
 
 Provides type safety for path params, query params and hash on building and parsing URLs.
 
