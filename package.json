@@ -18,7 +18,8 @@
         "prepublishOnly": "yarn lint && yarn test",
         "lint": "eslint .",
         "build": "rimraf dist && tsc",
-        "test": "jest"
+        "test": "jest",
+        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
     },
     "devDependencies": {
         "@types/history": "^4.7.8",
