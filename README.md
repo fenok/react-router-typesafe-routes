@@ -83,7 +83,7 @@ The `route` helper returns an object with `path` property, containing the origin
 
 #### `route.build`
 
-The `build` function accepts three arguments that are params for corresponding processors and returns a URL string with given parameters. Only the first argument (params for path processor) is required (even if it's just `{}`).
+The `build` function accepts three arguments that are params for corresponding processors and returns the URL string with the given parameters. Only the first argument (params for path processor) is required (even if it's just `{}`).
 
 Pass `null` or `undefined` to skip query building and specify hash. If the query processor is provided, you can also pass `{}`. That will technically invoke the query processor, yielding an empty query string.
 
