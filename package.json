@@ -14,6 +14,8 @@
     "types": "dist/index.d.ts",
     "sideEffects": false,
     "scripts": {
+        "prepare": "yarn build",
+        "prepublishOnly": "yarn lint && yarn test",
         "lint": "eslint .",
         "build": "rimraf dist && tsc",
         "test": "jest"
