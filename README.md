@@ -2,6 +2,14 @@
 
 Provides type safety for path params, query params and hash on building and parsing URLs.
 
+## Installation
+
+```
+yarn add react-router-typesafe-routes
+```
+
+Note that the library is using ES6 modules and modern JS. Babel usage is advised.
+
 ## Design principles
 
 -   Mess with react-router API as little as possible
