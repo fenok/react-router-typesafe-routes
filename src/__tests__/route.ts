@@ -118,12 +118,12 @@ it("allows to specify unions for path param", () => {
 
     expect(testRoute.parsePath({ id: "1" })).toEqual({ id: "1" });
     expect(testRoute.parsePath({ id: "2" })).toEqual({ id: "2" });
-    expect(() => testRoute.parsePath({ id: "3" })).toThrow();
+    expect(testRoute.parsePath({ id: "3" })).toEqual(undefined);
     expect(testRoute.parsePath({})).toEqual(undefined);
 
     expect(testOptionalRoute.parsePath({ id: "1" })).toEqual({ id: "1" });
     expect(testOptionalRoute.parsePath({ id: "2" })).toEqual({ id: "2" });
-    expect(() => testOptionalRoute.parsePath({ id: "3" })).toThrow();
+    expect(testOptionalRoute.parsePath({ id: "3" })).toEqual(undefined);
     expect(testOptionalRoute.parsePath({})).toEqual({ id: undefined });
 });
 
@@ -140,13 +140,13 @@ it("allows to specify array of param", () => {
     expect(testRoute.parsePath({ id: "abc" })).toEqual({ id: "abc" });
     expect(testRoute.parsePath({ id: "true" })).toEqual({ id: true });
     expect(testRoute.parsePath({ id: "42" })).toEqual({ id: 42 });
-    expect(() => testRoute.parsePath({ id: "false" })).toThrow();
+    expect(testRoute.parsePath({ id: "false" })).toEqual(undefined);
     expect(testRoute.parsePath({})).toEqual(undefined);
 
     expect(testOptionalRoute.parsePath({ id: "abc" })).toEqual({ id: "abc" });
     expect(testOptionalRoute.parsePath({ id: "true" })).toEqual({ id: true });
     expect(testOptionalRoute.parsePath({ id: "42" })).toEqual({ id: 42 });
-    expect(() => testOptionalRoute.parsePath({ id: "false" })).toThrow();
+    expect(testOptionalRoute.parsePath({ id: "false" })).toEqual(undefined);
     expect(testOptionalRoute.parsePath({})).toEqual({ id: undefined });
 });
 

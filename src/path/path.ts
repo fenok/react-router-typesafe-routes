@@ -70,13 +70,25 @@ export function path(
     }
 
     function cast(params: GenericPathParams) {
-        const result: Record<string, any> = {};
+        if (shape) {
+            const castedParams: Record<string, any> = {};
 
-        Object.keys(params).forEach((key) => {
-            result[key] = shape && shape[key] ? applyCasters(params[key], ...[shape[key]].flat()) : params[key];
-        });
+            try {
+                Object.keys(shape).forEach((key) => {
+                    const value = applyCasters(params[key], ...[shape[key]].flat());
 
-        return result;
+                    if (value !== undefined) {
+                        castedParams[key] = value;
+                    }
+                });
+            } catch {
+                return undefined;
+            }
+
+            return { ...params, ...castedParams };
+        } else {
+            return params;
+        }
     }
 
     return {
@@ -89,7 +101,7 @@ export function path(
                 if (matchOrParams && matchOrParams.path === path) {
                     return cast(matchOrParams.params);
                 }
-            } else if (areParamsSufficient(matchOrParams)) {
+            } else if (shape || areParamsSufficient(matchOrParams)) {
                 return cast(matchOrParams);
             }
         },
