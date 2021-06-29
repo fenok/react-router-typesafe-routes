@@ -57,7 +57,7 @@ Parse params with usual hooks:
 import { useParams, useLocation, useRouteMatch } from "react-router";
 import { routes } from "./path/to/routes";
 
-// Whatever suits you best, the result is the same
+// Whatever suits you best, the result is generally the same
 const fromMatch = routes.PRODUCT.parse(useRouteMatch(), useLocation());
 const fromParams = routes.PRODUCT.parse(useParams(), useLocation());
 
