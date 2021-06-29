@@ -250,7 +250,7 @@ const { hash } = myRoute.parse(null, useLocation());
 
 -   It would be nice to have type-checking for route state. It requires deep object validation and can be added without breaking changes.
 
--   It may be a good idea to convert values from path like `'one/two/three'` into arrays. It's not clear what is the best way to do it, though.
+-   It may be a good idea to convert values from path like `'one/two/three'` into arrays. It's not clear what is the best way to do it, though. One possible way is to create a special type of transformer that also stringifies values. That would also allow storing arbitrary types (like `Date`) in URL, but at the same time cause a lot of issues with transformers composition.
 
 -   `param` API can potentially be simplified. We could use something like this: `oneOf(String, [Number], true, undefined)`. However, for simple cases (which are the vast majority of real-life cases, I believe) the difference between APIs is marginal, so it's probably not worth it.
 
