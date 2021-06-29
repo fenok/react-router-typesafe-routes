@@ -13,6 +13,9 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "sideEffects": false,
+    "files": [
+        "dist/"
+    ],
     "scripts": {
         "prepare": "yarn build",
         "prepublishOnly": "yarn lint && yarn test",
