@@ -4,7 +4,7 @@
 
 Comprehensive type-safe routes for react-router.
 
-Provides type safety for path params, query params and hash on building and parsing URLs.
+The library provides type safety for path params, query params and hash on building and parsing URLs.
 
 ## Installation
 
@@ -139,7 +139,7 @@ There is one more nuance specific to `param.string`. On build, such a field will
 
 ### `path`
 
-A path processor is created via the `path` helper. In a simple scenario, you can just pass a URL path to it and already have some typing. That's exactly how `generatePath` from react-router works.
+A path processor is created via the `path` helper. In a simple scenario, you can just pass a URL path to it and already have some typing. That's exactly how [`generatePath`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/7331700ce1159c78190d5e880e7301bc28221551/types/react-router/index.d.ts#L166) from react-router works.
 
 ```typescript
 const myRoute = route(path("/test/:id"));
@@ -177,9 +177,9 @@ If we couldn't get valid params, the result of the parsing is `undefined`.
 
 ### `query`
 
-A query processor is created via the `query` helper. It wraps the `query-string` package behind it, and you can pass its options directly to it.
+A query processor is created via the `query` helper. It's built upon [`query-string`](https://www.npmjs.com/package/query-string), and you can pass its options directly to it.
 
-If you want, you can create a processor without custom type and have types from the `query-string` with a minor improvement. The minor improvement is that the ability to store `null` values inside arrays is now checked and depends on the `arrayFormat` option.
+If you want, you can create a processor without custom type and have the `query-string` types with a minor improvement. The minor improvement is that the ability to store `null` values inside arrays is now checked and depends on the `arrayFormat` option.
 
 ```typescript
 const myRoute = route(path("/test"), query());
