@@ -15,7 +15,7 @@ export function hash<T extends readonly string[]>(...values: T): HashProcessor<I
         parse(hash: string): OutHashValues<T> {
             const normalizedHash = normalizeHash(hash);
 
-            if (!values || values.includes(normalizedHash)) {
+            if (!values.length || values.includes(normalizedHash)) {
                 return normalizedHash;
             }
 

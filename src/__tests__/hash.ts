@@ -10,6 +10,7 @@ it("allows to specify hash", () => {
     assert<IsExact<ReturnType<typeof testRoute.parseHash>, string>>(true);
 
     expect(testRoute.build({}, null, "foo")).toBe("/test#foo");
+    expect(testRoute.parseHash(testRoute.buildHash("foo"))).toBe("foo");
 });
 
 it("allows to restrict hash values", () => {
@@ -19,4 +20,5 @@ it("allows to restrict hash values", () => {
     assert<IsExact<ReturnType<typeof testRoute.parseHash>, "" | "foo" | "bar">>(true);
 
     expect(testRoute.build({}, null, "foo")).toBe("/test#foo");
+    expect(testRoute.parseHash(testRoute.buildHash("foo"))).toBe("foo");
 });
