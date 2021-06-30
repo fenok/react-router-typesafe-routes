@@ -11,6 +11,7 @@ import {
     storeNull,
     storeArray,
     retrieveArrayOf,
+    assertString,
 } from "./casters";
 
 export interface Param {
@@ -18,6 +19,7 @@ export interface Param {
     number: Optional<Transformer<number, string>>;
     boolean: Optional<Transformer<boolean, string>>;
     null: Optional<Transformer<null, null>>;
+    date: Optional<Transformer<Date, string>>;
     oneOf<T extends (string | number | boolean)[]>(...values: T): Optional<Transformer<T[number], string>>;
     arrayOf<T, U extends string | null, O>(transformer: Transformer<T, U, O>): Optional<Transformer<T[], U[], O[]>>;
 }
@@ -38,6 +40,16 @@ export const param: Param = {
     null: optional({
         store: storeNull,
         retrieve: retrieveNull,
+    }),
+    date: optional({
+        store(value: Date) {
+            return value.toISOString();
+        },
+        retrieve(value) {
+            assertString(value);
+
+            return new Date(value);
+        },
     }),
     oneOf<T extends (string | number | boolean)[]>(...values: T): Optional<Transformer<T[number], string>> {
         return optional({

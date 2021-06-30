@@ -219,3 +219,11 @@ it("allows to pass numbers and booleans to string params", () => {
     expect(testRoute.parseQuery(testRoute.buildQuery({ a: 1 }))).toEqual({ a: "1" });
     expect(testRoute.parseQuery(testRoute.buildQuery({ a: true }))).toEqual({ a: "true" });
 });
+
+it("allows storing date values", () => {
+    const testRoute = route(path("/test"), query({ date: param.date }));
+
+    const date = new Date();
+
+    expect(testRoute.parseQuery(testRoute.buildQuery({ date }))).toEqual({ date });
+});
