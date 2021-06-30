@@ -104,7 +104,6 @@ it("allows to redefine and narrow path params", () => {
         id: true,
         id2: 1,
         id3: "abc",
-        foo: "12",
     });
     expect(testRoute.parsePath({ id2: "1", id3: "abc" })).toBe(undefined);
     expect(testRoute.parsePath({ foo: "abc" })).toBe(undefined);

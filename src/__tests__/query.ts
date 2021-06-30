@@ -79,10 +79,10 @@ it("allows to redefine and narrow query params", () => {
     });
 });
 
-it("preserves unknown (and therefore untyped) params", () => {
+it("doesn't preserve unknown (and therefore untyped) params", () => {
     const testRoute = route(path("/test"), query({ a: param.string }));
 
-    expect(testRoute.parseQuery("?a=abc&b=bar")).toEqual({ a: "abc", b: "bar" });
+    expect(testRoute.parseQuery("?a=abc&b=bar")).toEqual({ a: "abc" });
 });
 
 it("allows single value to be stored as array regardless of array format", () => {
