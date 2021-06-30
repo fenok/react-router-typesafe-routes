@@ -15,23 +15,9 @@ export type Optional<T extends Transformer<any, any>> = T extends Transformer<
     ? T & { optional: Transformer<TOriginal | undefined, TStored | undefined, TRetrieved | undefined> }
     : never;
 
-export function assertDefined<T>(value: T): asserts value is Exclude<T, undefined> {
-    if (typeof value === "undefined") {
-        throw new Error("Got undefined in required field");
-    }
-}
-
-export function assertSingle<TArray extends ArrayValueFromString, TSingle extends SingleValueFromString>(
-    value: TArray | TSingle
-): asserts value is TSingle {
-    if (Array.isArray(value)) {
-        throw new Error("Got array where single value expected");
-    }
-}
-
-export function assertNonNull<T>(value: T): asserts value is Exclude<T, null> {
-    if (value === null) {
-        throw new Error("Got unexpected null value");
+export function assertString(value: unknown): asserts value is string {
+    if (typeof value !== "string") {
+        throw new Error("Got unexpected non-string value");
     }
 }
 
@@ -48,9 +34,7 @@ export function storeNull(value: null) {
 }
 
 export function retrieveNumber(value: ValueFromString): number {
-    assertDefined(value);
-    assertSingle(value);
-    assertNonNull(value);
+    assertString(value);
 
     const result = Number(value);
 
@@ -62,9 +46,7 @@ export function retrieveNumber(value: ValueFromString): number {
 }
 
 export function retrieveBoolean(value: ValueFromString): boolean {
-    assertDefined(value);
-    assertSingle(value);
-    assertNonNull(value);
+    assertString(value);
 
     if (value === "true") return true;
     if (value === "false") return false;
@@ -73,9 +55,7 @@ export function retrieveBoolean(value: ValueFromString): boolean {
 }
 
 export function retrieveString(value: ValueFromString): string {
-    assertDefined(value);
-    assertSingle(value);
-    assertNonNull(value);
+    assertString(value);
 
     return value;
 }
@@ -89,9 +69,7 @@ export function retrieveNull(value: ValueFromString): null {
 }
 
 export function retrieveOneOf<T extends string | number | boolean>(values: T[], value: ValueFromString): T {
-    assertDefined(value);
-    assertSingle(value);
-    assertNonNull(value);
+    assertString(value);
 
     for (const canonicalValue of values) {
         try {
