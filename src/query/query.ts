@@ -68,9 +68,27 @@ export function query(
         }
     }
 
+    function store(object: Record<string, unknown>) {
+        if (shape) {
+            const result: Record<string, unknown> = {};
+
+            Object.keys(shape).forEach((key) => {
+                try {
+                    result[key] = shape[key].store(object[key]);
+                } catch {
+                    // Casting failed, but that's okay, we just omit this field
+                }
+            });
+
+            return result;
+        } else {
+            return object;
+        }
+    }
+
     return {
         stringify(query: Record<string, any>): string {
-            return query && Object.keys(query).length ? `?${queryString.stringify(query, options)}` : "";
+            return query && Object.keys(query).length ? `?${queryString.stringify(store(query), options)}` : "";
         },
         parse(query: string): Record<string, any> {
             return retrieve(queryString.parse(query, options));

@@ -79,10 +79,24 @@ export function path(
         }
     }
 
+    function store(object: Record<string, any>) {
+        if (shape) {
+            const result: Record<string, any> = {};
+
+            Object.keys(shape).forEach((key) => {
+                result[key] = shape[key].store(object[key]);
+            });
+
+            return result;
+        } else {
+            return object;
+        }
+    }
+
     return {
         path,
         stringify(params: Record<string, any>): string {
-            return generatePath(path, params);
+            return generatePath(path, store(params));
         },
         parse(matchOrParams: GenericPathParams | match | null): Record<string, any> | undefined {
             if (isMatch(matchOrParams)) {
