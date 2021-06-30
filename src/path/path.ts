@@ -3,10 +3,6 @@ import { GenericPathParams, PathProcessor } from "./interface";
 import { Key, parse } from "path-to-regexp";
 import { Transformer } from "../param";
 
-export type ToGenericPathParams<T> = {
-    [TKey in keyof T]: T[TKey] extends string | undefined ? T[TKey] : string;
-};
-
 export type PathParams<TCasters, TIn extends boolean = false> = {
     [TKey in keyof TCasters]?: TCasters[TKey] extends Transformer<infer TOriginal, any, infer TRetrieved>
         ? TIn extends true
@@ -28,7 +24,7 @@ export type RequiredKeys<T> = {
 
 export function path<TPath extends string>(
     path: TPath
-): PathProcessor<TPath, ExtractRouteParams<TPath>, ToGenericPathParams<ExtractRouteParams<TPath>> | undefined>;
+): PathProcessor<TPath, ExtractRouteParams<TPath>, ExtractRouteParams<TPath, string> | undefined>;
 
 export function path<TPath extends string, TCasters extends Record<string, Transformer<unknown, string | undefined>>>(
     path: TPath,
