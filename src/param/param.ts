@@ -19,7 +19,7 @@ export interface Param {
     boolean: Optional<Transformer<boolean, string>>;
     null: Optional<Transformer<null, null>>;
     oneOf<T extends (string | number | boolean)[]>(...values: T): Optional<Transformer<T[number], string>>;
-    arrayOf<T, U extends string | null>(transformer: Transformer<T, U>): Optional<Transformer<T[], U[]>>;
+    arrayOf<T, U extends string | null, O>(transformer: Transformer<T, U, O>): Optional<Transformer<T[], U[], O[]>>;
 }
 
 export const param: Param = {
@@ -47,7 +47,7 @@ export const param: Param = {
             },
         });
     },
-    arrayOf<T, U extends string | null>(transformer: Transformer<T, U>): Optional<Transformer<T[], U[]>> {
+    arrayOf<T, U extends string | null, O>(transformer: Transformer<T, U, O>): Optional<Transformer<T[], U[], O[]>> {
         return optional({
             store(value) {
                 return storeArray(transformer, value);

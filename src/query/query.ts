@@ -39,7 +39,7 @@ export function query<TOptions extends QueryOptions>(
 
 export function query<
     TOptions extends QueryOptions & { parseBooleans?: false; parseNumbers?: false },
-    TCasters extends Record<string, Transformer<unknown, QueryTypes<TOptions, string>>>
+    TCasters extends Record<string, Transformer<unknown, QueryTypes<TOptions, string> | undefined>>
 >(shape: TCasters, options?: TOptions): QueryProcessor<QueryParams<TCasters, true>, QueryParams<TCasters>>;
 
 export function query(

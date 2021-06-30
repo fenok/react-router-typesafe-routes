@@ -53,7 +53,7 @@ it("allows to redefine and narrow query params", () => {
                 b?: boolean;
                 c?: number;
                 d?: null;
-                f?: (number | undefined)[];
+                f?: number[];
             }
         >
     >(true);
@@ -96,7 +96,7 @@ it("allows single value to be stored as array regardless of array format", () =>
     const bracketSeparatorRoute = route(path("/test"), query(queryShape, { arrayFormat: "bracket-separator" }));
     const noneRoute = route(path("/test"), query(queryShape, { arrayFormat: "none" }));
 
-    type ArrayAwareParamsIn = { a?: (string | number | boolean | undefined)[] };
+    type ArrayAwareParamsIn = { a?: (string | number | boolean)[] };
     type ArrayAwareParamsOut = { a?: string[] };
 
     assert<IsExact<Parameters<typeof defaultRoute.buildQuery>[0], ArrayAwareParamsIn>>(true);
@@ -114,6 +114,8 @@ it("allows single value to be stored as array regardless of array format", () =>
     assert<IsExact<ReturnType<typeof separatorRoute.parseQuery>, ArrayAwareParamsOut>>(true);
     assert<IsExact<ReturnType<typeof bracketSeparatorRoute.parseQuery>, ArrayAwareParamsOut>>(true);
     assert<IsExact<ReturnType<typeof noneRoute.parseQuery>, ArrayAwareParamsOut>>(true);
+
+    const a = defaultRoute.parseQuery("");
 
     expect(defaultRoute.parseQuery(defaultRoute.buildQuery({ a: ["abc"] }))).toEqual({ a: ["abc"] });
     expect(bracketRoute.parseQuery(bracketRoute.buildQuery({ a: ["abc"] }))).toEqual({ a: ["abc"] });
@@ -144,7 +146,7 @@ it("detects whether it is possible to store null values in array", () => {
     const bracketSeparatorRoute = route(path("/test"), query(flatNull, { arrayFormat: "bracket-separator" }));
     const noneRoute = route(path("/test"), query(arrayNull, { arrayFormat: "none" }));
 
-    type ArrayNullIn = { a?: (null | undefined)[] };
+    type ArrayNullIn = { a?: null[] };
 
     type ArrayNullOut = { a?: null[] };
 
@@ -196,9 +198,7 @@ it("allows to specify unions of values", () => {
         )
     );
 
-    assert<
-        IsExact<Parameters<typeof testRoute.buildQuery>[0], { n?: 1 | 2 | "abc"; f?: ("foo" | "bar" | undefined)[] }>
-    >(true);
+    assert<IsExact<Parameters<typeof testRoute.buildQuery>[0], { n?: 1 | 2 | "abc"; f?: ("foo" | "bar")[] }>>(true);
 
     expect(testRoute.parseQuery(testRoute.buildQuery({ n: "abc", f: ["foo", "bar"] }))).toEqual({
         n: "abc",

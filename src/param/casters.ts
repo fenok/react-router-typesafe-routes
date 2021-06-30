@@ -35,7 +35,7 @@ export function assertNonNull<T>(value: T): asserts value is Exclude<T, null> {
     }
 }
 
-export function storeArray<T, U extends ValueFromString>(transformer: Transformer<T, U>, values: T[]): U[] {
+export function storeArray<T, U extends ValueFromString, O>(transformer: Transformer<T, U, O>, values: T[]): U[] {
     return values.map((value) => transformer.store(value));
 }
 
@@ -116,10 +116,10 @@ export function retrieveOneOf<T extends string | number | boolean>(values: T[], 
     throw new Error(`No matching value for ${value}`);
 }
 
-export function retrieveArrayOf<T, U extends string | null>(
-    transformer: Transformer<T, U>,
+export function retrieveArrayOf<T, U extends string | null, O>(
+    transformer: Transformer<T, U, O>,
     value: ValueFromString
-): T[] {
+): O[] {
     const arrayValue = Array.isArray(value) ? value : [value];
 
     return arrayValue.map((item) => transformer.retrieve(item));
