@@ -1,10 +1,6 @@
-export type SingleValueFromString = string | null | undefined;
-export type ArrayValueFromString = (string | null)[];
-export type ValueFromString = SingleValueFromString | ArrayValueFromString;
-
-export interface Transformer<TOriginal, TStored extends ValueFromString, TRetrieved = TOriginal> {
+export interface Transformer<TOriginal, TStored, TRetrieved = TOriginal> {
     store(value: TOriginal): TStored;
-    retrieve(value: ValueFromString): TRetrieved;
+    retrieve(value: unknown): TRetrieved;
 }
 
 export type Optional<T extends Transformer<any, any>> = T extends Transformer<
@@ -21,7 +17,7 @@ export function assertString(value: unknown): asserts value is string {
     }
 }
 
-export function storeArray<T, U extends ValueFromString, O>(transformer: Transformer<T, U, O>, values: T[]): U[] {
+export function storeArray<T, U, O>(transformer: Transformer<T, U, O>, values: T[]): U[] {
     return values.map((value) => transformer.store(value));
 }
 
@@ -33,7 +29,7 @@ export function storeNull(value: null) {
     return value;
 }
 
-export function retrieveNumber(value: ValueFromString): number {
+export function retrieveNumber(value: unknown): number {
     assertString(value);
 
     const result = Number(value);
@@ -45,7 +41,7 @@ export function retrieveNumber(value: ValueFromString): number {
     return result;
 }
 
-export function retrieveBoolean(value: ValueFromString): boolean {
+export function retrieveBoolean(value: unknown): boolean {
     assertString(value);
 
     if (value === "true") return true;
@@ -54,13 +50,13 @@ export function retrieveBoolean(value: ValueFromString): boolean {
     throw new Error(`Failed to convert ${value} to boolean`);
 }
 
-export function retrieveString(value: ValueFromString): string {
+export function retrieveString(value: unknown): string {
     assertString(value);
 
     return value;
 }
 
-export function retrieveNull(value: ValueFromString): null {
+export function retrieveNull(value: unknown): null {
     if (value === null) {
         return null;
     }
@@ -68,7 +64,7 @@ export function retrieveNull(value: ValueFromString): null {
     throw new Error("Got non-null value where null expected");
 }
 
-export function retrieveOneOf<T extends string | number | boolean>(values: T[], value: ValueFromString): T {
+export function retrieveOneOf<T extends string | number | boolean>(values: T[], value: unknown): T {
     assertString(value);
 
     for (const canonicalValue of values) {
@@ -94,16 +90,13 @@ export function retrieveOneOf<T extends string | number | boolean>(values: T[], 
     throw new Error(`No matching value for ${value}`);
 }
 
-export function retrieveArrayOf<T, U extends string | null, O>(
-    transformer: Transformer<T, U, O>,
-    value: ValueFromString
-): O[] {
+export function retrieveArrayOf<T, U extends string | null, O>(transformer: Transformer<T, U, O>, value: unknown): O[] {
     const arrayValue = Array.isArray(value) ? value : [value];
 
     return arrayValue.map((item) => transformer.retrieve(item));
 }
 
-export function optional<TOriginal, TStored extends ValueFromString, TRetrieved>(
+export function optional<TOriginal, TStored, TRetrieved>(
     transformer: Transformer<TOriginal, TStored, TRetrieved>
 ): Transformer<TOriginal, TStored, TRetrieved> & {
     optional: Transformer<TOriginal | undefined, TStored | undefined, TRetrieved | undefined>;
@@ -114,7 +107,7 @@ export function optional<TOriginal, TStored extends ValueFromString, TRetrieved>
             store(value: TOriginal | undefined): TStored | undefined {
                 return value === undefined ? (value as undefined) : transformer.store(value);
             },
-            retrieve(value: ValueFromString): TRetrieved | undefined {
+            retrieve(value: unknown): TRetrieved | undefined {
                 return value === undefined ? value : transformer.retrieve(value);
             },
         },
