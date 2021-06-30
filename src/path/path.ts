@@ -73,7 +73,7 @@ export function path(
                 return undefined;
             }
 
-            return { ...params, ...castedParams };
+            return castedParams;
         } else {
             return params;
         }

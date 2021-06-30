@@ -47,17 +47,25 @@ export function query(
     options: QueryOptions = {}
 ): QueryProcessor<Record<string, any>, Record<string, any>> {
     function retrieve(object: Record<string, QueryTypes<Record<string, unknown>, string>>) {
-        const result: Record<string, any> = {};
+        if (shape) {
+            const result: Record<string, any> = {};
 
-        Object.keys(object).forEach((key) => {
-            try {
-                result[key] = shape && shape[key] ? shape[key].retrieve(object[key]) : object[key];
-            } catch {
-                // Casting failed, but that's okay, we just omit this field
-            }
-        });
+            Object.keys(shape).forEach((key) => {
+                try {
+                    const value = shape[key].retrieve(object[key]);
 
-        return result;
+                    if (value !== undefined) {
+                        result[key] = value;
+                    }
+                } catch {
+                    // Casting failed, but that's okay, we just omit this field
+                }
+            });
+
+            return result;
+        } else {
+            return object;
+        }
     }
 
     return {
