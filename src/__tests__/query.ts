@@ -133,8 +133,8 @@ it("allows single value to be stored as array regardless of array format", () =>
 });
 
 it("detects whether it is possible to store null values in array", () => {
-    const arrayNull = { a: param.arrayOf(param.number, param.null) };
-    const flatNull = { a: [param.number, param.null] };
+    const arrayNull = { a: param.arrayOf(param.null) };
+    const flatNull = { a: param.null };
 
     const defaultRoute = route(path("/test"), query(arrayNull));
     const bracketRoute = route(path("/test"), query(arrayNull, { arrayFormat: "bracket" }));
@@ -144,11 +144,11 @@ it("detects whether it is possible to store null values in array", () => {
     const bracketSeparatorRoute = route(path("/test"), query(flatNull, { arrayFormat: "bracket-separator" }));
     const noneRoute = route(path("/test"), query(arrayNull, { arrayFormat: "none" }));
 
-    type ArrayNullIn = { a?: (number | null | undefined)[] };
+    type ArrayNullIn = { a?: (null | undefined)[] };
 
-    type ArrayNullOut = { a?: (number | null)[] };
+    type ArrayNullOut = { a?: null[] };
 
-    type FlatNull = { a?: number | null };
+    type FlatNull = { a?: null };
 
     assert<IsExact<Parameters<typeof defaultRoute.buildQuery>[0], ArrayNullIn>>(true);
     assert<IsExact<Parameters<typeof bracketRoute.buildQuery>[0], ArrayNullIn>>(true);
@@ -184,26 +184,6 @@ it("detects whether it is possible to store null values in array", () => {
     expect(noneRoute.parseQuery(noneRoute.buildQuery({ a: [null, null] }))).toEqual({ a: [null, null] });
 });
 
-it("allows types that are either array or single value", () => {
-    const testRoute = route(
-        path("/test"),
-        query(
-            { a: [param.number, param.arrayOf<string | boolean>(param.boolean, param.string)] },
-            { arrayFormat: "bracket" }
-        )
-    );
-
-    assert<
-        IsExact<Parameters<typeof testRoute.buildQuery>[0], { a?: (string | number | boolean | undefined)[] | number }>
-    >(true);
-
-    expect(testRoute.parseQuery(testRoute.buildQuery({ a: 1 }))).toEqual({ a: 1 });
-    expect(testRoute.parseQuery(testRoute.buildQuery({ a: ["abc", true] }))).toEqual({ a: ["abc", true] });
-    expect(testRoute.parseQuery(testRoute.buildQuery({ a: [] }))).toEqual({ a: undefined });
-    expect(testRoute.parseQuery("?a[]")).toEqual({ a: undefined });
-    expect(testRoute.parseQuery("?a[]=1")).toEqual({ a: ["1"] });
-});
-
 it("allows to specify unions of values", () => {
     const testRoute = route(
         path("/test"),
@@ -231,14 +211,6 @@ it("allows to specify unions of values", () => {
     });
 
     expect(testRoute.parseQuery("?n=4&f[]=baz")).toEqual({ n: undefined, f: undefined });
-});
-
-it("respects order in unions of params", () => {
-    const testRouteNumbers = route(path("/test"), query({ a: [param.number, param.string] }));
-    const testRouteBooleans = route(path("/test"), query({ a: [param.string, param.boolean] }));
-
-    expect(testRouteNumbers.parseQuery(testRouteNumbers.buildQuery({ a: "1" }))).toEqual({ a: 1 });
-    expect(testRouteBooleans.parseQuery(testRouteBooleans.buildQuery({ a: true }))).toEqual({ a: "true" });
 });
 
 it("allows to pass numbers and booleans to string params", () => {

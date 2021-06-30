@@ -1,72 +1,60 @@
 import {
-    castArrayOf,
-    castBoolean,
-    Caster,
-    castNull,
-    castNumber,
-    castOneOf,
-    castString,
+    retrieveBoolean,
+    retrieveNull,
+    retrieveNumber,
+    retrieveOneOf,
+    retrieveString,
+    Optional,
     optional,
-    ValueFromString,
-    WithOptional,
+    Transformer,
+    storeTrivialValue,
+    storeNull,
+    storeArray,
+    retrieveArrayOf,
 } from "./casters";
 
 export interface Param {
-    string: Caster<string> & WithOptional<string>;
-    number: Caster<number> & WithOptional<number>;
-    boolean: Caster<boolean> & WithOptional<boolean>;
-    null: Caster<null> & WithOptional<null>;
-    oneOf<T extends (string | number | boolean)[]>(...values: T): Caster<T[number]> & WithOptional<T[number]>;
-    arrayOf<T>(...casters: Caster<T>[]): Caster<T[]> & WithOptional<T[]>;
+    string: Optional<Transformer<string | number | boolean, string, string>>;
+    number: Optional<Transformer<number, string>>;
+    boolean: Optional<Transformer<boolean, string>>;
+    null: Optional<Transformer<null, null>>;
+    oneOf<T extends (string | number | boolean)[]>(...values: T): Optional<Transformer<T[number], string>>;
+    arrayOf<T, U extends string | null>(transformer: Transformer<T, U>): Optional<Transformer<T[], U[]>>;
 }
 
 export const param: Param = {
-    string: {
-        cast: castString,
-        optional: {
-            cast: optional(castString),
-        },
-    },
-    number: {
-        cast: castNumber,
-        optional: {
-            cast: optional(castNumber),
-        },
-    },
-    boolean: {
-        cast: castBoolean,
-        optional: {
-            cast: optional(castBoolean),
-        },
-    },
-    null: {
-        cast: castNull,
-        optional: {
-            cast: optional(castNull),
-        },
-    },
-    oneOf<T extends (string | number | boolean)[]>(...values: T): Caster<T[number]> & WithOptional<T[number]> {
-        return {
-            cast(value) {
-                return castOneOf(values, value);
+    string: optional({
+        store: storeTrivialValue,
+        retrieve: retrieveString,
+    }),
+    number: optional({
+        store: storeTrivialValue,
+        retrieve: retrieveNumber,
+    }),
+    boolean: optional({
+        store: storeTrivialValue,
+        retrieve: retrieveBoolean,
+    }),
+    null: optional({
+        store: storeNull,
+        retrieve: retrieveNull,
+    }),
+    oneOf<T extends (string | number | boolean)[]>(...values: T): Optional<Transformer<T[number], string>> {
+        return optional({
+            store: storeTrivialValue,
+            retrieve(value) {
+                return retrieveOneOf(values, value);
             },
-            optional: {
-                cast(value: ValueFromString): T[number] | undefined {
-                    return optional(castOneOf.bind(null, values))(value);
-                },
-            },
-        };
+        });
     },
-    arrayOf<T>(...casters: Caster<T>[]): Caster<T[]> & WithOptional<T[]> {
-        return {
-            cast(value) {
-                return castArrayOf(casters, value);
+    arrayOf<T, U extends string | null>(transformer: Transformer<T, U>): Optional<Transformer<T[], U[]>> {
+        return optional({
+            store(value) {
+                return storeArray(transformer, value);
             },
-            optional: {
-                cast(value: ValueFromString): T[] | undefined {
-                    return optional<T[]>(castArrayOf.bind(null, casters) as any)(value);
-                },
+            retrieve(value) {
+                return retrieveArrayOf(transformer, value);
             },
-        };
+        });
     },
 };

@@ -2,13 +2,18 @@ export type SingleValueFromString = string | null | undefined;
 export type ArrayValueFromString = (string | null)[];
 export type ValueFromString = SingleValueFromString | ArrayValueFromString;
 
-export interface Caster<T> {
-    cast(value: ValueFromString): T;
+export interface Transformer<TOriginal, TStored extends ValueFromString, TRetrieved = TOriginal> {
+    store(value: TOriginal): TStored;
+    retrieve(value: ValueFromString): TRetrieved;
 }
 
-export interface WithOptional<T> {
-    optional: Caster<T | undefined>;
-}
+export type Optional<T extends Transformer<any, any>> = T extends Transformer<
+    infer TOriginal,
+    infer TStored,
+    infer TRetrieved
+>
+    ? T & { optional: Transformer<TOriginal | undefined, TStored | undefined, TRetrieved | undefined> }
+    : never;
 
 export function assertDefined<T>(value: T): asserts value is Exclude<T, undefined> {
     if (typeof value === "undefined") {
@@ -30,7 +35,19 @@ export function assertNonNull<T>(value: T): asserts value is Exclude<T, null> {
     }
 }
 
-export function castNumber(value: ValueFromString): number {
+export function storeArray<T, U extends ValueFromString>(transformer: Transformer<T, U>, values: T[]): U[] {
+    return values.map((value) => transformer.store(value));
+}
+
+export function storeTrivialValue(value: string | number | boolean) {
+    return String(value);
+}
+
+export function storeNull(value: null) {
+    return value;
+}
+
+export function retrieveNumber(value: ValueFromString): number {
     assertDefined(value);
     assertSingle(value);
     assertNonNull(value);
@@ -44,7 +61,7 @@ export function castNumber(value: ValueFromString): number {
     return result;
 }
 
-export function castBoolean(value: ValueFromString): boolean {
+export function retrieveBoolean(value: ValueFromString): boolean {
     assertDefined(value);
     assertSingle(value);
     assertNonNull(value);
@@ -55,7 +72,7 @@ export function castBoolean(value: ValueFromString): boolean {
     throw new Error(`Failed to convert ${value} to boolean`);
 }
 
-export function castString(value: ValueFromString): string {
+export function retrieveString(value: ValueFromString): string {
     assertDefined(value);
     assertSingle(value);
     assertNonNull(value);
@@ -63,7 +80,7 @@ export function castString(value: ValueFromString): string {
     return value;
 }
 
-export function castNull(value: ValueFromString): null {
+export function retrieveNull(value: ValueFromString): null {
     if (value === null) {
         return null;
     }
@@ -71,7 +88,7 @@ export function castNull(value: ValueFromString): null {
     throw new Error("Got non-null value where null expected");
 }
 
-export function castOneOf<T extends string | number | boolean>(values: T[], value: ValueFromString): T {
+export function retrieveOneOf<T extends string | number | boolean>(values: T[], value: ValueFromString): T {
     assertDefined(value);
     assertSingle(value);
     assertNonNull(value);
@@ -80,13 +97,13 @@ export function castOneOf<T extends string | number | boolean>(values: T[], valu
         try {
             switch (typeof canonicalValue) {
                 case "string":
-                    if (castString(value) === canonicalValue) return canonicalValue;
+                    if (retrieveString(value) === canonicalValue) return canonicalValue;
                     break;
                 case "number":
-                    if (castNumber(value) === canonicalValue) return canonicalValue;
+                    if (retrieveNumber(value) === canonicalValue) return canonicalValue;
                     break;
                 case "boolean":
-                    if (castBoolean(value) === canonicalValue) return canonicalValue;
+                    if (retrieveBoolean(value) === canonicalValue) return canonicalValue;
             }
         } catch {
             if (canonicalValue === values[values.length - 1]) {
@@ -99,34 +116,29 @@ export function castOneOf<T extends string | number | boolean>(values: T[], valu
     throw new Error(`No matching value for ${value}`);
 }
 
-export function castArrayOf<T>(casters: Caster<T>[], value: ValueFromString): T[] {
+export function retrieveArrayOf<T, U extends string | null>(
+    transformer: Transformer<T, U>,
+    value: ValueFromString
+): T[] {
     const arrayValue = Array.isArray(value) ? value : [value];
 
-    return arrayValue.map((item) => applyCasters(item, ...casters));
+    return arrayValue.map((item) => transformer.retrieve(item));
 }
 
-export function applyCasters<T>(value: ValueFromString, ...casters: Caster<T>[]): T {
-    if (casters.length) {
-        for (const caster of casters) {
-            try {
-                return caster.cast(value);
-            } catch {
-                if (caster === casters[casters.length - 1]) {
-                    throw new Error("Couldn't cast value with any caster");
-                }
-                // Otherwise try next caster
-            }
-        }
-    }
-
-    throw new Error("No param provided");
-}
-
-export function optional<T>(cast: (value: ValueFromString) => T): (value: ValueFromString) => T | undefined {
-    return (value) => {
-        if (typeof value === "undefined") {
-            return value;
-        }
-        return cast(value);
+export function optional<TOriginal, TStored extends ValueFromString, TRetrieved>(
+    transformer: Transformer<TOriginal, TStored, TRetrieved>
+): Transformer<TOriginal, TStored, TRetrieved> & {
+    optional: Transformer<TOriginal | undefined, TStored | undefined, TRetrieved | undefined>;
+} {
+    return {
+        ...transformer,
+        optional: {
+            store(value: TOriginal | undefined): TStored | undefined {
+                return value === undefined ? (value as undefined) : transformer.store(value);
+            },
+            retrieve(value: ValueFromString): TRetrieved | undefined {
+                return value === undefined ? value : transformer.retrieve(value);
+            },
+        },
     };
 }
