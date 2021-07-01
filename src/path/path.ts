@@ -15,7 +15,7 @@ export function path<TPath extends string, TCasters extends Record<string, Trans
 export function path(
     path: string,
     shape?: Record<string, Transformer<unknown, string | undefined>>
-): PathProcessor<string, Record<string, any>, Record<string, any> | undefined> {
+): PathProcessor<string, Record<string, unknown>, Record<string, unknown> | undefined> {
     let requiredParams: string[];
 
     function areParamsSufficient(params: GenericPathParams) {
@@ -36,29 +36,29 @@ export function path(
 
     function retrieve(params: GenericPathParams) {
         if (shape) {
-            const castedParams: Record<string, any> = {};
+            const retrievedParams: Record<string, unknown> = {};
 
             try {
                 Object.keys(shape).forEach((key) => {
                     const value = shape[key].retrieve(params[key]);
 
                     if (value !== undefined) {
-                        castedParams[key] = value;
+                        retrievedParams[key] = value;
                     }
                 });
             } catch {
                 return undefined;
             }
 
-            return castedParams;
+            return retrievedParams;
         } else {
             return params;
         }
     }
 
-    function store(object: Record<string, any>) {
+    function store(object: Record<string, unknown>): Record<string, string | undefined> {
         if (shape) {
-            const result: Record<string, any> = {};
+            const result: Record<string, string | undefined> = {};
 
             Object.keys(shape).forEach((key) => {
                 result[key] = shape[key].store(object[key]);
@@ -66,16 +66,16 @@ export function path(
 
             return result;
         } else {
-            return object;
+            return object as Record<string, string | undefined>;
         }
     }
 
     return {
         path,
-        stringify(params: Record<string, any>): string {
+        stringify(params: Record<string, unknown>): string {
             return generatePath(path, store(params));
         },
-        parse(matchOrParams: GenericPathParams | match | null): Record<string, any> | undefined {
+        parse(matchOrParams: GenericPathParams | match | null): Record<string, unknown> | undefined {
             if (isMatch(matchOrParams)) {
                 if (matchOrParams && matchOrParams.path === path) {
                     return retrieve(matchOrParams.params);
