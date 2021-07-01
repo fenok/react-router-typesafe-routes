@@ -35,12 +35,12 @@ export function query<
 >(shape: TCasters, options?: TOptions): QueryProcessor<Params<TCasters, true>, Partial<Params<TCasters>>>;
 
 export function query(
-    shape?: null | Record<string, Transformer<unknown, QueryParam>>,
+    shape?: null | Record<string, Transformer<unknown, QueryParam | undefined>>,
     options: QueryOptions = {}
-): QueryProcessor<Record<string, any>, Record<string, any>> {
+): QueryProcessor<Record<string, unknown>, Record<string, unknown>> {
     function retrieve(object: Record<string, QueryParam>) {
         if (shape) {
-            const result: Record<string, any> = {};
+            const result: Record<string, unknown> = {};
 
             Object.keys(shape).forEach((key) => {
                 try {
@@ -62,7 +62,7 @@ export function query(
 
     function store(object: Record<string, unknown>) {
         if (shape) {
-            const result: Record<string, unknown> = {};
+            const result: Record<string, QueryParam | undefined> = {};
 
             Object.keys(shape).forEach((key) => {
                 result[key] = shape[key].store(object[key]);
@@ -75,10 +75,10 @@ export function query(
     }
 
     return {
-        stringify(query: Record<string, any>): string {
+        stringify(query: Record<string, unknown>): string {
             return query && Object.keys(query).length ? `?${queryString.stringify(store(query), options)}` : "";
         },
-        parse(query: string): Record<string, any> {
+        parse(query: string): Record<string, unknown> {
             return retrieve(queryString.parse(query, options));
         },
     };
