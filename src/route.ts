@@ -4,10 +4,6 @@ import { HashProcessor } from "./hash";
 import { match } from "react-router";
 import * as H from "history";
 
-export type OutPathPart<TOutPath> = { path: TOutPath };
-export type OutLocationPart<TOutQuery, TOutHash> = { query: TOutQuery; hash: TOutHash };
-export type OutEmptyLocationPart = { query: undefined; hash: undefined };
-
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function route<
     TPath extends string,
@@ -38,15 +34,15 @@ export function route<
         return hashProcessor?.stringify(hashValue) || "";
     }
 
-    function parse(matchOrParams: GenericPathParams | match | null): OutPathPart<TOutPath> & OutEmptyLocationPart;
+    function parse(matchOrParams: GenericPathParams | match | null): { path: TOutPath };
     function parse(
         matchOrParams: GenericPathParams | match | null,
         location?: H.Location
-    ): OutPathPart<TOutPath> & OutLocationPart<TOutQuery, TOutHash>;
+    ): { path: TOutPath; query: TOutQuery; hash: TOutHash };
     function parse(
         matchOrParams: GenericPathParams | match | null,
         location?: H.Location
-    ): OutPathPart<TOutPath> & Partial<OutLocationPart<TOutQuery, TOutHash>> {
+    ): { path: TOutPath; query?: TOutQuery; hash?: TOutHash } {
         return {
             path: parsePath(matchOrParams),
             query: location && parseQuery(location.search),
