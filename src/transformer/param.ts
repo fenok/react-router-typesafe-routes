@@ -46,7 +46,7 @@ const nullTransformer: Optional<Transformer<null, null>> = optional({
             return null;
         }
 
-        throw new Error("Got non-null value where null expected");
+        throw new Error(`Got non-null value: ${String(value)}`);
     },
 });
 
@@ -80,10 +80,7 @@ function oneOfTransformer<T extends (string | number | boolean)[]>(...values: T)
                             if (booleanTransformer.retrieve(value) === canonicalValue) return canonicalValue;
                     }
                 } catch {
-                    if (canonicalValue === values[values.length - 1]) {
-                        throw new Error("Couldn't cast value to any of the given variants");
-                    }
-                    // Otherwise try next value
+                    // Try next value
                 }
             }
 
