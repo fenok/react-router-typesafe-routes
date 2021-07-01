@@ -1,5 +1,5 @@
 import queryString, { ParseOptions, StringifyOptions } from "query-string";
-import { QueryProcessor } from "./interface";
+import { QueryProcessor } from "./QueryProcessor";
 import { Params, Transformer } from "../transformer";
 
 export type QueryOptions = StringifyOptions & ParseOptions;
@@ -24,7 +24,7 @@ export type KnownPrimitives<TOptions extends QueryOptions> = TOptions["parseBool
     : string;
 
 export function query<TOptions extends QueryOptions>(
-    shape?: null,
+    transformers?: null,
     options?: TOptions
     // Record<string, any> due to https://github.com/sindresorhus/query-string/issues/298
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,52 +32,55 @@ export function query<TOptions extends QueryOptions>(
 
 export function query<
     TOptions extends QueryOptions & { parseBooleans?: false; parseNumbers?: false },
-    TCasters extends Record<string, Transformer<unknown, QueryParam<TOptions> | undefined>>
->(shape: TCasters, options?: TOptions): QueryProcessor<Params<TCasters, true>, Partial<Params<TCasters>>>;
+    TTransformers extends Record<string, Transformer<unknown, QueryParam<TOptions> | undefined>>
+>(
+    transformers: TTransformers,
+    options?: TOptions
+): QueryProcessor<Params<TTransformers, true>, Partial<Params<TTransformers>>>;
 
 export function query(
-    shape?: null | Record<string, Transformer<unknown, QueryParam | undefined>>,
+    transformers?: null | Record<string, Transformer<unknown, QueryParam | undefined>>,
     options: QueryOptions = {}
 ): QueryProcessor<Record<string, unknown>, Record<string, unknown>> {
-    function retrieve(object: Record<string, QueryParam>) {
-        if (shape) {
-            const result: Record<string, unknown> = {};
+    function retrieve(storedParams: Record<string, QueryParam>) {
+        if (transformers) {
+            const retrievedParams: Record<string, unknown> = {};
 
-            Object.keys(shape).forEach((key) => {
+            Object.keys(transformers).forEach((key) => {
                 try {
-                    const value = shape[key].retrieve(object[key]);
+                    const value = transformers[key].retrieve(storedParams[key]);
 
                     if (value !== undefined) {
-                        result[key] = value;
+                        retrievedParams[key] = value;
                     }
                 } catch {
                     // Casting failed, but that's okay, we just omit this field
                 }
             });
 
-            return result;
+            return retrievedParams;
         } else {
-            return object;
+            return storedParams;
         }
     }
 
-    function store(object: Record<string, unknown>) {
-        if (shape) {
-            const result: Record<string, QueryParam | undefined> = {};
+    function store(originalParams: Record<string, unknown>) {
+        if (transformers) {
+            const storedParams: Record<string, QueryParam | undefined> = {};
 
-            Object.keys(shape).forEach((key) => {
-                result[key] = shape[key].store(object[key]);
+            Object.keys(transformers).forEach((key) => {
+                storedParams[key] = transformers[key].store(originalParams[key]);
             });
 
-            return result;
+            return storedParams;
         } else {
-            return object;
+            return originalParams;
         }
     }
 
     return {
-        stringify(query: Record<string, unknown>): string {
-            return query && Object.keys(query).length ? `?${queryString.stringify(store(query), options)}` : "";
+        stringify(params: Record<string, unknown>): string {
+            return params && Object.keys(params).length ? `?${queryString.stringify(store(params), options)}` : "";
         },
         parse(query: string): Record<string, unknown> {
             return retrieve(queryString.parse(query, options));

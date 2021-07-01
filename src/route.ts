@@ -25,16 +25,16 @@ export function route<
         }`;
     }
 
-    function buildPath(pathParams: TInPath): string {
-        return pathProcessor.stringify(pathParams);
+    function buildPath(path: TInPath): string {
+        return pathProcessor.stringify(path);
     }
 
-    function buildQuery(queryParams: TInQuery): string {
-        return queryProcessor?.stringify(queryParams) || "";
+    function buildQuery(query: TInQuery): string {
+        return queryProcessor?.stringify(query) || "";
     }
 
-    function buildHash(hashValue: TInHash): string {
-        return hashProcessor?.stringify(hashValue) || "";
+    function buildHash(hash: TInHash): string {
+        return hashProcessor?.stringify(hash) || "";
     }
 
     function parse(matchOrParams: PathParams | match | null): { path: TOutPath };
@@ -57,12 +57,12 @@ export function route<
         return pathProcessor.parse(matchOrParams);
     }
 
-    function parseQuery(queryString: string): TOutQuery {
-        return queryProcessor?.parse(queryString) as TOutQuery;
+    function parseQuery(query: string): TOutQuery {
+        return queryProcessor?.parse(query) as TOutQuery;
     }
 
-    function parseHash(hashString: string): TOutHash {
-        return hashProcessor?.parse(hashString) as TOutHash;
+    function parseHash(hash: string): TOutHash {
+        return hashProcessor?.parse(hash) as TOutHash;
     }
 
     return {

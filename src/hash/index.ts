@@ -1,2 +1,2 @@
-export * from "./interface";
+export * from "./HashProcessor";
 export * from "./hash";

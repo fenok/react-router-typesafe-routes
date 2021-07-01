@@ -1,5 +1,5 @@
 import { ExtractRouteParams, generatePath, match } from "react-router";
-import { PathParams, PathProcessor } from "./interface";
+import { PathParams, PathProcessor } from "./PathProcessor";
 import { Key, parse } from "path-to-regexp";
 import { Params, Transformer } from "../transformer";
 
@@ -7,14 +7,17 @@ export function path<TPath extends string>(
     path: TPath
 ): PathProcessor<TPath, ExtractRouteParams<TPath>, ExtractRouteParams<TPath, string> | undefined>;
 
-export function path<TPath extends string, TCasters extends Record<string, Transformer<unknown, string | undefined>>>(
+export function path<
+    TPath extends string,
+    TTransformers extends Record<string, Transformer<unknown, string | undefined>>
+>(
     path: TPath,
-    shape: TCasters
-): PathProcessor<TPath, Params<TCasters, true>, Params<TCasters> | undefined>;
+    transformers: TTransformers
+): PathProcessor<TPath, Params<TTransformers, true>, Params<TTransformers> | undefined>;
 
 export function path(
     path: string,
-    shape?: Record<string, Transformer<unknown, string | undefined>>
+    transformers?: Record<string, Transformer<unknown, string | undefined>>
 ): PathProcessor<string, Record<string, unknown>, Record<string, unknown> | undefined> {
     let requiredParams: string[];
 
@@ -34,13 +37,13 @@ export function path(
         return requiredParams;
     }
 
-    function retrieve(params: PathParams) {
-        if (shape) {
+    function retrieve(storedParams: PathParams) {
+        if (transformers) {
             const retrievedParams: Record<string, unknown> = {};
 
             try {
-                Object.keys(shape).forEach((key) => {
-                    const value = shape[key].retrieve(params[key]);
+                Object.keys(transformers).forEach((key) => {
+                    const value = transformers[key].retrieve(storedParams[key]);
 
                     if (value !== undefined) {
                         retrievedParams[key] = value;
@@ -52,21 +55,21 @@ export function path(
 
             return retrievedParams;
         } else {
-            return params;
+            return storedParams;
         }
     }
 
-    function store(object: Record<string, unknown>): Record<string, string | undefined> {
-        if (shape) {
-            const result: Record<string, string | undefined> = {};
+    function store(originalParams: Record<string, unknown>): Record<string, string | undefined> {
+        if (transformers) {
+            const storedParams: Record<string, string | undefined> = {};
 
-            Object.keys(shape).forEach((key) => {
-                result[key] = shape[key].store(object[key]);
+            Object.keys(transformers).forEach((key) => {
+                storedParams[key] = transformers[key].store(originalParams[key]);
             });
 
-            return result;
+            return storedParams;
         } else {
-            return object as Record<string, string | undefined>;
+            return originalParams as Record<string, string | undefined>;
         }
     }
 
@@ -80,7 +83,7 @@ export function path(
                 if (matchOrParams && matchOrParams.path === path) {
                     return retrieve(matchOrParams.params);
                 }
-            } else if (shape || areParamsSufficient(matchOrParams)) {
+            } else if (transformers || areParamsSufficient(matchOrParams)) {
                 return retrieve(matchOrParams);
             }
         },
