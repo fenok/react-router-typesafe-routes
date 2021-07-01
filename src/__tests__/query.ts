@@ -11,6 +11,7 @@ it("allows to use query params", () => {
     );
 
     // Build param are typed as Record<string, any> due to https://github.com/sindresorhus/query-string/issues/298
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     assert<IsExact<Parameters<typeof testRoute.build>[1], Record<string, any> | null | undefined>>(true);
     assert<
         IsExact<
@@ -114,8 +115,6 @@ it("allows single value to be stored as array regardless of array format", () =>
     assert<IsExact<ReturnType<typeof separatorRoute.parseQuery>, ArrayAwareParamsOut>>(true);
     assert<IsExact<ReturnType<typeof bracketSeparatorRoute.parseQuery>, ArrayAwareParamsOut>>(true);
     assert<IsExact<ReturnType<typeof noneRoute.parseQuery>, ArrayAwareParamsOut>>(true);
-
-    const a = defaultRoute.parseQuery("");
 
     expect(defaultRoute.parseQuery(defaultRoute.buildQuery({ a: ["abc"] }))).toEqual({ a: ["abc"] });
     expect(bracketRoute.parseQuery(bracketRoute.buildQuery({ a: ["abc"] }))).toEqual({ a: ["abc"] });

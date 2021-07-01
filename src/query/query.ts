@@ -27,6 +27,7 @@ export function query<TOptions extends QueryOptions>(
     shape?: null,
     options?: TOptions
     // Record<string, any> due to https://github.com/sindresorhus/query-string/issues/298
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): QueryProcessor<Record<string, any>, Record<string, QueryParam<TOptions>>>;
 
 export function query<

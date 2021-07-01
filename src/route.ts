@@ -8,6 +8,7 @@ export type OutPathPart<TOutPath> = { path: TOutPath };
 export type OutLocationPart<TOutQuery, TOutHash> = { query: TOutQuery; hash: TOutHash };
 export type OutEmptyLocationPart = { query: undefined; hash: undefined };
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function route<
     TPath extends string,
     TInPath,

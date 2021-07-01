@@ -21,7 +21,7 @@
         "prepare": "yarn build",
         "prepublishOnly": "yarn lint && yarn test",
         "lint": "eslint .",
-        "build": "rimraf dist && tsc",
+        "build": "rimraf dist && tsc --project tsconfig.build.json",
         "test": "jest",
         "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
     },
