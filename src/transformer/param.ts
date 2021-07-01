@@ -1,4 +1,4 @@
-import { Optional, Transformer } from "./interface";
+import { Optional, Transformer } from "./Transformer";
 import { assertString, optional } from "./helpers";
 
 const stringTransformer: Optional<Transformer<string | number | boolean, string, string>> = optional({

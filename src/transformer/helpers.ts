@@ -1,4 +1,4 @@
-import { Transformer } from "./interface";
+import { Transformer } from "./Transformer";
 
 export function assertString(value: unknown): asserts value is string {
     if (typeof value !== "string") {

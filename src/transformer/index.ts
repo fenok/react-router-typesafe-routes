@@ -1,3 +1,4 @@
 export * from "./param";
-export * from "./interface";
+export * from "./Transformer";
 export * from "./helpers";
+export * from "./Params";
