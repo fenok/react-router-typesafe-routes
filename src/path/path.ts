@@ -1,7 +1,7 @@
 import { ExtractRouteParams, generatePath, match } from "react-router";
 import { GenericPathParams, PathProcessor } from "./interface";
 import { Key, parse } from "path-to-regexp";
-import { Transformer } from "../param";
+import { Transformer } from "../transformer";
 
 export type PathParams<TCasters, TIn extends boolean = false> = {
     [TKey in keyof TCasters]?: TCasters[TKey] extends Transformer<infer TOriginal, any, infer TRetrieved>

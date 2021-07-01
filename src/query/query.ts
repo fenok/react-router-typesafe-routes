@@ -1,6 +1,6 @@
 import queryString, { ParseOptions, StringifyOptions } from "query-string";
 import { QueryProcessor } from "./interface";
-import { Transformer } from "../param";
+import { Transformer } from "../transformer";
 
 export type QueryOptions = StringifyOptions & ParseOptions;
 

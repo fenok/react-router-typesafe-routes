@@ -1,7 +1,7 @@
 import { route } from "../route";
 import { path } from "../path";
 import { query } from "../query";
-import { param } from "../param";
+import { param } from "../transformer";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("allows to use query params", () => {
