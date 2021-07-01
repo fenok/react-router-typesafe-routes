@@ -29,7 +29,7 @@ Route definition may look like this:
 import { route, path, query, hash, param } from "react-router-typesafe-routes";
 
 const routes = {
-    PRODUCT: route(path("/product/:id"), query({ age: param.number }, hash("about", "subscribe"))),
+    PRODUCT: route(path("/product/:id"), query({ age: param.number.optional }, hash("about", "subscribe"))),
 };
 ```
 
@@ -85,17 +85,12 @@ The `route` helper returns an object with `path` property, containing the origin
 
 The `build` function accepts three arguments that are params for corresponding processors and returns the URL string with the given parameters. Only the first argument (params for path processor) is required (even if it's just `{}`).
 
-Pass `null` or `undefined` to skip query building and specify hash. If the query processor is provided, you can also pass `{}`. That will technically invoke the query processor, yielding an empty query string.
+Pass `null` or `undefined` to skip query building and specify hash.
 
 ```typescript
 const pathUrl = fullRoute.build({});
 const queryUrl = fullRoute.build({}, { queryParam: "foo" });
-
-// No query processor on this route
-const hashUrlNoQuery = hashRoute.build({}, null, "value");
-
-// There is a query processor on this route, so we can pass {} to it
-const hashUrl = fullRoute.build({}, {}, "value");
+const hashUrl = fullRoute.build({}, null, "value");
 ```
 
 #### `route.parse`
@@ -112,30 +107,29 @@ const locationResult = fullRoute.parse(null, useLocation());
 
 ### `param`
 
-The `param` helper is used to define types for path and query params. Internally it transforms values from path and query to desired types and throws if it's not possible.
+The `param` helper is used to define types for path and query params. Internally it transforms values to something that can be stored in a URL (usually `string | undefined`, but that depends on URL processors) and back. If the reverse transformation is impossible, it throws an error. Usually it means that the value in the URL was unexpectedly changed.
 
 The possible values are:
 
 -   `param.string` - single string
 -   `param.number` - single number
 -   `param.boolean` - single boolean
--   `params.null` - single null
+-   `param.null` - single null
+-   `param.date` - single Date (stored in the URL as ISO string)
 -   `param.oneOf()` - one of the given single values, for instance `param.oneOf(1, 'a', true)`
--   `param.arrayOf()` - array of the given params, for instance `param.arrayOf(param.number)`
+-   `param.arrayOf()` - array of the given param, for instance `param.arrayOf(param.number)`
 
 All the above values also have an `.optional` modifier, which means that the corresponding field may be `undefined`.
 
-While you most likely won't need this, for the sake of completeness you can combine them into arrays like this: `[param.number, param.boolean]`. That means `number | boolean` in terms of TS.
+You can write your own transformers using the existing ones as an example.
 
-In fact, you can combine them in any way that processors allow, for instance `[param.arrayOf(param.oneOf('a', 'b'), param.number), param.boolean]` means `('a' | 'b' | number)[] | boolean`. Use with caution.
+#### Caveats
 
-It's important to understand that URL doesn't store type information. It means that when there are multiple transformers specified for a single value, their order matters. The first successful transformation wins.
+-   URL processors determine which transformers can be used in them.
 
-In practice, it means that you should always specify the string transformer last, otherwise you may get a string value that is technically correct, but likely not what you expected.
+-   Avoid specifying values that have the same string representation in `param.oneOf()`. For instance, in `param.oneOf(1, '1')` the `'1'` value will never be reached.
 
-It's also important to avoid overlapping transformers. For instance, `param.oneOf(1, '1')` is useless, because `'1'` will never be reached.
-
-There is one more nuance specific to `param.string`. On build, such a field will also accept `number` and `boolean` values, since they are trivially convertable to string. On parse, though, such a field will always be `string`.
+-   Fields marked as `param.string` will also accept `number` and `boolean` values on build, since they are trivially convertable to string. On parse, though, such fields will always be `string`. If that's not what you want, you can write your own `strictString`, using the `param.string` as an example.
 
 ### `path`
 
@@ -154,6 +148,8 @@ const { path } = myRoute.parse({ id: "1" });
 In a lot of cases you can get away with that. However, at the time of this writing it breaks on complex scenarios like this: `/test/:id(\\d+)?`. It likely will improve, but what if we want to fix it right now? What if we want more precise typing on parsed params?
 
 In that case we can completely override inferred type with our own. Note that it's your responsibility to sync this type with the actual path string.
+
+You can use transformers that store values as `string | undefined`.
 
 ```typescript
 const myRoute = route(path("/test/:id(\\d+)?", { id: param.number.optional }));
@@ -177,7 +173,7 @@ If we couldn't get valid params, the result of the parsing is `undefined`.
 
 ### `query`
 
-A query processor is created via the `query` helper. It's built upon [`query-string`](https://www.npmjs.com/package/query-string), and you can pass its options directly to it.
+A query processor is created via the `query` helper. It's built upon [`query-string`](https://www.npmjs.com/package/query-string), and you can use its options.
 
 If you want, you can create a processor without custom type and have the `query-string` types with a minor improvement. The minor improvement is that the ability to store `null` values inside arrays is now checked and depends on the `arrayFormat` option.
 
@@ -195,17 +191,15 @@ const { query } = myRoute.parse(null, useLocation());
 const { query: commaQuery } = myCommaRoute.parse(null, useLocation());
 ```
 
-You can make types more specific by providing a custom type. Note that, due to its nature, all query params are optional. Therefore, you can't use the `.optional` param modifier. Also note that you can put `undefined` values to array, but you won't get them back, since they are always omitted by `query-string`.
+You can make types more specific by providing a custom type. Note that in this case you can't set the `parseNumbers` and `parseBooleans` options to `true`, because the parsing is now done by the specified transformers.
 
-There is another catch: if you specify a custom type, you can't set the `parseNumbers` and `parseBooleans` options to `true`, because in that case the parsing is done by the specified transformers.
-
-All these quirks are type-checked.
+You can use transformers that store values as `string | null | (string | null)[] | undefined`. Again, the ability to store nulls inside arrays depend on the `arrayFormat` option.
 
 ```typescript
 const myRoute = route(path("/test"), query({ foo: param.number }));
-const myCommaRoute = route(path("/test"), query({ foo: param.string }, { arrayFormat: "comma" }));
+const myCommaRoute = route(path("/test"), query({ foo: param.string.optional }, { arrayFormat: "comma" }));
 
-// { foo?: number }
+// { foo: number }
 const url = myRoute.build({}, { foo: 1 });
 // { foo?: string | number | boolean }
 const commaUrl = myCommaRoute.build({}, { foo: "abc" });
@@ -216,7 +210,12 @@ const { query } = myRoute.parse(null, useLocation());
 const { query: commaQuery } = myCommaRoute.parse(null, useLocation());
 ```
 
-If some value can't be transformed, it's simply omitted.
+If some value can't be transformed on parse, it's simply omitted. Because of that all parameters become optional, because it's possible to change any parameter by hand, and your code should be ready for it.
+
+#### Caveats
+
+-   `query-string` technically always lets you store nulls inside arrays, but they get converted to empty strings with certain array formats. It's quite tedious to type, and I doubt that anyone really needs this.
+-   `query-string` lets you stringify arrays with undefined values, omitting them. If you need this behaviour, you can write a custom transformer.
 
 ### `hash`
 
@@ -246,13 +245,9 @@ const { hash } = myRoute.parse(null, useLocation());
 
 ## What can be improved
 
--   There should be warnings when the user is doing something wrong, like placing `param.string` before `param.number`.
-
 -   It would be nice to have type-checking for route state. It requires deep object validation and can be added without breaking changes.
 
--   It may be a good idea to convert values from path like `'one/two/three'` into arrays. It's not clear what is the best way to do it, though. One possible way is to create a special type of transformer that also stringifies values. That would also allow storing arbitrary types (like `Date`) in URL, but at the same time cause a lot of issues with transformers composition.
-
--   `param` API can potentially be simplified. We could use something like this: `oneOf(String, [Number], true, undefined)`. However, for simple cases (which are the vast majority of real-life cases, I believe) the difference between APIs is marginal, so it's probably not worth it.
+-   It may be a good idea to convert values from path like `'one/two/three'` into arrays. Right now it can be done with a custom transformer.
 
 ## How is it different from existing solutions?
 
