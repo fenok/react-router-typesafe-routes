@@ -7,7 +7,7 @@ export type Params<
     [TKey in keyof TTransformers]?: TransformerType<TTransformers[TKey], TUseOriginal>;
 } &
     {
-        [TKey in RequiredKeys<TTransformers>]: TransformerType<TTransformers[TKey], TUseOriginal>;
+        [TKey in RequiredKeys<TTransformers, TUseOriginal>]: TransformerType<TTransformers[TKey], TUseOriginal>;
     };
 
 type TransformerType<
@@ -19,10 +19,12 @@ type TransformerType<
         : TRetrieved
     : never;
 
-type RequiredKeys<T> = {
-    [TKey in keyof T]: T[TKey] extends Transformer<infer TType, unknown, unknown>
-        ? undefined extends TType
-            ? never
-            : TKey
+type RequiredKeys<T, TUseOriginal extends boolean> = {
+    [TKey in keyof T]: T[TKey] extends Transformer<infer TOriginal, unknown, infer TRetrieved>
+        ? TUseOriginal extends true
+            ? RequiredKey<TOriginal, TKey>
+            : RequiredKey<TRetrieved, TKey>
         : never;
 }[keyof T];
+
+type RequiredKey<T, K> = undefined extends T ? never : K;
