@@ -1,26 +1,7 @@
 import { ExtractRouteParams, generatePath, match } from "react-router";
 import { GenericPathParams, PathProcessor } from "./interface";
 import { Key, parse } from "path-to-regexp";
-import { Transformer } from "../transformer";
-
-export type PathParams<TCasters, TIn extends boolean = false> = {
-    [TKey in keyof TCasters]?: TCasters[TKey] extends Transformer<infer TOriginal, any, infer TRetrieved>
-        ? TIn extends true
-            ? TOriginal
-            : TRetrieved
-        : never;
-} &
-    {
-        [TKey in RequiredKeys<TCasters>]: TCasters[TKey] extends Transformer<infer TOriginal, any, infer TRetrieved>
-            ? TIn extends true
-                ? TOriginal
-                : TRetrieved
-            : never;
-    };
-
-export type RequiredKeys<T> = {
-    [TKey in keyof T]: T[TKey] extends Transformer<infer TType, any> ? (undefined extends TType ? never : TKey) : never;
-}[keyof T];
+import { Params, Transformer } from "../transformer";
 
 export function path<TPath extends string>(
     path: TPath
@@ -29,7 +10,7 @@ export function path<TPath extends string>(
 export function path<TPath extends string, TCasters extends Record<string, Transformer<unknown, string | undefined>>>(
     path: TPath,
     shape: TCasters
-): PathProcessor<TPath, PathParams<TCasters, true>, PathParams<TCasters> | undefined>;
+): PathProcessor<TPath, Params<TCasters, true>, Params<TCasters> | undefined>;
 
 export function path(
     path: string,

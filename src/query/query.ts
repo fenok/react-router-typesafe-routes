@@ -1,6 +1,6 @@
 import queryString, { ParseOptions, StringifyOptions } from "query-string";
 import { QueryProcessor } from "./interface";
-import { Transformer } from "../transformer";
+import { Params, Transformer } from "../transformer";
 
 export type QueryOptions = StringifyOptions & ParseOptions;
 
@@ -8,14 +8,6 @@ export type QueryTypes<TOptions extends QueryOptions = Record<string, unknown>, 
     | T
     | null
     | (NullInArray<TOptions> extends true ? T | null : T)[];
-
-export type QueryParams<TCasters, TIn extends boolean = false> = {
-    [Key in keyof TCasters]?: TCasters[Key] extends Transformer<infer TOriginal, any, infer TRetrieved>
-        ? TIn extends true
-            ? TOriginal
-            : TRetrieved
-        : never;
-};
 
 export type KnownTypes<TOptions extends QueryOptions> = TOptions["parseBooleans"] extends true
     ? TOptions["parseNumbers"] extends true
@@ -40,7 +32,7 @@ export function query<TOptions extends QueryOptions>(
 export function query<
     TOptions extends QueryOptions & { parseBooleans?: false; parseNumbers?: false },
     TCasters extends Record<string, Transformer<unknown, QueryTypes<TOptions, string> | undefined>>
->(shape: TCasters, options?: TOptions): QueryProcessor<QueryParams<TCasters, true>, QueryParams<TCasters>>;
+>(shape: TCasters, options?: TOptions): QueryProcessor<Params<TCasters, true>, Partial<Params<TCasters>>>;
 
 export function query(
     shape?: null | Record<string, Transformer<unknown, QueryTypes<QueryOptions, string>>>,
@@ -73,11 +65,7 @@ export function query(
             const result: Record<string, unknown> = {};
 
             Object.keys(shape).forEach((key) => {
-                try {
-                    result[key] = shape[key].store(object[key]);
-                } catch {
-                    // Casting failed, but that's okay, we just omit this field
-                }
+                result[key] = shape[key].store(object[key]);
             });
 
             return result;

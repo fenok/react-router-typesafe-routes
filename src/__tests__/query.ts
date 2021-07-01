@@ -35,11 +35,11 @@ it("allows to redefine and narrow query params", () => {
         path("/test"),
         query(
             {
-                a: param.string,
-                b: param.boolean,
-                c: param.number,
-                d: param.null,
-                f: param.arrayOf(param.number),
+                a: param.string.optional,
+                b: param.boolean.optional,
+                c: param.number.optional,
+                d: param.null.optional,
+                f: param.arrayOf(param.number).optional,
             },
             { arrayFormat: "bracket" }
         )
@@ -86,7 +86,7 @@ it("doesn't preserve unknown (and therefore untyped) params", () => {
 });
 
 it("allows single value to be stored as array regardless of array format", () => {
-    const queryShape = { a: param.arrayOf(param.string) };
+    const queryShape = { a: param.arrayOf(param.string).optional };
 
     const defaultRoute = route(path("/test"), query(queryShape));
     const bracketRoute = route(path("/test"), query(queryShape, { arrayFormat: "bracket" }));
@@ -135,8 +135,8 @@ it("allows single value to be stored as array regardless of array format", () =>
 });
 
 it("detects whether it is possible to store null values in array", () => {
-    const arrayNull = { a: param.arrayOf(param.null) };
-    const flatNull = { a: param.null };
+    const arrayNull = { a: param.arrayOf(param.null).optional };
+    const flatNull = { a: param.null.optional };
 
     const defaultRoute = route(path("/test"), query(arrayNull));
     const bracketRoute = route(path("/test"), query(arrayNull, { arrayFormat: "bracket" }));
@@ -191,8 +191,8 @@ it("allows to specify unions of values", () => {
         path("/test"),
         query(
             {
-                n: param.oneOf(1, 2, "abc"),
-                f: param.arrayOf(param.oneOf("foo", "bar")),
+                n: param.oneOf(1, 2, "abc").optional,
+                f: param.arrayOf(param.oneOf("foo", "bar")).optional,
             },
             { arrayFormat: "bracket" }
         )
