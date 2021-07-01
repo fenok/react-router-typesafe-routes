@@ -1,4 +1,4 @@
-import { GenericPathParams, PathProcessor } from "./path";
+import { PathParams, PathProcessor } from "./path";
 import { QueryProcessor } from "./query";
 import { HashProcessor } from "./hash";
 import { match } from "react-router";
@@ -37,13 +37,13 @@ export function route<
         return hashProcessor?.stringify(hashValue) || "";
     }
 
-    function parse(matchOrParams: GenericPathParams | match | null): { path: TOutPath };
+    function parse(matchOrParams: PathParams | match | null): { path: TOutPath };
     function parse(
-        matchOrParams: GenericPathParams | match | null,
+        matchOrParams: PathParams | match | null,
         location?: H.Location
     ): { path: TOutPath; query: TOutQuery; hash: TOutHash };
     function parse(
-        matchOrParams: GenericPathParams | match | null,
+        matchOrParams: PathParams | match | null,
         location?: H.Location
     ): { path: TOutPath; query?: TOutQuery; hash?: TOutHash } {
         return {
@@ -53,7 +53,7 @@ export function route<
         };
     }
 
-    function parsePath(matchOrParams: GenericPathParams | match | null): TOutPath {
+    function parsePath(matchOrParams: PathParams | match | null): TOutPath {
         return pathProcessor.parse(matchOrParams);
     }
 

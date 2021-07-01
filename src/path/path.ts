@@ -1,5 +1,5 @@
 import { ExtractRouteParams, generatePath, match } from "react-router";
-import { GenericPathParams, PathProcessor } from "./interface";
+import { PathParams, PathProcessor } from "./interface";
 import { Key, parse } from "path-to-regexp";
 import { Params, Transformer } from "../transformer";
 
@@ -18,7 +18,7 @@ export function path(
 ): PathProcessor<string, Record<string, unknown>, Record<string, unknown> | undefined> {
     let requiredParams: string[];
 
-    function areParamsSufficient(params: GenericPathParams) {
+    function areParamsSufficient(params: PathParams) {
         return getRequiredParams().every((requiredParam) => requiredParam in params);
     }
 
@@ -34,7 +34,7 @@ export function path(
         return requiredParams;
     }
 
-    function retrieve(params: GenericPathParams) {
+    function retrieve(params: PathParams) {
         if (shape) {
             const retrievedParams: Record<string, unknown> = {};
 
@@ -75,7 +75,7 @@ export function path(
         stringify(params: Record<string, unknown>): string {
             return generatePath(path, store(params));
         },
-        parse(matchOrParams: GenericPathParams | match | null): Record<string, unknown> | undefined {
+        parse(matchOrParams: PathParams | match | null): Record<string, unknown> | undefined {
             if (isMatch(matchOrParams)) {
                 if (matchOrParams && matchOrParams.path === path) {
                     return retrieve(matchOrParams.params);
