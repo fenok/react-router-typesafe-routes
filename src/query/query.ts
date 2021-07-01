@@ -4,12 +4,18 @@ import { Params, Transformer } from "../transformer";
 
 export type QueryOptions = StringifyOptions & ParseOptions;
 
-export type QueryTypes<TOptions extends QueryOptions = Record<string, unknown>, T = string | number | boolean> =
+export type QueryParam<TOptions extends QueryOptions = QueryOptions, T = KnownPrimitives<TOptions>> =
     | T
     | null
-    | (NullInArray<TOptions> extends true ? T | null : T)[];
+    | (CanStoreNullInArray<TOptions> extends true ? T | null : T)[];
 
-export type KnownTypes<TOptions extends QueryOptions> = TOptions["parseBooleans"] extends true
+export type CanStoreNullInArray<TOptions extends QueryOptions> = undefined extends TOptions["arrayFormat"]
+    ? true
+    : TOptions["arrayFormat"] extends "bracket" | "index" | "none"
+    ? true
+    : false;
+
+export type KnownPrimitives<TOptions extends QueryOptions> = TOptions["parseBooleans"] extends true
     ? TOptions["parseNumbers"] extends true
         ? string | number | boolean
         : string | boolean
@@ -17,28 +23,22 @@ export type KnownTypes<TOptions extends QueryOptions> = TOptions["parseBooleans"
     ? string | number
     : string;
 
-export type NullInArray<TOptions extends QueryOptions> = undefined extends TOptions["arrayFormat"]
-    ? true
-    : TOptions["arrayFormat"] extends "bracket" | "index" | "none"
-    ? true
-    : false;
-
 export function query<TOptions extends QueryOptions>(
     shape?: null,
     options?: TOptions
     // Record<string, any> due to https://github.com/sindresorhus/query-string/issues/298
-): QueryProcessor<Record<string, any>, Record<string, QueryTypes<TOptions, KnownTypes<TOptions>>>>;
+): QueryProcessor<Record<string, any>, Record<string, QueryParam<TOptions>>>;
 
 export function query<
     TOptions extends QueryOptions & { parseBooleans?: false; parseNumbers?: false },
-    TCasters extends Record<string, Transformer<unknown, QueryTypes<TOptions, string> | undefined>>
+    TCasters extends Record<string, Transformer<unknown, QueryParam<TOptions> | undefined>>
 >(shape: TCasters, options?: TOptions): QueryProcessor<Params<TCasters, true>, Partial<Params<TCasters>>>;
 
 export function query(
-    shape?: null | Record<string, Transformer<unknown, QueryTypes<QueryOptions, string>>>,
+    shape?: null | Record<string, Transformer<unknown, QueryParam>>,
     options: QueryOptions = {}
 ): QueryProcessor<Record<string, any>, Record<string, any>> {
-    function retrieve(object: Record<string, QueryTypes<Record<string, unknown>, string>>) {
+    function retrieve(object: Record<string, QueryParam>) {
         if (shape) {
             const result: Record<string, any> = {};
 
