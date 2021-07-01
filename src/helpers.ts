@@ -1,0 +1,3 @@
+export function isDefined<T>(value: T): value is Exclude<T, null | undefined> {
+    return value !== undefined && value !== null;
+}

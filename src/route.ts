@@ -3,6 +3,7 @@ import { QueryProcessor } from "./query";
 import { HashProcessor } from "./hash";
 import { match } from "react-router";
 import * as H from "history";
+import { isDefined } from "./helpers";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function route<
@@ -19,7 +20,9 @@ export function route<
     hashProcessor?: HashProcessor<TInHash, TOutHash> | null
 ) {
     function build(path: TInPath, query?: TInQuery | null, hash?: TInHash | null) {
-        return `${buildPath(path)}${query ? buildQuery(query) : ""}${hash ? buildHash(hash) : ""}`;
+        return `${buildPath(path)}${isDefined(query) ? buildQuery(query) : ""}${
+            isDefined(hash) ? buildHash(hash) : ""
+        }`;
     }
 
     function buildPath(pathParams: TInPath): string {
