@@ -75,7 +75,7 @@ export function path(
 
     return {
         path,
-        stringify(params: Record<string, unknown>): string {
+        build(params: Record<string, unknown>): string {
             return generatePath(path, store(params));
         },
         parse(matchOrParams: PathParams | match | null): Record<string, unknown> | undefined {

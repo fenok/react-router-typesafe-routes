@@ -1,4 +1,4 @@
 export interface QueryProcessor<TInQuery, TOutQuery> {
-    stringify(query: TInQuery): string;
+    build(query: TInQuery): string;
     parse(query: string): TOutQuery;
 }

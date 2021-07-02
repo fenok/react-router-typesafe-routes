@@ -8,7 +8,7 @@ export function hash(...values: string[]): HashProcessor<string, string> {
     }
 
     return {
-        stringify(hash: string): string {
+        build(hash: string): string {
             const normalizedHash = normalizeHash(hash);
 
             if (normalizedHash) {

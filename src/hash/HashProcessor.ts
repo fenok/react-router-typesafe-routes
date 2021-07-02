@@ -1,4 +1,4 @@
 export interface HashProcessor<TInHash, TOutHash> {
-    stringify(hash: TInHash): string;
+    build(hash: TInHash): string;
     parse(hash: string): TOutHash;
 }

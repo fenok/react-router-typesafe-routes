@@ -79,7 +79,7 @@ export function query(
     }
 
     return {
-        stringify(params: Record<string, unknown>): string {
+        build(params: Record<string, unknown>): string {
             return params && Object.keys(params).length ? `?${queryString.stringify(store(params), options)}` : "";
         },
         parse(query: string): Record<string, unknown> {
