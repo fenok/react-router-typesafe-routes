@@ -20,7 +20,7 @@ export function hash(...values: string[]): HashProcessor<string, string> {
         parse(hash: string): string {
             const normalizedHash = normalizeHash(hash);
 
-            if (!values.length || values.includes(normalizedHash)) {
+            if (!values.length || ~values.findIndex((value) => value === normalizedHash)) {
                 return normalizedHash;
             }
 
