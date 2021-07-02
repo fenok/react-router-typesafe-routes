@@ -12,7 +12,7 @@ The library provides type safety for path params, query params and hash on build
 yarn add react-router-typesafe-routes
 ```
 
-Note that the library is using ES6 modules and modern JS. Babel usage is advised.
+Note that the library is using ES6, including ES6 modules.
 
 ## Design principles
 
@@ -64,6 +64,18 @@ const fromParams = routes.PRODUCT.parse(useParams(), useLocation());
 const { path, query, hash } = fromParams;
 ```
 
+You can also parse only what you need:
+
+```typescript jsx
+import { useParams, useLocation } from "react-router";
+import { routes } from "./path/to/routes";
+
+// Again, useRouteMatch() can also be used
+const path = routes.PRODUCT.parsePath(useParams());
+const query = routes.PRODUCT.parseQuery(useLocation());
+const hash = routes.PRODUCT.parseHash(useLocation());
+```
+
 ## In-depth explanation
 
 ### `route`
@@ -79,7 +91,7 @@ const hashRoute = route(path("/path"), null, hash("value"));
 const fullRoute = route(path("/path"), query(), hash());
 ```
 
-The `route` helper returns an object with `path` property, containing the original URL path, and `build` and `parse` functions. There are also `buildPath`, `buildQuery`, `buildHash`, `parsePath`, `parseQuery` and `parseHash` functions provided for convenience. Note that `parsePath` somewhat unexpectedly accepts `match` or `match.params` from react-router instead of string, like `parseQuery` and `parseHash` do.
+The `route` helper returns an object with `path` property, containing the original URL path, and `build` and `parse` functions. There are also `buildPath`, `buildQuery`, `buildHash`, `parsePath`, `parseQuery` and `parseHash` functions provided for convenience.
 
 #### `route.build`
 
@@ -210,7 +222,7 @@ const { query } = myRoute.parse(null, useLocation());
 const { query: commaQuery } = myCommaRoute.parse(null, useLocation());
 ```
 
-If some value can't be transformed on parse, it's simply omitted. Because of that all parameters become optional, because it's possible to change any parameter by hand, and your code should be ready for it.
+During parse, if some value can't be transformed, it's simply omitted. Therefore, all parsed values are optional.
 
 #### Caveats
 
@@ -248,6 +260,8 @@ const { hash } = myRoute.parse(null, useLocation());
 -   It would be nice to have type-checking for route state. It requires deep object validation and can be added without breaking changes.
 
 -   It may be a good idea to convert values from path like `'one/two/three'` into arrays. Right now it can be done with a custom transformer.
+
+-   Default values can be added right now via custom transformers, but query params will always be optional on parse.
 
 ## How is it different from existing solutions?
 
