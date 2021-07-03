@@ -1,9 +1,10 @@
 import { PathParams, PathProcessor } from "./path";
 import { QueryProcessor } from "./query";
 import { HashProcessor } from "./hash";
-import { match } from "react-router";
-import * as H from "history";
+import { match, useLocation } from "react-router";
 import { isDefined } from "./helpers";
+
+type Location = ReturnType<typeof useLocation>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function route<
@@ -40,11 +41,11 @@ export function route<
     function parse(matchOrParams: PathParams | match | null): { path: TOutPath };
     function parse(
         matchOrParams: PathParams | match | null,
-        location?: H.Location
+        location?: Location
     ): { path: TOutPath; query: TOutQuery; hash: TOutHash };
     function parse(
         matchOrParams: PathParams | match | null,
-        location?: H.Location
+        location?: Location
     ): { path: TOutPath; query?: TOutQuery; hash?: TOutHash } {
         return {
             path: parsePath(matchOrParams),
@@ -57,11 +58,11 @@ export function route<
         return pathProcessor.parse(matchOrParams);
     }
 
-    function parseQuery(location: H.Location): TOutQuery {
+    function parseQuery(location: Location): TOutQuery {
         return queryProcessor?.parse(location.search) as TOutQuery;
     }
 
-    function parseHash(location: H.Location): TOutHash {
+    function parseHash(location: Location): TOutHash {
         return hashProcessor?.parse(location.hash) as TOutHash;
     }
 

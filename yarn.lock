@@ -792,7 +792,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/history@npm:*, @types/history@npm:^4.7.8":
+"@types/history@npm:*":
   version: 4.7.8
   resolution: "@types/history@npm:4.7.8"
   checksum: 54020371a412e949d0a329cc325253f16daf5b33e2e485135d39d3b30d3f9a8e323b00ce1162da82387c8ecf0397a8da49ad36ab309f06284326c064092879c7
@@ -4102,7 +4102,6 @@ fsevents@^2.3.2:
   version: 0.0.0-use.local
   resolution: "react-router-typesafe-routes@workspace:."
   dependencies:
-    "@types/history": ^4.7.8
     "@types/jest": ^26.0.23
     "@types/react-router": ^5.1.15
     "@typescript-eslint/eslint-plugin": ^4.27.0
