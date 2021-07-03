@@ -16,10 +16,10 @@ Note that the library is using ES6, including ES6 modules.
 
 ## Design principles
 
--   Mess with react-router API as little as possible
--   No unsafe type casts
--   Extensibility to allow better typing and/or validation
--   Completeness: cover every aspect of the URL
+-   Mess with react-router API as little as possible.
+-   No unsafe type casts.
+-   Extensibility to allow better typing and/or validation.
+-   Completeness: cover every aspect of the URL.
 
 ## Quick usage example
 
@@ -110,9 +110,9 @@ Remember that you can also build individual URL parts via the `buildPath`, `buil
 The `parse` function accepts two arguments that are `match` (including `null`) or `match.params` and `location` objects from react-router and returns an object with `path`, `query`, and `hash` fields, containing the corresponding parameters from the URL. Only the first argument is required. The `query` and `hash` fields will be `undefined` if no `location` or corresponding processors were provided.
 
 ```typescript
-const fullResult = fullRoute.parse(useParams(), useLocation());
-const pathResult = fullRoute.parse(useParams());
-const locationResult = fullRoute.parse(null, useLocation());
+const fullParams = fullRoute.parse(useParams(), useLocation());
+const pathParams = fullRoute.parse(useParams());
+const locationParams = fullRoute.parse(null, useLocation());
 ```
 
 Remember that you can also parse individual URL parts via the `parsePath`, `parseQuery`, and `parseHash` functions.
@@ -123,21 +123,23 @@ The `param` helper is used to define types for path and query params. It provide
 
 The predefined transformers are:
 
--   `param.string` - single string
--   `param.number` - single number
--   `param.boolean` - single boolean
--   `param.null` - single null
--   `param.date` - single Date (stored in the URL as an ISO string)
--   `param.oneOf()` - one of the given single values, for instance `param.oneOf(1, 'a', true)`
--   `param.arrayOf()` - array of the given transformer, for instance `param.arrayOf(param.number)`
+-   `param.string` - single string;
+-   `param.number` - single number;
+-   `param.boolean` - single boolean;
+-   `param.null` - single null;
+-   `param.date` - single Date (stored in the URL as an ISO string);
+-   `param.oneOf()` - one of the given single values, for instance `param.oneOf(1, 'a', true)`;
+-   `param.arrayOf()` - array of the given transformer, for instance `param.arrayOf(param.number)`.
 
-All the above transformers also have an `.optional` modifier, which means that the corresponding value may be `undefined`.
+All the above transformers also have an `.optional` modifier, which means that the corresponding value may be `undefined`. If the reverse transformation of such a value fails, `undefined` is returned instead.
 
 You can write custom transformers using the existing ones as an example.
 
 #### Caveats
 
 -   URL processors determine which transformers can be used in them.
+
+-   For array fields, the reverse transformation of `undefined` will result in empty array.
 
 -   Avoid specifying values that have the same string representation in `param.oneOf()`. For instance, in `param.oneOf(1, '1')` the `'1'` value will never be reached.
 
@@ -153,8 +155,8 @@ const myRoute = route(path("/test/:id"));
 // { id: string | number | boolean }
 const url = myRoute.build({ id: 1 });
 
-// { id: string }
-const { path } = myRoute.parse({ id: "1" });
+// { id: string } | undefined
+const pathParams = myRoute.parsePath(useParams());
 ```
 
 In a lot of cases, you can get away with it. However, at the time of writing, it breaks on complex scenarios like `/test/:id(\\d+)?`. It likely will improve, but what if we want to fix it right now? What if we want more precise typing on parsed params?
@@ -169,8 +171,8 @@ const myRoute = route(path("/test/:id(\\d+)?", { id: param.number.optional }));
 // { id?: number }
 const url = myRoute.build({ id: 1 });
 
-// { id?: number }
-const { path } = myRoute.parse({ id: "1" });
+// { id?: number } | undefined
+const pathParams = myRoute.parsePath(useParams());
 ```
 
 #### Parsing details
@@ -198,9 +200,9 @@ const url = myRoute.build({}, { foo: "foo" });
 const commaUrl = myCommaRoute.build({}, { foo: "foo" });
 
 // Record<string, string | null | (string | null)[]>
-const { query } = myRoute.parse(null, useLocation());
+const queryParams = myRoute.parseQuery(useLocation());
 // Record<string, string | number | null | (string | number)[]>
-const { query: commaQuery } = myCommaRoute.parse(null, useLocation());
+const commaQueryParams = myCommaRoute.parseQuery(useLocation());
 ```
 
 You can make types more specific by providing a custom type. Note that, in this case, you can't set the `parseNumbers` and `parseBooleans` options to `true`, because the parsing is now done by the specified transformers.
@@ -216,17 +218,18 @@ const url = myRoute.build({}, { foo: 1 });
 // { foo?: string | number | boolean }
 const commaUrl = myCommaRoute.build({}, { foo: "abc" });
 
-// { foo: number }
-const { query } = myRoute.parse(null, useLocation());
-// { foo?: string }
-const { query: commaQuery } = myCommaRoute.parse(null, useLocation());
+// { foo: number } | undefined
+const queryParams = myRoute.parseQuery(useLocation());
+// { foo?: string } | undefined
+const commaQueryParams = myCommaRoute.parseQuery(useLocation());
 ```
 
-On parse, if some value can't be transformed, the result of the parsing is `undefined`.
+On parse, if some value can't be transformed, the result of the whole parsing is `undefined`.
 
 #### Caveats
 
 -   `query-string` technically always lets you store nulls inside arrays, but they get converted to empty strings with certain array formats. It's quite tedious to type, and I doubt that anyone needs this.
+
 -   `query-string` lets you stringify arrays with undefined values, omitting them. If you need this behavior, you can write a custom transformer.
 
 ### `hash`
@@ -240,7 +243,7 @@ const myRoute = route(path("/test"), null, hash());
 const url = myRoute.build({}, null, "foo");
 
 // string
-const { hash } = myRoute.parse(null, useLocation());
+const hashValue = myRoute.parseHash(useLocation());
 ```
 
 Or you can specify the allowed values:
@@ -252,7 +255,7 @@ const myRoute = route(path("/test"), null, hash("foo", "bar"));
 const url = myRoute.build({}, null, "foo");
 
 // '' | 'foo' | 'bar'
-const { hash } = myRoute.parse(null, useLocation());
+const hashValue = myRoute.parseHash(useLocation());
 ```
 
 ## What can be improved
@@ -271,4 +274,4 @@ const { hash } = myRoute.parse(null, useLocation());
 
 -   The solution described at [Type-Safe Usage of React Router](https://dev.to/0916dhkim/type-safe-usage-of-react-router-5c44) only cares about path params.
 
--   There is also [type-route](https://www.npmjs.com/package/type-route), but it's still in beta.
+-   There is also [type-route](https://www.npmjs.com/package/type-route), but it's still in beta. It's also a separate routing library.
