@@ -1,4 +1,4 @@
-import { Transformer } from "./Transformer";
+import { Optional, Transformer } from "./Transformer";
 
 export function assertString(value: unknown): asserts value is string {
     if (typeof value !== "string") {
@@ -8,17 +8,19 @@ export function assertString(value: unknown): asserts value is string {
 
 export function optional<TOriginal, TStored, TRetrieved>(
     transformer: Transformer<TOriginal, TStored, TRetrieved>
-): Transformer<TOriginal, TStored, TRetrieved> & {
-    optional: Transformer<TOriginal | undefined, TStored | undefined, TRetrieved | undefined>;
-} {
+): Optional<Transformer<TOriginal, TStored, TRetrieved>> {
     return {
         ...transformer,
         optional: {
             store(value: TOriginal | undefined): TStored | undefined {
                 return value === undefined ? (value as undefined) : transformer.store(value);
             },
-            retrieve(value: unknown): TRetrieved | undefined {
-                return value === undefined ? value : transformer.retrieve(value);
+            retrieve(value: unknown) {
+                try {
+                    return transformer.retrieve(value);
+                } catch (error) {
+                    return undefined;
+                }
             },
         },
     };

@@ -127,8 +127,8 @@ it("allows single value to be stored as array regardless of array format", () =>
 });
 
 it("detects whether it is possible to store null values in array", () => {
-    const arrayNull = { a: param.arrayOf(param.null) };
-    const flatNull = { a: param.null };
+    const arrayNull = { a: param.arrayOf(param.null).optional };
+    const flatNull = { a: param.null.optional };
 
     const defaultProcessor = query(arrayNull);
     const bracketProcessor = query(arrayNull, { arrayFormat: "bracket" });
@@ -138,17 +138,17 @@ it("detects whether it is possible to store null values in array", () => {
     const bracketSeparatorProcessor = query(flatNull, { arrayFormat: "bracket-separator" });
     const noneProcessor = query(arrayNull, { arrayFormat: "none" });
 
-    type ArrayNullIn = { a: null[] };
-    type ArrayNullOut = { a: null[] } | undefined;
-    type FlatNull = { a: null };
-    type FlatNullOut = { a: null } | undefined;
+    type ArrayNullIn = { a?: null[] };
+    type ArrayNullOut = { a?: null[] } | undefined;
+    type FlatNullIn = { a?: null };
+    type FlatNullOut = { a?: null } | undefined;
 
     assert<IsExact<Parameters<typeof defaultProcessor.build>[0], ArrayNullIn>>(true);
     assert<IsExact<Parameters<typeof bracketProcessor.build>[0], ArrayNullIn>>(true);
     assert<IsExact<Parameters<typeof indexProcessor.build>[0], ArrayNullIn>>(true);
-    assert<IsExact<Parameters<typeof commaProcessor.build>[0], FlatNull>>(true);
-    assert<IsExact<Parameters<typeof separatorProcessor.build>[0], FlatNull>>(true);
-    assert<IsExact<Parameters<typeof bracketSeparatorProcessor.build>[0], FlatNull>>(true);
+    assert<IsExact<Parameters<typeof commaProcessor.build>[0], FlatNullIn>>(true);
+    assert<IsExact<Parameters<typeof separatorProcessor.build>[0], FlatNullIn>>(true);
+    assert<IsExact<Parameters<typeof bracketSeparatorProcessor.build>[0], FlatNullIn>>(true);
     assert<IsExact<Parameters<typeof noneProcessor.build>[0], ArrayNullIn>>(true);
 
     assert<IsExact<ReturnType<typeof defaultProcessor.parse>, ArrayNullOut>>(true);
@@ -198,7 +198,7 @@ it("allows to specify unions of values", () => {
         f: ["foo", "bar"],
     });
 
-    expect(processor.parse("?n=4&f[]=baz")).toBe(undefined);
+    expect(processor.parse("?n=4&f[]=baz")).toEqual({});
 });
 
 it("allows to pass numbers and booleans to string params", () => {
