@@ -36,27 +36,27 @@ export function query<
 >(
     transformers: TTransformers,
     options?: TOptions
-): QueryProcessor<Params<TTransformers, true>, Partial<Params<TTransformers>>>;
+): QueryProcessor<Params<TTransformers, true>, Params<TTransformers> | undefined>;
 
 export function query(
     transformers?: null | Record<string, Transformer<unknown, QueryParam | undefined>>,
     options: QueryOptions = {}
-): QueryProcessor<Record<string, unknown>, Record<string, unknown>> {
+): QueryProcessor<Record<string, unknown>, Record<string, unknown> | undefined> {
     function retrieve(storedParams: Record<string, QueryParam>) {
         if (transformers) {
             const retrievedParams: Record<string, unknown> = {};
 
-            Object.keys(transformers).forEach((key) => {
-                try {
+            try {
+                Object.keys(transformers).forEach((key) => {
                     const value = transformers[key].retrieve(storedParams[key]);
 
                     if (value !== undefined) {
                         retrievedParams[key] = value;
                     }
-                } catch {
-                    // Casting failed, but that's okay, we just omit this field
-                }
-            });
+                });
+            } catch {
+                return undefined;
+            }
 
             return retrievedParams;
         } else {
@@ -82,7 +82,7 @@ export function query(
         build(params: Record<string, unknown>): string {
             return params && Object.keys(params).length ? `?${queryString.stringify(store(params), options)}` : "";
         },
-        parse(query: string): Record<string, unknown> {
+        parse(query: string): Record<string, unknown> | undefined {
             return retrieve(queryString.parse(query, options));
         },
     };

@@ -103,9 +103,13 @@ function arrayOfTransformer<T, U extends string | null, O>(
             return values.map((value) => transformer.store(value));
         },
         retrieve(value) {
-            const arrayValue = Array.isArray(value) ? value : [value];
+            if (value !== undefined) {
+                const arrayValue = Array.isArray(value) ? value : [value];
 
-            return arrayValue.map((item) => transformer.retrieve(item));
+                return arrayValue.map((item) => transformer.retrieve(item));
+            }
+
+            return [];
         },
     });
 }

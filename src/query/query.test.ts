@@ -51,13 +51,14 @@ it("allows to redefine and narrow query params", () => {
     assert<
         IsExact<
             ReturnType<typeof processor.parse>,
-            {
-                a?: string;
-                b?: boolean;
-                c?: number;
-                d?: null;
-                f?: number[];
-            }
+            | {
+                  a?: string;
+                  b?: boolean;
+                  c?: number;
+                  d?: null;
+                  f?: number[];
+              }
+            | undefined
         >
     >(true);
 
@@ -88,7 +89,7 @@ it("allows single value to be stored as array regardless of array format", () =>
     const noneProcessor = query(queryShape, { arrayFormat: "none" });
 
     type ArrayAwareParamsIn = { a?: (string | number | boolean)[] };
-    type ArrayAwareParamsOut = { a?: string[] };
+    type ArrayAwareParamsOut = { a?: string[] } | undefined;
 
     assert<IsExact<Parameters<typeof defaultProcessor.build>[0], ArrayAwareParamsIn>>(true);
     assert<IsExact<Parameters<typeof bracketProcessor.build>[0], ArrayAwareParamsIn>>(true);
@@ -126,8 +127,8 @@ it("allows single value to be stored as array regardless of array format", () =>
 });
 
 it("detects whether it is possible to store null values in array", () => {
-    const arrayNull = { a: param.arrayOf(param.null).optional };
-    const flatNull = { a: param.null.optional };
+    const arrayNull = { a: param.arrayOf(param.null) };
+    const flatNull = { a: param.null };
 
     const defaultProcessor = query(arrayNull);
     const bracketProcessor = query(arrayNull, { arrayFormat: "bracket" });
@@ -137,11 +138,10 @@ it("detects whether it is possible to store null values in array", () => {
     const bracketSeparatorProcessor = query(flatNull, { arrayFormat: "bracket-separator" });
     const noneProcessor = query(arrayNull, { arrayFormat: "none" });
 
-    type ArrayNullIn = { a?: null[] };
-
-    type ArrayNullOut = { a?: null[] };
-
-    type FlatNull = { a?: null };
+    type ArrayNullIn = { a: null[] };
+    type ArrayNullOut = { a: null[] } | undefined;
+    type FlatNull = { a: null };
+    type FlatNullOut = { a: null } | undefined;
 
     assert<IsExact<Parameters<typeof defaultProcessor.build>[0], ArrayNullIn>>(true);
     assert<IsExact<Parameters<typeof bracketProcessor.build>[0], ArrayNullIn>>(true);
@@ -154,25 +154,25 @@ it("detects whether it is possible to store null values in array", () => {
     assert<IsExact<ReturnType<typeof defaultProcessor.parse>, ArrayNullOut>>(true);
     assert<IsExact<ReturnType<typeof bracketProcessor.parse>, ArrayNullOut>>(true);
     assert<IsExact<ReturnType<typeof indexProcessor.parse>, ArrayNullOut>>(true);
-    assert<IsExact<ReturnType<typeof commaProcessor.parse>, FlatNull>>(true);
-    assert<IsExact<ReturnType<typeof separatorProcessor.parse>, FlatNull>>(true);
-    assert<IsExact<ReturnType<typeof bracketSeparatorProcessor.parse>, FlatNull>>(true);
+    assert<IsExact<ReturnType<typeof commaProcessor.parse>, FlatNullOut>>(true);
+    assert<IsExact<ReturnType<typeof separatorProcessor.parse>, FlatNullOut>>(true);
+    assert<IsExact<ReturnType<typeof bracketSeparatorProcessor.parse>, FlatNullOut>>(true);
     assert<IsExact<ReturnType<typeof noneProcessor.parse>, ArrayNullOut>>(true);
 
-    expect(defaultProcessor.parse(defaultProcessor.build({ a: [] }))).toEqual({ a: undefined });
+    expect(defaultProcessor.parse(defaultProcessor.build({ a: [] }))).toEqual({ a: [] });
     expect(defaultProcessor.parse(defaultProcessor.build({ a: [null] }))).toEqual({ a: [null] });
     expect(defaultProcessor.parse(defaultProcessor.build({ a: [null, null] }))).toEqual({ a: [null, null] });
-    expect(bracketProcessor.parse(bracketProcessor.build({ a: [] }))).toEqual({ a: undefined });
+    expect(bracketProcessor.parse(bracketProcessor.build({ a: [] }))).toEqual({ a: [] });
     expect(bracketProcessor.parse(bracketProcessor.build({ a: [null] }))).toEqual({ a: [null] });
     expect(bracketProcessor.parse(bracketProcessor.build({ a: [null, null] }))).toEqual({ a: [null, null] });
-    expect(indexProcessor.parse(indexProcessor.build({ a: [] }))).toEqual({ a: undefined });
+    expect(indexProcessor.parse(indexProcessor.build({ a: [] }))).toEqual({ a: [] });
     expect(indexProcessor.parse(indexProcessor.build({ a: [null] }))).toEqual({ a: [null] });
     expect(indexProcessor.parse(indexProcessor.build({ a: [null, null] }))).toEqual({ a: [null, null] });
     expect(commaProcessor.parse(commaProcessor.build({ a: null }))).toEqual({ a: null });
     expect(separatorProcessor.parse(separatorProcessor.build({ a: null }))).toEqual({ a: null });
     expect(bracketSeparatorProcessor.parse(bracketSeparatorProcessor.build({ a: null }))).toEqual({ a: null });
 
-    expect(noneProcessor.parse(noneProcessor.build({ a: [] }))).toEqual({ a: undefined });
+    expect(noneProcessor.parse(noneProcessor.build({ a: [] }))).toEqual({ a: [] });
     expect(noneProcessor.parse(noneProcessor.build({ a: [null] }))).toEqual({ a: [null] });
     expect(noneProcessor.parse(noneProcessor.build({ a: [null, null] }))).toEqual({ a: [null, null] });
 });
@@ -198,7 +198,7 @@ it("allows to specify unions of values", () => {
         f: ["foo", "bar"],
     });
 
-    expect(processor.parse("?n=4&f[]=baz")).toEqual({ n: undefined, f: undefined });
+    expect(processor.parse("?n=4&f[]=baz")).toBe(undefined);
 });
 
 it("allows to pass numbers and booleans to string params", () => {
@@ -214,5 +214,5 @@ it("allows storing date values", () => {
     const date = new Date();
 
     expect(processor.parse(processor.build({ date }))).toEqual({ date });
-    expect(processor.parse("?date=invalid")).toEqual({});
+    expect(processor.parse("?date=invalid")).toEqual(undefined);
 });
