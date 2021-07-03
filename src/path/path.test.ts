@@ -1,5 +1,4 @@
-import { route } from "../route";
-import { path } from "./index";
+import { path } from "./path";
 import { param } from "../param";
 import { assert, IsExact } from "conditional-type-checks";
 

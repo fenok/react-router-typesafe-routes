@@ -1,4 +1,4 @@
-import { query } from "./index";
+import { query } from "./query";
 import { param } from "../param";
 import { assert, IsExact } from "conditional-type-checks";
 

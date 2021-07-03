@@ -1,5 +1,5 @@
-import { assert, IsExact } from "conditional-type-checks";
 import { hash } from "./hash";
+import { assert, IsExact } from "conditional-type-checks";
 
 it("allows to specify hash", () => {
     const processor = hash();
