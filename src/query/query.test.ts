@@ -214,4 +214,5 @@ it("allows storing date values", () => {
     const date = new Date();
 
     expect(processor.parse(processor.build({ date }))).toEqual({ date });
+    expect(processor.parse("?date=invalid")).toEqual({});
 });

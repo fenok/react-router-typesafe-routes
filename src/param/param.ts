@@ -57,7 +57,13 @@ const dateTransformer: Optional<Transformer<Date>> = optional({
     retrieve(value) {
         assertString(value);
 
-        return new Date(value);
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            throw new Error(`Couldn't transform ${value} to date`);
+        }
+
+        return date;
     },
 });
 
