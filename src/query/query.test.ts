@@ -1,5 +1,5 @@
 import { query } from "./index";
-import { param } from "../transformer";
+import { param } from "../param";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("allows to use query params", () => {

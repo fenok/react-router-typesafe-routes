@@ -1,6 +1,6 @@
 import { route } from "../route";
 import { path } from "./index";
-import { param } from "../transformer";
+import { param } from "../param";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("allows path without parameters", () => {
