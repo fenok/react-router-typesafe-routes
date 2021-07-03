@@ -25,3 +25,37 @@ export function optional<TOriginal, TStored, TRetrieved>(
         },
     };
 }
+
+export function retrieve<TRetrieved>(
+    storedParams: Record<string, unknown>,
+    transformers: Record<string, Transformer<unknown, unknown, TRetrieved>>
+): Record<string, TRetrieved> | undefined {
+    const retrievedParams: Record<string, TRetrieved> = {};
+
+    try {
+        Object.keys(transformers).forEach((key) => {
+            const value = transformers[key].retrieve(storedParams[key]);
+
+            if (value !== undefined) {
+                retrievedParams[key] = value;
+            }
+        });
+    } catch {
+        return undefined;
+    }
+
+    return retrievedParams;
+}
+
+export function store<TOriginal, TStored>(
+    originalParams: Record<string, TOriginal>,
+    transformers: Record<string, Transformer<TOriginal, TStored, unknown>>
+): Record<string, TStored> {
+    const storedParams: Record<string, TStored> = {};
+
+    Object.keys(transformers).forEach((key) => {
+        storedParams[key] = transformers[key].store(originalParams[key]);
+    });
+
+    return storedParams;
+}

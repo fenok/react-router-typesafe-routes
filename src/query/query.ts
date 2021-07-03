@@ -1,6 +1,6 @@
 import queryString, { ParseOptions, StringifyOptions } from "query-string";
 import { QueryProcessor } from "./QueryProcessor";
-import { Params, Transformer } from "../param";
+import { Params, retrieve, store, Transformer } from "../param";
 
 export type QueryOptions = StringifyOptions & ParseOptions;
 
@@ -42,48 +42,16 @@ export function query(
     transformers?: null | Record<string, Transformer<unknown, QueryParam | undefined>>,
     options: QueryOptions = {}
 ): QueryProcessor<Record<string, unknown>, Record<string, unknown> | undefined> {
-    function retrieve(storedParams: Record<string, QueryParam>) {
-        if (transformers) {
-            const retrievedParams: Record<string, unknown> = {};
-
-            try {
-                Object.keys(transformers).forEach((key) => {
-                    const value = transformers[key].retrieve(storedParams[key]);
-
-                    if (value !== undefined) {
-                        retrievedParams[key] = value;
-                    }
-                });
-            } catch {
-                return undefined;
-            }
-
-            return retrievedParams;
-        } else {
-            return storedParams;
-        }
-    }
-
-    function store(originalParams: Record<string, unknown>) {
-        if (transformers) {
-            const storedParams: Record<string, QueryParam | undefined> = {};
-
-            Object.keys(transformers).forEach((key) => {
-                storedParams[key] = transformers[key].store(originalParams[key]);
-            });
-
-            return storedParams;
-        } else {
-            return originalParams;
-        }
-    }
-
     return {
         build(params: Record<string, unknown>): string {
-            return params && Object.keys(params).length ? `?${queryString.stringify(store(params), options)}` : "";
+            return params && Object.keys(params).length
+                ? `?${queryString.stringify(transformers ? store(params, transformers) : params, options)}`
+                : "";
         },
         parse(query: string): Record<string, unknown> | undefined {
-            return retrieve(queryString.parse(query, options));
+            const rawParams = queryString.parse(query, options);
+
+            return transformers ? retrieve(rawParams, transformers) : rawParams;
         },
     };
 }

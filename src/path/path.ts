@@ -1,7 +1,7 @@
 import { ExtractRouteParams, generatePath, match } from "react-router";
 import { PathParams, PathProcessor } from "./PathProcessor";
 import { Key, parse } from "path-to-regexp";
-import { Params, Transformer } from "../param";
+import { Params, retrieve, store, Transformer } from "../param";
 
 export function path<TPath extends string>(
     path: TPath
@@ -37,54 +37,21 @@ export function path(
         return requiredParams;
     }
 
-    function retrieve(storedParams: PathParams) {
-        if (transformers) {
-            const retrievedParams: Record<string, unknown> = {};
-
-            try {
-                Object.keys(transformers).forEach((key) => {
-                    const value = transformers[key].retrieve(storedParams[key]);
-
-                    if (value !== undefined) {
-                        retrievedParams[key] = value;
-                    }
-                });
-            } catch {
-                return undefined;
-            }
-
-            return retrievedParams;
-        } else {
-            return storedParams;
-        }
-    }
-
-    function store(originalParams: Record<string, unknown>): Record<string, string | undefined> {
-        if (transformers) {
-            const storedParams: Record<string, string | undefined> = {};
-
-            Object.keys(transformers).forEach((key) => {
-                storedParams[key] = transformers[key].store(originalParams[key]);
-            });
-
-            return storedParams;
-        } else {
-            return originalParams as Record<string, string | undefined>;
-        }
-    }
-
     return {
         path,
         build(params: Record<string, unknown>): string {
-            return generatePath(path, store(params));
+            return generatePath(
+                path,
+                transformers ? store(params, transformers) : (params as Record<string, string | undefined>)
+            );
         },
         parse(matchOrParams: PathParams | match | null): Record<string, unknown> | undefined {
             if (isMatch(matchOrParams)) {
                 if (matchOrParams && matchOrParams.path === path) {
-                    return retrieve(matchOrParams.params);
+                    return transformers ? retrieve(matchOrParams.params, transformers) : matchOrParams.params;
                 }
             } else if (transformers || areParamsSufficient(matchOrParams)) {
-                return retrieve(matchOrParams);
+                return transformers ? retrieve(matchOrParams, transformers) : matchOrParams;
             }
         },
     };

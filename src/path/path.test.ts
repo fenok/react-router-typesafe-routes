@@ -127,6 +127,6 @@ it("allows to specify unions of values", () => {
 
     expect(optionalProcessor.parse({ id: "1" })).toEqual({ id: "1" });
     expect(optionalProcessor.parse({ id: "2" })).toEqual({ id: "2" });
-    expect(optionalProcessor.parse({ id: "3" })).toEqual(undefined);
-    expect(optionalProcessor.parse({})).toEqual({ id: undefined });
+    expect(optionalProcessor.parse({ id: "3" })).toEqual({});
+    expect(optionalProcessor.parse({})).toEqual({});
 });
