@@ -266,6 +266,8 @@ const hashValue = myRoute.parseHash(useLocation());
 
 -   There should be some built-in API for default values. Right now it can be done with a custom transformer.
 
+-   If all params are optional, the parse result can't be undefined, but TS is unaware of that.
+
 ## How is it different from existing solutions?
 
 -   [typesafe-react-router](https://www.npmjs.com/package/typesafe-react-router) only handles path params and doesn't allow regexp-based path.
