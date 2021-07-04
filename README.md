@@ -149,28 +149,28 @@ You can write custom transformers using the existing ones as an example.
 A path processor is created via the `path` helper. In a simple scenario, you can just pass a URL path to it and have some typing out of the box. That's exactly how [`generatePath`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/7331700ce1159c78190d5e880e7301bc28221551/types/react-router/index.d.ts#L166) from react-router works.
 
 ```typescript
-const myRoute = route(path("/test/:id"));
+const myRoute = route(path("/test/:foo/:bar?"));
 
-// { id: string | number | boolean }
+// { foo: string | number | boolean; bar?: string | number | boolean }
 const url = myRoute.build({ id: 1 });
 
-// { id: string }
+// { foo: string; bar?: string }
 const pathParams = myRoute.parsePath(useParams());
 ```
 
-In a lot of cases, you can get away with it. However, at the time of writing, it breaks on complex scenarios like `/test/:id(\\d+)?`. It likely will improve, but what if we want to fix it right now? What if we want more precise typing on parsed params?
+In a lot of cases, you can get away with it. However, at the time of writing, it breaks on complex scenarios like `/test/:foo(\\d+)?`. It likely will improve, but what if we want to fix it right now? What if we want more precise typing on parsed params?
 
 In that case, we can completely override the inferred type with our own. Note that it's your responsibility to sync this type with the actual path string.
 
 You can use transformers that store values as `string | undefined`.
 
 ```typescript
-const myRoute = route(path("/test/:id(\\d+)?", { id: param.number.optional }));
+const myRoute = route(path("/test/:foo/:bar(\\d+)?", { foo: param.string, bar: param.number.optional }));
 
-// { id?: number }
+// { foo: string | number | boolean; bar?: number }
 const url = myRoute.build({ id: 1 });
 
-// { id?: number }
+// { foo: string; bar?: number }
 const pathParams = myRoute.parsePath(useParams());
 ```
 
