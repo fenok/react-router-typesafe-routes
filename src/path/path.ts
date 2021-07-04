@@ -19,30 +19,14 @@ export function path(
     path: string,
     transformers?: Record<string, Transformer<unknown, string | undefined>>
 ): PathProcessor<string, Record<string, unknown>, Record<string, unknown> | undefined> {
-    let requiredParams: string[];
-
-    function areParamsSufficient(params: PathParams) {
-        return getRequiredParams().every((requiredParam) => requiredParam in params);
-    }
-
-    function getRequiredParams() {
-        requiredParams =
-            requiredParams ||
-            parse(path)
-                .filter(
-                    (keyOrString) => typeof keyOrString !== "string" && !keyOrString.optional && !keyOrString.asterisk
-                )
-                .map((key) => (key as Key).name);
-
-        return requiredParams;
-    }
+    const { areParamsSufficient } = sufficientParams(path);
 
     return {
         path,
         build(params: Record<string, unknown>): string {
             return generatePath(
                 path,
-                transformers ? store(params, transformers) : (params as Record<string, string | undefined>)
+                transformers ? store(params, transformers) : (params as ExtractRouteParams<string>)
             );
         },
         parse(matchOrParams: PathParams | match | null): Record<string, unknown> | undefined {
@@ -59,4 +43,26 @@ export function path(
 
 function isMatch(matchCandidate: Record<string, string | undefined> | match | null): matchCandidate is match | null {
     return matchCandidate === null || typeof (matchCandidate as match).params === "object";
+}
+
+function sufficientParams(path: string) {
+    let requiredParams: string[];
+
+    function getRequiredParams() {
+        requiredParams =
+            requiredParams ||
+            parse(path)
+                .filter(
+                    (keyOrString) => typeof keyOrString !== "string" && !keyOrString.optional && !keyOrString.asterisk
+                )
+                .map((key) => (key as Key).name);
+
+        return requiredParams;
+    }
+
+    return {
+        areParamsSufficient(this: void, params: PathParams) {
+            return getRequiredParams().every((requiredParam) => requiredParam in params);
+        },
+    };
 }
