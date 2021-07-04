@@ -29,20 +29,16 @@ export function optional<TOriginal, TStored, TRetrieved>(
 export function retrieve<TRetrieved>(
     storedParams: Record<string, unknown>,
     transformers: Record<string, Transformer<unknown, unknown, TRetrieved>>
-): Record<string, TRetrieved> | undefined {
+): Record<string, TRetrieved> {
     const retrievedParams: Record<string, TRetrieved> = {};
 
-    try {
-        Object.keys(transformers).forEach((key) => {
-            const value = transformers[key].retrieve(storedParams[key]);
+    Object.keys(transformers).forEach((key) => {
+        const value = transformers[key].retrieve(storedParams[key]);
 
-            if (value !== undefined) {
-                retrievedParams[key] = value;
-            }
-        });
-    } catch {
-        return undefined;
-    }
+        if (value !== undefined) {
+            retrievedParams[key] = value;
+        }
+    });
 
     return retrievedParams;
 }

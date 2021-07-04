@@ -36,19 +36,25 @@ export function query<
 >(
     transformers: TTransformers,
     options?: TOptions
-): QueryProcessor<OriginalParams<TTransformers>, RetrievedParams<TTransformers> | undefined>;
+): TTransformers[keyof TTransformers] extends Transformer<infer TOriginal, infer TStored, unknown>
+    ? undefined extends TOriginal
+        ? undefined extends TStored
+            ? QueryProcessor<OriginalParams<TTransformers>, RetrievedParams<TTransformers>>
+            : never
+        : never
+    : never;
 
 export function query(
     transformers?: null | Record<string, Transformer<unknown, QueryParam | undefined>>,
     options: QueryOptions = {}
-): QueryProcessor<Record<string, unknown>, Record<string, unknown> | undefined> {
+): QueryProcessor<Record<string, unknown>, Record<string, unknown>> {
     return {
         build(params: Record<string, unknown>): string {
             return params && Object.keys(params).length
                 ? `?${queryString.stringify(transformers ? store(params, transformers) : params, options)}`
                 : "";
         },
-        parse(query: string): Record<string, unknown> | undefined {
+        parse(query: string): Record<string, unknown> {
             const rawParams = queryString.parse(query, options);
 
             return transformers ? retrieve(rawParams, transformers) : rawParams;

@@ -5,7 +5,7 @@ import { OriginalParams, retrieve, RetrievedParams, store, Transformer } from ".
 
 export function path<TPath extends string>(
     path: TPath
-): PathProcessor<TPath, ExtractRouteParams<TPath>, ExtractRouteParams<TPath, string> | undefined>;
+): PathProcessor<TPath, ExtractRouteParams<TPath>, ExtractRouteParams<TPath, string>>;
 
 export function path<
     TPath extends string,
@@ -13,12 +13,12 @@ export function path<
 >(
     path: TPath,
     transformers: TTransformers
-): PathProcessor<TPath, OriginalParams<TTransformers>, RetrievedParams<TTransformers> | undefined>;
+): PathProcessor<TPath, OriginalParams<TTransformers>, RetrievedParams<TTransformers>>;
 
 export function path(
     path: string,
     transformers?: Record<string, Transformer<unknown, string | undefined>>
-): PathProcessor<string, Record<string, unknown>, Record<string, unknown> | undefined> {
+): PathProcessor<string, Record<string, unknown>, Record<string, unknown>> {
     const { areParamsSufficient } = sufficientParams(path);
 
     return {
@@ -29,14 +29,18 @@ export function path(
                 transformers ? store(params, transformers) : (params as ExtractRouteParams<string>)
             );
         },
-        parse(matchOrParams: PathParams | match | null): Record<string, unknown> | undefined {
+        parse(matchOrParams: PathParams | match | null): Record<string, unknown> {
             if (isMatch(matchOrParams)) {
                 if (matchOrParams && matchOrParams.path === path) {
                     return transformers ? retrieve(matchOrParams.params, transformers) : matchOrParams.params;
                 }
+
+                throw new Error("Path values diverged");
             } else if (transformers || areParamsSufficient(matchOrParams)) {
                 return transformers ? retrieve(matchOrParams, transformers) : matchOrParams;
             }
+
+            throw new Error("Params are insufficient");
         },
     };
 }

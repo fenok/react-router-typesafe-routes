@@ -51,14 +51,13 @@ it("allows to redefine and narrow query params", () => {
     assert<
         IsExact<
             ReturnType<typeof processor.parse>,
-            | {
-                  a?: string;
-                  b?: boolean;
-                  c?: number;
-                  d?: null;
-                  f?: number[];
-              }
-            | undefined
+            {
+                a?: string;
+                b?: boolean;
+                c?: number;
+                d?: null;
+                f?: number[];
+            }
         >
     >(true);
 
@@ -72,7 +71,7 @@ it("allows to redefine and narrow query params", () => {
 });
 
 it("doesn't preserve unknown (and therefore untyped) params", () => {
-    const processor = query({ a: param.string });
+    const processor = query({ a: param.string.optional });
 
     expect(processor.parse("?a=abc&b=bar")).toEqual({ a: "abc" });
 });
@@ -89,7 +88,7 @@ it("allows single value to be stored as array regardless of array format", () =>
     const noneProcessor = query(queryShape, { arrayFormat: "none" });
 
     type ArrayAwareParamsIn = { a?: (string | number | boolean)[] };
-    type ArrayAwareParamsOut = { a?: string[] } | undefined;
+    type ArrayAwareParamsOut = { a?: string[] };
 
     assert<IsExact<Parameters<typeof defaultProcessor.build>[0], ArrayAwareParamsIn>>(true);
     assert<IsExact<Parameters<typeof bracketProcessor.build>[0], ArrayAwareParamsIn>>(true);
@@ -139,9 +138,9 @@ it("detects whether it is possible to store null values in array", () => {
     const noneProcessor = query(arrayNull, { arrayFormat: "none" });
 
     type ArrayNullIn = { a?: null[] };
-    type ArrayNullOut = { a?: null[] } | undefined;
+    type ArrayNullOut = { a?: null[] };
     type FlatNullIn = { a?: null };
-    type FlatNullOut = { a?: null } | undefined;
+    type FlatNullOut = { a?: null };
 
     assert<IsExact<Parameters<typeof defaultProcessor.build>[0], ArrayNullIn>>(true);
     assert<IsExact<Parameters<typeof bracketProcessor.build>[0], ArrayNullIn>>(true);
@@ -202,17 +201,17 @@ it("allows to specify unions of values", () => {
 });
 
 it("allows to pass numbers and booleans to string params", () => {
-    const processor = query({ a: param.string });
+    const processor = query({ a: param.string.optional });
 
     expect(processor.parse(processor.build({ a: 1 }))).toEqual({ a: "1" });
     expect(processor.parse(processor.build({ a: true }))).toEqual({ a: "true" });
 });
 
 it("allows storing date values", () => {
-    const processor = query({ date: param.date });
+    const processor = query({ date: param.date.optional });
 
     const date = new Date();
 
     expect(processor.parse(processor.build({ date }))).toEqual({ date });
-    expect(processor.parse("?date=invalid")).toEqual(undefined);
+    expect(processor.parse("?date=invalid")).toEqual({});
 });

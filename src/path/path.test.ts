@@ -12,18 +12,18 @@ it("allows path without parameters", () => {
     // Reminder that any truthy value can be passed, but that's how react-router generatePath is typed
     expect(processor.build({ any: "value" })).toBe("/test");
 
-    assert<IsExact<ReturnType<typeof processor.parse>, Record<string, unknown> | undefined>>(true);
+    assert<IsExact<ReturnType<typeof processor.parse>, Record<string, unknown>>>(true);
 
     expect(processor.parse({})).toEqual({});
     expect(processor.parse({ params: {}, isExact: false, path: "/test", url: "/test" })).toEqual({});
-    expect(
+    expect(() =>
         processor.parse({
             params: {},
             isExact: false,
             path: "/other-path/:id",
             url: "/other-path/1",
         })
-    ).toBe(undefined);
+    ).toThrow();
 });
 
 it("infers path params from path", () => {
@@ -44,12 +44,11 @@ it("infers path params from path", () => {
     assert<
         IsExact<
             ReturnType<typeof processor.parse>,
-            | {
-                  id: string;
-                  id2?: string;
-                  id3?: string;
-              }
-            | undefined
+            {
+                id: string;
+                id2?: string;
+                id3?: string;
+            }
         >
     >(true);
 
@@ -60,8 +59,8 @@ it("infers path params from path", () => {
         id3: "true",
         foo: "12",
     });
-    expect(processor.parse({ id2: "abc", id3: "true" })).toBe(undefined);
-    expect(processor.parse({ foo: "abc" })).toBe(undefined);
+    expect(() => processor.parse({ id2: "abc", id3: "true" })).toThrow();
+    expect(() => processor.parse({ foo: "abc" })).toThrow();
 });
 
 it("allows to redefine and narrow path params", () => {
@@ -84,12 +83,11 @@ it("allows to redefine and narrow path params", () => {
     assert<
         IsExact<
             ReturnType<typeof processor.parse>,
-            | {
-                  id: boolean;
-                  id2?: number;
-                  id3?: string;
-              }
-            | undefined
+            {
+                id: boolean;
+                id2?: number;
+                id3?: string;
+            }
         >
     >(true);
 
@@ -99,8 +97,8 @@ it("allows to redefine and narrow path params", () => {
         id2: 1,
         id3: "abc",
     });
-    expect(processor.parse({ id2: "1", id3: "abc" })).toBe(undefined);
-    expect(processor.parse({ foo: "abc" })).toBe(undefined);
+    expect(() => processor.parse({ id2: "1", id3: "abc" })).toThrow();
+    expect(() => processor.parse({ foo: "abc" })).toThrow();
 });
 
 it("allows to specify numbers and booleans for string params", () => {
@@ -115,15 +113,15 @@ it("allows to specify unions of values", () => {
     const optionalProcessor = path("/test/:id?", { id: param.oneOf("1", "2").optional });
 
     assert<IsExact<Parameters<typeof processor.build>[0], { id: "1" | "2" }>>(true);
-    assert<IsExact<ReturnType<typeof processor.parse>, { id: "1" | "2" } | undefined>>(true);
+    assert<IsExact<ReturnType<typeof processor.parse>, { id: "1" | "2" }>>(true);
 
     assert<IsExact<Parameters<typeof optionalProcessor.build>[0], { id?: "1" | "2" }>>(true);
-    assert<IsExact<ReturnType<typeof optionalProcessor.parse>, { id?: "1" | "2" } | undefined>>(true);
+    assert<IsExact<ReturnType<typeof optionalProcessor.parse>, { id?: "1" | "2" }>>(true);
 
     expect(processor.parse({ id: "1" })).toEqual({ id: "1" });
     expect(processor.parse({ id: "2" })).toEqual({ id: "2" });
-    expect(processor.parse({ id: "3" })).toEqual(undefined);
-    expect(processor.parse({})).toEqual(undefined);
+    expect(() => processor.parse({ id: "3" })).toThrow();
+    expect(() => processor.parse({})).toThrow();
 
     expect(optionalProcessor.parse({ id: "1" })).toEqual({ id: "1" });
     expect(optionalProcessor.parse({ id: "2" })).toEqual({ id: "2" });

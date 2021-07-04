@@ -112,7 +112,6 @@ The `parse` function accepts two arguments that are `match` (including `null`) o
 ```typescript
 const fullParams = fullRoute.parse(useParams(), useLocation());
 const pathParams = fullRoute.parse(useParams());
-const locationParams = fullRoute.parse(null, useLocation());
 ```
 
 Remember that you can also parse individual URL parts via the `parsePath`, `parseQuery`, and `parseHash` functions.
@@ -155,7 +154,7 @@ const myRoute = route(path("/test/:id"));
 // { id: string | number | boolean }
 const url = myRoute.build({ id: 1 });
 
-// { id: string } | undefined
+// { id: string }
 const pathParams = myRoute.parsePath(useParams());
 ```
 
@@ -171,7 +170,7 @@ const myRoute = route(path("/test/:id(\\d+)?", { id: param.number.optional }));
 // { id?: number }
 const url = myRoute.build({ id: 1 });
 
-// { id?: number } | undefined
+// { id?: number }
 const pathParams = myRoute.parsePath(useParams());
 ```
 
@@ -183,7 +182,7 @@ If we didn't specify a custom type, and we're parsing the `match` object, we sim
 
 If we specified a custom type, we simply try to transform the given `match.params`. If we could transform every parameter, the transformed `match.params` are considered valid. Additionally, if we're parsing the `match` object, we check the `match.path` field as well.
 
-If we couldn't get valid params, the result of the parsing is `undefined`.
+If we couldn't get valid params, an error will be thrown. It means that there is either a mismatch between the URL path and the custom type, or we are processing an unexpected route.
 
 ### `query`
 
@@ -209,24 +208,28 @@ You can make types more specific by providing a custom type. Note that, in this 
 
 You can use transformers that store values as `string | null | (string | null)[] | undefined`. Again, the ability to store nulls inside arrays depends on the `arrayFormat` option.
 
+The transformers _must_ be able to both accept `undefined` and store it. For predefined transformers, it means that only the `.optional` variants can be used. This is because query params are always optional by their nature.
+
 ```typescript
-const myRoute = route(path("/test"), query({ foo: param.number }));
+const myRoute = route(path("/test"), query({ foo: param.number.optional }));
 const myCommaRoute = route(path("/test"), query({ foo: param.string.optional }, { arrayFormat: "comma" }));
 
-// { foo: number }
+// { foo?: number }
 const url = myRoute.build({}, { foo: 1 });
 // { foo?: string | number | boolean }
 const commaUrl = myCommaRoute.build({}, { foo: "foo" });
 
-// { foo: number } | undefined
+// { foo?: number }
 const queryParams = myRoute.parseQuery(useLocation());
-// { foo?: string } | undefined
+// { foo?: string }
 const commaQueryParams = myCommaRoute.parseQuery(useLocation());
 ```
 
-On parse, if some value can't be transformed, the result of the whole parsing is `undefined`.
+On parse, if some value can't be transformed, an error will be thrown. Since the transformers have to accept and store `undefined`, it shouldn't normally happen.
 
 #### Caveats
+
+-   If you are writing a custom transformer, make sure that it doesn't throw. This way, you would be able to parse any query safely. The easiest way to achieve that is to use the `optional` helper, like the built-in transformers do.
 
 -   `query-string` technically always lets you store nulls inside arrays, but they get converted to empty strings with certain array formats. It's quite tedious to type, and I doubt that anyone needs this.
 
@@ -265,8 +268,6 @@ const hashValue = myRoute.parseHash(useLocation());
 -   It may be a good idea to convert path params like `'foo/bar/baz'` into arrays. Right now it can be done with a custom transformer.
 
 -   There should be some built-in API for default values. Right now they can be added with custom transformers.
-
--   If all params are optional, the parse result can't be `undefined`, but TS is unaware of that.
 
 ## How is it different from existing solutions?
 
