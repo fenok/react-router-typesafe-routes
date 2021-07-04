@@ -1,6 +1,14 @@
 import { Transformer } from "./Transformer";
 
-export type Params<
+export type OriginalParams<TTransformers extends Record<string, Transformer<unknown, unknown, unknown>>> = Params<
+    TTransformers,
+    true
+>;
+
+export type RetrievedParams<TTransformers extends Record<string, Transformer<unknown, unknown, unknown>>> =
+    Params<TTransformers>;
+
+type Params<
     TTransformers extends Record<string, Transformer<unknown, unknown, unknown>>,
     TUseOriginal extends boolean = false
 > = {

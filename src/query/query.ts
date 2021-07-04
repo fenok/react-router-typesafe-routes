@@ -1,6 +1,6 @@
 import queryString, { ParseOptions, StringifyOptions } from "query-string";
 import { QueryProcessor } from "./QueryProcessor";
-import { Params, retrieve, store, Transformer } from "../param";
+import { OriginalParams, retrieve, RetrievedParams, store, Transformer } from "../param";
 
 export type QueryOptions = StringifyOptions & ParseOptions;
 
@@ -36,7 +36,7 @@ export function query<
 >(
     transformers: TTransformers,
     options?: TOptions
-): QueryProcessor<Params<TTransformers, true>, Params<TTransformers> | undefined>;
+): QueryProcessor<OriginalParams<TTransformers>, RetrievedParams<TTransformers> | undefined>;
 
 export function query(
     transformers?: null | Record<string, Transformer<unknown, QueryParam | undefined>>,

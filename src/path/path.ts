@@ -1,7 +1,7 @@
 import { ExtractRouteParams, generatePath, match } from "react-router";
 import { PathParams, PathProcessor } from "./PathProcessor";
 import { Key, parse } from "path-to-regexp";
-import { Params, retrieve, store, Transformer } from "../param";
+import { OriginalParams, retrieve, RetrievedParams, store, Transformer } from "../param";
 
 export function path<TPath extends string>(
     path: TPath
@@ -13,7 +13,7 @@ export function path<
 >(
     path: TPath,
     transformers: TTransformers
-): PathProcessor<TPath, Params<TTransformers, true>, Params<TTransformers> | undefined>;
+): PathProcessor<TPath, OriginalParams<TTransformers>, RetrievedParams<TTransformers> | undefined>;
 
 export function path(
     path: string,
