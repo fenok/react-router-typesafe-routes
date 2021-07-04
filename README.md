@@ -100,7 +100,7 @@ Pass `null` or `undefined` to skip query building and specify hash.
 ```typescript
 const pathUrl = fullRoute.build({});
 const queryUrl = fullRoute.build({}, { queryParam: "foo" });
-const hashUrl = fullRoute.build({}, null, "value");
+const hashUrl = fullRoute.build({}, null, "bar");
 ```
 
 Remember that you can also build individual URL parts via the `buildPath`, `buildQuery`, and `buildHash` functions.
@@ -216,7 +216,7 @@ const myCommaRoute = route(path("/test"), query({ foo: param.string.optional }, 
 // { foo: number }
 const url = myRoute.build({}, { foo: 1 });
 // { foo?: string | number | boolean }
-const commaUrl = myCommaRoute.build({}, { foo: "abc" });
+const commaUrl = myCommaRoute.build({}, { foo: "foo" });
 
 // { foo: number } | undefined
 const queryParams = myRoute.parseQuery(useLocation());
@@ -262,11 +262,11 @@ const hashValue = myRoute.parseHash(useLocation());
 
 -   It would be nice to have type-checking for route state. It requires deep object validation and can be added without breaking changes.
 
--   It may be a good idea to convert path params like `'one/two/three'` into arrays. Right now it can be done with a custom transformer.
+-   It may be a good idea to convert path params like `'foo/bar/baz'` into arrays. Right now it can be done with a custom transformer.
 
--   There should be some built-in API for default values. Right now it can be done with a custom transformer.
+-   There should be some built-in API for default values. Right now they can be added with custom transformers.
 
--   If all params are optional, the parse result can't be undefined, but TS is unaware of that.
+-   If all params are optional, the parse result can't be `undefined`, but TS is unaware of that.
 
 ## How is it different from existing solutions?
 
