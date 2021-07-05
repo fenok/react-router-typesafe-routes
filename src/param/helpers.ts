@@ -1,4 +1,4 @@
-import { Optional, Transformer } from "./Transformer";
+import { Optional, OptionalTransformer, OptionalTransformerWithDefault, Transformer } from "./Transformer";
 
 export function assertString(value: unknown): asserts value is string {
     if (typeof value !== "string") {
@@ -9,9 +9,12 @@ export function assertString(value: unknown): asserts value is string {
 export function optional<TOriginal, TStored, TRetrieved>(
     transformer: Transformer<TOriginal, TStored, TRetrieved>
 ): Optional<Transformer<TOriginal, TStored, TRetrieved>> {
-    return {
-        ...transformer,
-        optional: {
+    function getOptionalTransformer(): OptionalTransformer<TOriginal, TStored, TRetrieved>;
+    function getOptionalTransformer(
+        defaultValue: TRetrieved
+    ): OptionalTransformerWithDefault<TOriginal, TStored, TRetrieved>;
+    function getOptionalTransformer(defaultValue?: TRetrieved) {
+        return {
             store(value: TOriginal | undefined): TStored | undefined {
                 return value === undefined ? (value as undefined) : transformer.store(value);
             },
@@ -19,10 +22,15 @@ export function optional<TOriginal, TStored, TRetrieved>(
                 try {
                     return transformer.retrieve(value);
                 } catch (error) {
-                    return undefined;
+                    return defaultValue;
                 }
             },
-        },
+        };
+    }
+
+    return {
+        ...transformer,
+        optional: Object.assign(getOptionalTransformer, getOptionalTransformer()),
     };
 }
 

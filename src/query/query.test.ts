@@ -215,3 +215,14 @@ it("allows storing date values", () => {
     expect(processor.parse(processor.build({ date }))).toEqual({ date });
     expect(processor.parse("?date=invalid")).toEqual({});
 });
+
+it("allows specifying default values for optional params", () => {
+    const processor = query({ foo: param.number.optional(1) });
+
+    assert<IsExact<ReturnType<typeof processor.parse>, { foo: number }>>(true);
+
+    expect(processor.parse(processor.build({}))).toEqual({ foo: 1 });
+    expect(processor.parse(processor.build({ foo: 2 }))).toEqual({ foo: 2 });
+    expect(processor.parse("?foo=3")).toEqual({ foo: 3 });
+    expect(processor.parse("?foo=foo")).toEqual({ foo: 1 });
+});
