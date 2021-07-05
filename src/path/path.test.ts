@@ -128,3 +128,35 @@ it("allows to specify unions of values", () => {
     expect(optionalProcessor.parse({ id: "3" })).toEqual({});
     expect(optionalProcessor.parse({})).toEqual({});
 });
+
+it("allows to specify array type", () => {
+    const processor = path("/test/:id*", { id: param.arrayOf(param.number, { path: true }) });
+    const optionalProcessor = path("/test/:id*", { id: param.arrayOf(param.number, { path: true }).optional });
+    const optionalDefaultProcessor = path("/test/:id*", {
+        id: param.arrayOf(param.number, { path: true }).optional([10]),
+    });
+
+    assert<IsExact<Parameters<typeof processor.build>[0], { id: number[] }>>(true);
+    assert<IsExact<Parameters<typeof optionalProcessor.build>[0], { id?: number[] }>>(true);
+    assert<IsExact<Parameters<typeof optionalDefaultProcessor.build>[0], { id?: number[] }>>(true);
+
+    assert<IsExact<ReturnType<typeof processor.parse>, { id: number[] }>>(true);
+    assert<IsExact<ReturnType<typeof optionalProcessor.parse>, { id?: number[] }>>(true);
+    assert<IsExact<ReturnType<typeof optionalDefaultProcessor.parse>, { id: number[] }>>(true);
+
+    expect(processor.build({ id: [] })).toBe("/test");
+    expect(processor.build({ id: [1] })).toBe("/test/1");
+    expect(processor.build({ id: [1, 2] })).toBe("/test/1/2");
+
+    expect(optionalProcessor.build({})).toBe("/test");
+    expect(optionalDefaultProcessor.build({})).toBe("/test");
+
+    expect(processor.parse({ id: "1/2/3" })).toEqual({ id: [1, 2, 3] });
+    expect(processor.parse({})).toEqual({ id: [] });
+
+    expect(optionalProcessor.parse({})).toEqual({ id: [] });
+    expect(optionalProcessor.parse({ id: "foo/bar" })).toEqual({ id: undefined });
+
+    expect(optionalDefaultProcessor.parse({})).toEqual({ id: [] });
+    expect(optionalDefaultProcessor.parse({ id: "foo/bar" })).toEqual({ id: [10] });
+});

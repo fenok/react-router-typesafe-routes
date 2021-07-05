@@ -9,7 +9,7 @@ export function path<TPath extends string>(
 
 export function path<
     TPath extends string,
-    TTransformers extends Record<string, Transformer<unknown, string | undefined>>
+    TTransformers extends Record<string, Transformer<unknown, string | string[] | undefined>>
 >(
     path: TPath,
     transformers: TTransformers
@@ -17,7 +17,7 @@ export function path<
 
 export function path(
     path: string,
-    transformers?: Record<string, Transformer<unknown, string | undefined>>
+    transformers?: Record<string, Transformer<unknown, string | string[] | undefined>>
 ): PathProcessor<string, Record<string, unknown>, Record<string, unknown>> {
     const { areParamsSufficient } = sufficientParams(path);
 
@@ -26,7 +26,9 @@ export function path(
         build(params: Record<string, unknown>): string {
             return generatePath(
                 path,
-                transformers ? store(params, transformers) : (params as ExtractRouteParams<string>)
+                transformers
+                    ? (store(params, transformers) as ExtractRouteParams<string>)
+                    : (params as ExtractRouteParams<string>)
             );
         },
         parse(matchOrParams: PathParams | match | null): Record<string, unknown> {

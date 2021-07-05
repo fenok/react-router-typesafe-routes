@@ -95,8 +95,13 @@ function oneOfTransformer<T extends (string | number | boolean)[]>(...values: T)
     });
 }
 
-function arrayOfTransformer<T, U extends string | null, O>(
-    transformer: Transformer<T, U, O>
+export interface ArrayOfTransformerParams {
+    path?: boolean;
+}
+
+function arrayOfTransformer<T, U, O>(
+    transformer: Transformer<T, U, O>,
+    options: ArrayOfTransformerParams = {}
 ): Optional<Transformer<T[], U[], O[]>> {
     return optional({
         store(values) {
@@ -104,7 +109,15 @@ function arrayOfTransformer<T, U extends string | null, O>(
         },
         retrieve(value) {
             if (value !== undefined) {
-                const arrayValue = Array.isArray(value) ? value : [value];
+                let arrayValue: unknown[];
+
+                if (options.path) {
+                    assertString(value);
+
+                    arrayValue = value.split("/");
+                } else {
+                    arrayValue = Array.isArray(value) ? value : [value];
+                }
 
                 return arrayValue.map((item) => transformer.retrieve(item));
             }

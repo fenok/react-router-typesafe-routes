@@ -162,7 +162,7 @@ In a lot of cases, you can get away with it. However, at the time of writing, it
 
 In that case, we can completely override the inferred type with our own. Note that it's your responsibility to sync this type with the actual path string.
 
-You can use transformers that store values as `string | undefined`.
+You can use transformers that store values as `string | string[] | undefined`.
 
 ```typescript
 const myRoute = route(path("/test/:foo/:bar(\\d+)?", { foo: param.string, bar: param.number.optional }));
@@ -183,6 +183,12 @@ If we didn't specify a custom type, and we're parsing the `match` object, we sim
 If we specified a custom type, we simply try to transform the given `match.params`. If we could transform every parameter, the transformed `match.params` are considered valid. Additionally, if we're parsing the `match` object, we check the `match.path` field as well.
 
 If we couldn't get valid params, an error will be thrown. It means that we are processing an unexpected route, or there is a mismatch between the URL path and the custom type.
+
+#### Caveats
+
+-   If you're using `param.arrayOf` (`*` or `+` modifiers), you should specify the `path: true` option like this: `param.arrayOf(param.number, { path: true })`. It allows transforming strings like `'foo/bar'` into arrays like `['foo', 'bar']`. Otherwise, you'll get something like `['foo/bar']`.
+
+-   Path params are not decoded, but you most likely don't want them to be encoded in the first place.
 
 ### `query`
 
@@ -266,8 +272,6 @@ On parse, if the hash has an unexpected value, an empty string is returned.
 ## What can be improved
 
 -   It would be nice to have type-checking for route state.
-
--   It may be a good idea to convert path params like `'foo/bar/baz'` into arrays. Right now it can be done with a custom transformer.
 
 ## How is it different from existing solutions?
 
