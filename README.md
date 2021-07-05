@@ -6,6 +6,8 @@ Comprehensive type-safe routes for react-router.
 
 The library provides extensible type safety for path params, query params, and hash on building and parsing URLs.
 
+There is also _some_ support for route state typing.
+
 ## Installation
 
 ```
@@ -138,7 +140,7 @@ You can write custom transformers using the existing ones as an example.
 
 -   URL processors determine which transformers can be used in them.
 
--   For array fields, the reverse transformation of `undefined` will result in empty array.
+-   For array fields, the reverse transformation of `undefined` will result in an empty array.
 
 -   Avoid specifying values that have the same string representation in `param.oneOf()`. For instance, in `param.oneOf(1, '1')` the `'1'` value will never be reached.
 
@@ -235,7 +237,7 @@ On parse, if some value can't be transformed, an error will be thrown. It should
 
 #### Caveats
 
--   If you are writing a custom transformer for query, make sure that it doesn't throw. This way, you would be able to parse any query safely. The easiest way to achieve that is to use the `optional` helper, like the built-in transformers do.
+-   If you are writing a custom transformer for query, make sure that it doesn't throw. This way, you would be able to parse any query safely. The easiest way to achieve that is to use the `optional` helper as the built-in transformers do.
 
 -   `query-string` technically always lets you store nulls inside arrays, but they get converted to empty strings with certain array formats. It's quite tedious to type, and I doubt that anyone needs this.
 
@@ -267,11 +269,33 @@ const url = myRoute.build({}, null, "foo");
 const hashValue = myRoute.parseHash(useLocation());
 ```
 
-On parse, if the hash has an unexpected value, an empty string is returned.
+On parse, if the hash has an unexpected value, an empty string is returned instead.
 
-## What can be improved
+## What about route state?
 
--   It would be nice to have type-checking for route state.
+In fact, you can pass a state processor as the fourth argument to `route`:
+
+```typescript
+import { route, path } from "react-router-typesafe-routes";
+import { state } from "./path/to/state";
+
+const myRoute = route(path("/test/:id"), null, null, state);
+```
+
+You can build a location object via the `route.buildLocation` function:
+
+```typescript jsx
+import { Link } from "react-router-dom";
+import { myRoute } from "./path/to/my-route";
+
+<Link to={myRoute.buildLocation({ stateField: "foo" }, { id: 1 })} />;
+```
+
+You can also use the `route.buildState` and `route.parseState` functions to transform a state object to the serializable form and back. The parsed state object will also appear in the result of the `route.parse` execution.
+
+The only catch is... there is no implementation of the state processor 😅. It's the most tricky processor to implement in a generic form, and also the least used one.
+
+In the meantime, you can write ad-hoc state processors and get type safety for route state where you need it, but that's about it.
 
 ## How is it different from existing solutions?
 
