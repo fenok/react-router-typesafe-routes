@@ -127,10 +127,10 @@ The predefined transformers are:
 -   `param.boolean` - single boolean;
 -   `param.null` - single null;
 -   `param.date` - single Date (stored in the URL as an ISO string);
--   `param.oneOf()` - one of the given single values, for instance `param.oneOf(1, 'a', true)`;
+-   `param.oneOf()` - one of the given single values, for instance `param.oneOf(1, 'foo', true)`;
 -   `param.arrayOf()` - array of the given transformer, for instance `param.arrayOf(param.number)`.
 
-All the above transformers also have an `.optional` modifier, which means that the corresponding value may be `undefined`. If the reverse transformation of such a value fails, `undefined` is returned instead.
+All the above transformers also have an `.optional` modifier, which means that the corresponding value may be `undefined`. If the reverse transformation of such a value fails, `undefined` is returned instead. You can also call it to specify the fallback value like this: `param.number.optional(1)`.
 
 You can write custom transformers using the existing ones as an example.
 
@@ -152,7 +152,7 @@ A path processor is created via the `path` helper. In a simple scenario, you can
 const myRoute = route(path("/test/:foo/:bar?"));
 
 // { foo: string | number | boolean; bar?: string | number | boolean }
-const url = myRoute.build({ id: 1 });
+const url = myRoute.build({ foo: 1 });
 
 // { foo: string; bar?: string }
 const pathParams = myRoute.parsePath(useParams());
@@ -168,7 +168,7 @@ You can use transformers that store values as `string | undefined`.
 const myRoute = route(path("/test/:foo/:bar(\\d+)?", { foo: param.string, bar: param.number.optional }));
 
 // { foo: string | number | boolean; bar?: number }
-const url = myRoute.build({ id: 1 });
+const url = myRoute.build({ foo: 1 });
 
 // { foo: string; bar?: number }
 const pathParams = myRoute.parsePath(useParams());
@@ -182,7 +182,7 @@ If we didn't specify a custom type, and we're parsing the `match` object, we sim
 
 If we specified a custom type, we simply try to transform the given `match.params`. If we could transform every parameter, the transformed `match.params` are considered valid. Additionally, if we're parsing the `match` object, we check the `match.path` field as well.
 
-If we couldn't get valid params, an error will be thrown. It means that there is either a mismatch between the URL path and the custom type, or we are processing an unexpected route.
+If we couldn't get valid params, an error will be thrown. It means that we are processing an unexpected route, or there is a mismatch between the URL path and the custom type.
 
 ### `query`
 
@@ -208,11 +208,11 @@ You can make types more specific by providing a custom type. Note that, in this 
 
 You can use transformers that store values as `string | null | (string | null)[] | undefined`. Again, the ability to store nulls inside arrays depends on the `arrayFormat` option.
 
-The transformers _must_ be able to both accept `undefined` and store it. For predefined transformers, it means that only the `.optional` variants can be used. This is because query params are always optional by their nature.
+The transformers _must_ be able to both accept and store the value as `undefined`. For predefined transformers, it means that only the `.optional` variants can be used. This is because query params are always optional by their nature.
 
 ```typescript
 const myRoute = route(path("/test"), query({ foo: param.number.optional }));
-const myCommaRoute = route(path("/test"), query({ foo: param.string.optional }, { arrayFormat: "comma" }));
+const myCommaRoute = route(path("/test"), query({ foo: param.string.optional("foo") }, { arrayFormat: "comma" }));
 
 // { foo?: number }
 const url = myRoute.build({}, { foo: 1 });
@@ -221,15 +221,15 @@ const commaUrl = myCommaRoute.build({}, { foo: "foo" });
 
 // { foo?: number }
 const queryParams = myRoute.parseQuery(useLocation());
-// { foo?: string }
+// { foo: string }
 const commaQueryParams = myCommaRoute.parseQuery(useLocation());
 ```
 
-On parse, if some value can't be transformed, an error will be thrown. Since the transformers have to accept and store `undefined`, it shouldn't normally happen.
+On parse, if some value can't be transformed, an error will be thrown. It shouldn't normally happen, because the transformers have to both accept and store the value as `undefined`, and such predefined transformers never throw.
 
 #### Caveats
 
--   If you are writing a custom transformer, make sure that it doesn't throw. This way, you would be able to parse any query safely. The easiest way to achieve that is to use the `optional` helper, like the built-in transformers do.
+-   If you are writing a custom transformer for query, make sure that it doesn't throw. This way, you would be able to parse any query safely. The easiest way to achieve that is to use the `optional` helper, like the built-in transformers do.
 
 -   `query-string` technically always lets you store nulls inside arrays, but they get converted to empty strings with certain array formats. It's quite tedious to type, and I doubt that anyone needs this.
 
@@ -261,13 +261,13 @@ const url = myRoute.build({}, null, "foo");
 const hashValue = myRoute.parseHash(useLocation());
 ```
 
+On parse, if the hash has an unexpected value, an empty string is returned.
+
 ## What can be improved
 
--   It would be nice to have type-checking for route state. It requires deep object validation and can be added without breaking changes.
+-   It would be nice to have type-checking for route state.
 
 -   It may be a good idea to convert path params like `'foo/bar/baz'` into arrays. Right now it can be done with a custom transformer.
-
--   There should be some built-in API for default values. Right now they can be added with custom transformers.
 
 ## How is it different from existing solutions?
 
