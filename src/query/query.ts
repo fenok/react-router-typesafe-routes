@@ -1,6 +1,6 @@
 import queryString, { ParseOptions, StringifyOptions } from "query-string";
 import { QueryProcessor } from "./QueryProcessor";
-import { OriginalParams, retrieve, RetrievedParams, store, Transformer } from "../param";
+import { OptionalTransformer, OriginalParams, retrieve, RetrievedParams, store, Transformer } from "../param";
 
 export type QueryOptions = StringifyOptions & ParseOptions;
 
@@ -32,17 +32,11 @@ export function query<TOptions extends QueryOptions>(
 
 export function query<
     TOptions extends QueryOptions & { parseBooleans?: false; parseNumbers?: false },
-    TTransformers extends Record<string, Transformer<unknown, QueryParam<TOptions> | undefined>>
+    TTransformers extends Record<string, OptionalTransformer<unknown, QueryParam<TOptions> | undefined>>
 >(
     transformers: TTransformers,
     options?: TOptions
-): TTransformers[keyof TTransformers] extends Transformer<infer TOriginal, infer TStored, unknown>
-    ? undefined extends TOriginal
-        ? undefined extends TStored
-            ? QueryProcessor<OriginalParams<TTransformers>, RetrievedParams<TTransformers>>
-            : never
-        : never
-    : never;
+): QueryProcessor<OriginalParams<TTransformers>, RetrievedParams<TTransformers>>;
 
 export function query(
     transformers?: null | Record<string, Transformer<unknown, QueryParam | undefined>>,

@@ -7,13 +7,13 @@ export type OptionalTransformer<TOriginal, TStored = string, TRetrieved = TOrigi
     TOriginal | undefined,
     TStored | undefined,
     TRetrieved | undefined
->;
+> & { __brand: "optional" };
 
 export type OptionalTransformerWithDefault<TOriginal, TStored = string, TRetrieved = TOriginal> = Transformer<
     TOriginal | undefined,
     TStored | undefined,
     TRetrieved
->;
+> & { __brand: "optional" };
 
 export type Optional<T extends Transformer<unknown, unknown, unknown>> = T extends Transformer<
     infer TOriginal,
