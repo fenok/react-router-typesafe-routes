@@ -12,13 +12,13 @@ export function route<
     TPath extends string,
     TInPath,
     TOutPath,
-    TInQuery = never,
-    TOutQuery = never,
-    TInHash = never,
-    TOutHash = never,
-    TInState = never,
-    TSerializableState = never,
-    TOutState = never
+    TInQuery = undefined,
+    TOutQuery = undefined,
+    TInHash = undefined,
+    TOutHash = undefined,
+    TInState = undefined,
+    TSerializableState = undefined,
+    TOutState = undefined
 >(
     pathProcessor: PathProcessor<TPath, TInPath, TOutPath>,
     queryProcessor?: QueryProcessor<TInQuery, TOutQuery> | null,
@@ -64,7 +64,7 @@ export function route<
     function parse(
         matchOrParams: PathParams | match | null,
         location?: Location
-    ): { path: TOutPath; query?: TOutQuery; hash?: TOutHash; state?: TOutState }
+    ): { path: TOutPath; query?: TOutQuery; hash?: TOutHash; state?: TOutState };
     function parse(
         matchOrParams: PathParams | match | null,
         location?: Location
