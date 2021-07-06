@@ -59,8 +59,12 @@ export function route<
     function parse(matchOrParams: PathParams | match | null): { path: TOutPath };
     function parse(
         matchOrParams: PathParams | match | null,
-        location?: Location
+        location: Location
     ): { path: TOutPath; query: TOutQuery; hash: TOutHash; state: TOutState };
+    function parse(
+        matchOrParams: PathParams | match | null,
+        location?: Location
+    ): { path: TOutPath; query?: TOutQuery; hash?: TOutHash; state?: TOutState }
     function parse(
         matchOrParams: PathParams | match | null,
         location?: Location
