@@ -14,7 +14,7 @@ There is also _some_ support for route state typing.
 yarn add react-router-typesafe-routes
 ```
 
-Note that the library is using ES6, including ES6 modules.
+Note that the library is using ES6, including ES6 modules. It's designed to be processed by some bundler like Webpack.
 
 ## Design principles
 
@@ -22,6 +22,16 @@ Note that the library is using ES6, including ES6 modules.
 -   No unsafe type casts.
 -   Extensibility to allow better typing and/or validation.
 -   Completeness: cover every aspect of the URL.
+
+## How is it different from existing solutions?
+
+-   [typesafe-routes](https://www.npmjs.com/package/typesafe-routes) (as well as seemingly based on it [react-typesafe-routes](https://www.npmjs.com/package/react-typesafe-routes)) only handles path and query params. It also doesn't support custom regexps for path params.
+
+-   [typesafe-react-router](https://www.npmjs.com/package/typesafe-react-router) only handles path params, and there's no support for custom regexps as well.
+
+-   The solution described at [Type-Safe Usage of React Router](https://dev.to/0916dhkim/type-safe-usage-of-react-router-5c44) only cares about path params.
+
+-   There is also [type-route](https://www.npmjs.com/package/type-route), but it's still in beta. It's also a separate routing library.
 
 ## Quick usage example
 
@@ -296,13 +306,3 @@ You can also use the `route.buildState` and `route.parseState` functions to tran
 The only catch is... there is no implementation of the state processor 😅. It's the most tricky processor to implement in a generic form, and also the least used one.
 
 In the meantime, you can write ad-hoc state processors and get type safety for route state where you need it, but that's about it.
-
-## How is it different from existing solutions?
-
--   [typesafe-react-router](https://www.npmjs.com/package/typesafe-react-router) only handles path params and doesn't allow regexp-based path.
-
--   [react-typesafe-routes](https://www.npmjs.com/package/react-typesafe-routes) is quite complex and may be an overkill. It also doesn't handle hash.
-
--   The solution described at [Type-Safe Usage of React Router](https://dev.to/0916dhkim/type-safe-usage-of-react-router-5c44) only cares about path params.
-
--   There is also [type-route](https://www.npmjs.com/package/type-route), but it's still in beta. It's also a separate routing library.
