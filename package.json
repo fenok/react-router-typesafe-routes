@@ -1,6 +1,6 @@
 {
     "name": "react-router-typesafe-routes",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": "Comprehensive type-safe routes for react-router.",
     "keywords": [
         "typesafe",
@@ -23,7 +23,8 @@
         "lint": "eslint .",
         "build": "rimraf dist && tsc --project tsconfig.build.json",
         "test": "jest",
-        "format": "prettier --write \"**/*.{js,ts,tsx,json,md,*rc}\""
+        "format": "prettier --write --ignore-unknown .",
+        "format:check": "prettier --check ."
     },
     "devDependencies": {
         "@types/jest": "^26.0.23",

@@ -1,0 +1,20 @@
+name: checks
+on: [push]
+jobs:
+  checks:
+    if: ${{ ! contains(github.event.head_commit.message, '[CI] Bump version to v') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - run: npm install -g yarn
+      - run: yarn
+      - run: yarn version check
+      - run: yarn format:check
+      - run: yarn lint
+      - run: yarn test
+      - run: yarn build
