@@ -1,0 +1,16 @@
+name: checks
+on: [push]
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - run: npm install -g yarn
+      - run: yarn
+      - run: yarn format:check
+      - run: yarn lint
+      - run: yarn test
+      - run: yarn build
