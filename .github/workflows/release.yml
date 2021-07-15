@@ -1,0 +1,21 @@
+name: release
+on: workflow_dispatch
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - run: git checkout github-actions
+      - run: npm install -g yarn
+      - run: yarn
+      - run: yarn version apply
+      - run: git add package.json
+      - run: git config user.name "github-actions"
+      - run: git config user.email "github-actions@github.com"
+      - run: git commit -m "Bump version"
+      - run: git push
