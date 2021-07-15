@@ -19,8 +19,8 @@ jobs:
         id: package-version
         uses: martinbeentjes/npm-get-version-action@v1.1.0
       - run: git add package.json
-      - run: git config user.name "github-actions"
-      - run: git config user.email "github-actions@github.com"
+      - run: git config user.name "${{ secrets.ADMIN_NAME }}"
+      - run: git config user.email "${{ secrets.ADMIN_EMAIL }}"
       - run: git commit -m "Bump version to v${{ steps.package-version.outputs.current-version}}"
       - run: git tag v${{ steps.package-version.outputs.current-version}}
       - run: git push
