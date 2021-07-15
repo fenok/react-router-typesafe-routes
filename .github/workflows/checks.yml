@@ -2,6 +2,7 @@ name: checks
 on: [push]
 jobs:
   checks:
+    if: ${{ ! contains(github.event.head_commit.message, '[CI] Bump version to v') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

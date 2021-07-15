@@ -40,7 +40,7 @@ jobs:
       - name: Commit and tag version
         run: |
           git add .
-          git commit -m "Bump version to v${{ steps.package-version.outputs.current-version}}"
+          git commit -m "[CI] Bump version to v${{ steps.package-version.outputs.current-version}}"
           git tag v${{ steps.package-version.outputs.current-version}}
 
       - name: Push to dev
