@@ -14,8 +14,11 @@ jobs:
       - run: npm install -g yarn
       - run: yarn
       - run: yarn version apply
+      - name: get-npm-version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.1.0
       - run: git add package.json
       - run: git config user.name "github-actions"
       - run: git config user.email "github-actions@github.com"
-      - run: git commit -m "Bump version"
+      - run: git commit -m "Bump version to ${{ steps.package-version.outputs.current-version}}"
       - run: git push
