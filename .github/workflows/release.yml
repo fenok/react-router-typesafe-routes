@@ -24,9 +24,6 @@ jobs:
       - name: Install Yarn
         run: npm install -g yarn
 
-      - name: Ensure dev branch
-        run: git checkout dev
-
       - name: Perform project installation
         run: yarn
 
@@ -43,7 +40,7 @@ jobs:
           git commit -m "[CI] Bump version to v${{ steps.package-version.outputs.current-version}}"
           git tag v${{ steps.package-version.outputs.current-version}}
 
-      - name: Push to dev
+      - name: Push
         run: |
           git push
           git push --tags
@@ -56,5 +53,5 @@ jobs:
       - name: Update main branch
         run: |
           git checkout main
-          git merge dev --no-ff
+          git merge ${GITHUB_REF##*/} --no-ff
           git push
