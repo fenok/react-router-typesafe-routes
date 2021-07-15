@@ -4,24 +4,57 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
           token: ${{ secrets.ADMIN_TOKEN }}
-      - uses: actions/setup-node@v2
+
+      - name: Install Node
+        uses: actions/setup-node@v2
         with:
-          node-version: "14"
-      - run: git checkout github-actions
-      - run: npm install -g yarn
-      - run: yarn
-      - run: yarn version apply
-      - name: get-npm-version
+          node-version: 14
+          registry-url: https://registry.npmjs.org/
+
+      - name: Configure Git
+        run: |
+          git config user.name "${{ secrets.ADMIN_NAME }}"
+          git config user.email "${{ secrets.ADMIN_EMAIL }}"
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Ensure dev branch
+        run: git checkout dev
+
+      - name: Perform project installation
+        run: yarn
+
+      - name: Bump version
+        run: yarn version apply
+
+      - name: Retrieve version from package.json
         id: package-version
         uses: martinbeentjes/npm-get-version-action@v1.1.0
-      - run: git add package.json
-      - run: git config user.name "${{ secrets.ADMIN_NAME }}"
-      - run: git config user.email "${{ secrets.ADMIN_EMAIL }}"
-      - run: git commit -m "Bump version to v${{ steps.package-version.outputs.current-version}}"
-      - run: git tag v${{ steps.package-version.outputs.current-version}}
-      - run: git push
-      - run: git push --tags
+
+      - name: Commit and tag version
+        run: |
+          git add .
+          git commit -m "Bump version to v${{ steps.package-version.outputs.current-version}}"
+          git tag v${{ steps.package-version.outputs.current-version}}
+
+      - name: Push to dev
+        run: |
+          git push
+          git push --tags
+
+      - name: Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+      - name: Update main branch
+        run: |
+          git checkout main
+          git merge dev --no-ff
+          git push
