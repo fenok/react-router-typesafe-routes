@@ -49,7 +49,7 @@ jobs:
       - name: Publish to NPM
         run: yarn npm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          YARN_NPM_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
       - name: Update main branch
         run: |
