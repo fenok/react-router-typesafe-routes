@@ -22,9 +22,6 @@ jobs:
           git config user.name "${{ secrets.ADMIN_NAME }}"
           git config user.email "${{ secrets.ADMIN_EMAIL }}"
 
-      - name: Install Yarn
-        run: npm install -g yarn
-
       - name: Perform project installation
         run: yarn
 
