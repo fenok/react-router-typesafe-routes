@@ -18,13 +18,13 @@
         "dist/"
     ],
     "scripts": {
-        "prepare": "yarn build",
-        "prepublishOnly": "yarn lint && yarn test",
-        "lint": "eslint .",
-        "build": "rimraf dist && tsc --project tsconfig.build.json",
-        "test": "jest",
         "format": "prettier --write --ignore-unknown .",
-        "format:check": "prettier --check ."
+        "build": "rimraf dist && tsc --project tsconfig.build.json",
+        "format:check": "prettier --check .",
+        "lint": "eslint .",
+        "test": "jest",
+        "prepack": "yarn build",
+        "prepublish": "yarn format:check && yarn lint && yarn test"
     },
     "devDependencies": {
         "@types/jest": "^26.0.23",
