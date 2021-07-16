@@ -1,6 +1,6 @@
 {
     "name": "react-router-typesafe-routes",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "Comprehensive type-safe routes for react-router.",
     "keywords": [
         "typesafe",
