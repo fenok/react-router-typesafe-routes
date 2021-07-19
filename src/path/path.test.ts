@@ -130,10 +130,10 @@ it("allows to specify unions of values", () => {
 });
 
 it("allows to specify array type", () => {
-    const processor = path("/test/:id*", { id: param.arrayOf(param.number, { path: true }) });
-    const optionalProcessor = path("/test/:id*", { id: param.arrayOf(param.number, { path: true }).optional });
+    const processor = path("/test/:id*", { id: param.arrayOf(param.number) });
+    const optionalProcessor = path("/test/:id*", { id: param.arrayOf(param.number).optional });
     const optionalDefaultProcessor = path("/test/:id*", {
-        id: param.arrayOf(param.number, { path: true }).optional([10]),
+        id: param.arrayOf(param.number).optional([10]),
     });
 
     assert<IsExact<Parameters<typeof processor.build>[0], { id: number[] }>>(true);

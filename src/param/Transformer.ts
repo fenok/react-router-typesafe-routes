@@ -1,6 +1,8 @@
+export type RoutePart = "path" | "query" | "hash" | "state";
+
 export interface Transformer<TOriginal, TStored = string, TRetrieved = TOriginal> {
-    store(value: TOriginal): TStored;
-    retrieve(value: unknown): TRetrieved;
+    store(value: TOriginal, part: RoutePart): TStored;
+    retrieve(value: unknown, part: RoutePart): TRetrieved;
 }
 
 export type OptionalTransformer<TOriginal, TStored = string, TRetrieved = TOriginal> = Transformer<

@@ -198,8 +198,6 @@ If we couldn't get valid params, an error will be thrown. It means that we are p
 
 #### Caveats
 
--   If you're using `param.arrayOf` (`*` or `+` modifiers), you should specify the `path: true` option like this: `param.arrayOf(param.number, { path: true })`. It allows transforming strings like `'foo/bar'` into arrays like `['foo', 'bar']`. Otherwise, you'll get something like `['foo/bar']`.
-
 -   Path params are not decoded, but you most likely don't want them to be encoded in the first place.
 
 ### `query`

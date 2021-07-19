@@ -70,20 +70,20 @@ const dateTransformer: Optional<Transformer<Date>> = optional({
 function oneOfTransformer<T extends (string | number | boolean)[]>(...values: T): Optional<Transformer<T[number]>> {
     return optional({
         store: String,
-        retrieve(value) {
+        retrieve(value, part) {
             assertString(value);
 
             for (const canonicalValue of values) {
                 try {
                     switch (typeof canonicalValue) {
                         case "string":
-                            if (stringTransformer.retrieve(value) === canonicalValue) return canonicalValue;
+                            if (stringTransformer.retrieve(value, part) === canonicalValue) return canonicalValue;
                             break;
                         case "number":
-                            if (numberTransformer.retrieve(value) === canonicalValue) return canonicalValue;
+                            if (numberTransformer.retrieve(value, part) === canonicalValue) return canonicalValue;
                             break;
                         case "boolean":
-                            if (booleanTransformer.retrieve(value) === canonicalValue) return canonicalValue;
+                            if (booleanTransformer.retrieve(value, part) === canonicalValue) return canonicalValue;
                     }
                 } catch {
                     // Try next value
@@ -95,23 +95,16 @@ function oneOfTransformer<T extends (string | number | boolean)[]>(...values: T)
     });
 }
 
-export interface ArrayOfTransformerParams {
-    path?: boolean;
-}
-
-function arrayOfTransformer<T, U, O>(
-    transformer: Transformer<T, U, O>,
-    options: ArrayOfTransformerParams = {}
-): Optional<Transformer<T[], U[], O[]>> {
+function arrayOfTransformer<T, U, O>(transformer: Transformer<T, U, O>): Optional<Transformer<T[], U[], O[]>> {
     return optional({
-        store(values) {
-            return values.map((value) => transformer.store(value));
+        store(values, part) {
+            return values.map((value) => transformer.store(value, part));
         },
-        retrieve(value) {
+        retrieve(value, part) {
             if (value !== undefined) {
                 let arrayValue: unknown[];
 
-                if (options.path) {
+                if (part === "path") {
                     assertString(value);
 
                     arrayValue = value.split("/");
@@ -119,7 +112,7 @@ function arrayOfTransformer<T, U, O>(
                     arrayValue = Array.isArray(value) ? value : [value];
                 }
 
-                return arrayValue.map((item) => transformer.retrieve(item));
+                return arrayValue.map((item) => transformer.retrieve(item, part));
             }
 
             return [];
