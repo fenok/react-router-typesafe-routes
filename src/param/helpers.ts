@@ -15,12 +15,12 @@ export function optional<TOriginal, TStored, TRetrieved>(
     ): OptionalTransformerWithDefault<TOriginal, TStored, TRetrieved>;
     function getOptionalTransformer(defaultValue?: TRetrieved) {
         return {
-            store(value: TOriginal | undefined, part: RoutePart): TStored | undefined {
-                return value === undefined ? (value as undefined) : transformer.store(value, part);
+            store(value: TOriginal | undefined, routePart: RoutePart): TStored | undefined {
+                return value === undefined ? (value as undefined) : transformer.store(value, routePart);
             },
-            retrieve(value: unknown, part: RoutePart) {
+            retrieve(value: unknown, routePart: RoutePart) {
                 try {
-                    return transformer.retrieve(value, part);
+                    return transformer.retrieve(value, routePart);
                 } catch (error) {
                     return defaultValue;
                 }
@@ -37,12 +37,12 @@ export function optional<TOriginal, TStored, TRetrieved>(
 export function retrieve<TRetrieved>(
     storedParams: Record<string, unknown>,
     transformers: Record<string, Transformer<unknown, unknown, TRetrieved>>,
-    part: RoutePart
+    routePart: RoutePart
 ): Record<string, TRetrieved> {
     const retrievedParams: Record<string, TRetrieved> = {};
 
     Object.keys(transformers).forEach((key) => {
-        const value = transformers[key].retrieve(storedParams[key], part);
+        const value = transformers[key].retrieve(storedParams[key], routePart);
 
         if (value !== undefined) {
             retrievedParams[key] = value;
@@ -55,12 +55,12 @@ export function retrieve<TRetrieved>(
 export function store<TOriginal, TStored>(
     originalParams: Record<string, TOriginal>,
     transformers: Record<string, Transformer<TOriginal, TStored, unknown>>,
-    part: RoutePart
+    routePart: RoutePart
 ): Record<string, TStored> {
     const storedParams: Record<string, TStored> = {};
 
     Object.keys(transformers).forEach((key) => {
-        storedParams[key] = transformers[key].store(originalParams[key], part);
+        storedParams[key] = transformers[key].store(originalParams[key], routePart);
     });
 
     return storedParams;

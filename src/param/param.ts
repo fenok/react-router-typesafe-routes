@@ -70,20 +70,20 @@ const dateTransformer: Optional<Transformer<Date>> = optional({
 function oneOfTransformer<T extends (string | number | boolean)[]>(...values: T): Optional<Transformer<T[number]>> {
     return optional({
         store: String,
-        retrieve(value, part) {
+        retrieve(value, routePart) {
             assertString(value);
 
             for (const canonicalValue of values) {
                 try {
                     switch (typeof canonicalValue) {
                         case "string":
-                            if (stringTransformer.retrieve(value, part) === canonicalValue) return canonicalValue;
+                            if (stringTransformer.retrieve(value, routePart) === canonicalValue) return canonicalValue;
                             break;
                         case "number":
-                            if (numberTransformer.retrieve(value, part) === canonicalValue) return canonicalValue;
+                            if (numberTransformer.retrieve(value, routePart) === canonicalValue) return canonicalValue;
                             break;
                         case "boolean":
-                            if (booleanTransformer.retrieve(value, part) === canonicalValue) return canonicalValue;
+                            if (booleanTransformer.retrieve(value, routePart) === canonicalValue) return canonicalValue;
                     }
                 } catch {
                     // Try next value
@@ -97,14 +97,14 @@ function oneOfTransformer<T extends (string | number | boolean)[]>(...values: T)
 
 function arrayOfTransformer<T, U, O>(transformer: Transformer<T, U, O>): Optional<Transformer<T[], U[], O[]>> {
     return optional({
-        store(values, part) {
-            return values.map((value) => transformer.store(value, part));
+        store(values, routePart) {
+            return values.map((value) => transformer.store(value, routePart));
         },
-        retrieve(value, part) {
+        retrieve(value, routePart) {
             if (value !== undefined) {
                 let arrayValue: unknown[];
 
-                if (part === "path") {
+                if (routePart === "path") {
                     assertString(value);
 
                     arrayValue = value.split("/");
@@ -112,7 +112,7 @@ function arrayOfTransformer<T, U, O>(transformer: Transformer<T, U, O>): Optiona
                     arrayValue = Array.isArray(value) ? value : [value];
                 }
 
-                return arrayValue.map((item) => transformer.retrieve(item, part));
+                return arrayValue.map((item) => transformer.retrieve(item, routePart));
             }
 
             return [];
