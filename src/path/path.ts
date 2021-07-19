@@ -27,19 +27,19 @@ export function path(
             return generatePath(
                 path,
                 transformers
-                    ? (store(params, transformers) as ExtractRouteParams<string>)
+                    ? (store(params, transformers, "path") as ExtractRouteParams<string>)
                     : (params as ExtractRouteParams<string>)
             );
         },
         parse(matchOrParams: PathParams | match | null): Record<string, unknown> {
             if (isMatch(matchOrParams)) {
                 if (matchOrParams && matchOrParams.path === path) {
-                    return transformers ? retrieve(matchOrParams.params, transformers) : matchOrParams.params;
+                    return transformers ? retrieve(matchOrParams.params, transformers, "path") : matchOrParams.params;
                 }
 
                 throw new Error("Path values diverged");
             } else if (transformers || areParamsSufficient(matchOrParams)) {
-                return transformers ? retrieve(matchOrParams, transformers) : matchOrParams;
+                return transformers ? retrieve(matchOrParams, transformers, "path") : matchOrParams;
             }
 
             throw new Error("Params are insufficient");

@@ -45,13 +45,13 @@ export function query(
     return {
         build(params: Record<string, unknown>): string {
             return params && Object.keys(params).length
-                ? `?${queryString.stringify(transformers ? store(params, transformers) : params, options)}`
+                ? `?${queryString.stringify(transformers ? store(params, transformers, "query") : params, options)}`
                 : "";
         },
         parse(query: string): Record<string, unknown> {
             const rawParams = queryString.parse(query, options);
 
-            return transformers ? retrieve(rawParams, transformers) : rawParams;
+            return transformers ? retrieve(rawParams, transformers, "query") : rawParams;
         },
     };
 }
