@@ -46,6 +46,7 @@
         "react-router": "^5.2.0"
     },
     "dependencies": {
+        "@types/history": "*",
         "path-to-regexp": "^1.7.0",
         "query-string": "^7.0.0"
     }

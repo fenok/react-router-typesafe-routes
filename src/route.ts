@@ -1,11 +1,10 @@
-import { match, useLocation } from "react-router";
+import { match } from "react-router";
 import { PathParams, PathProcessor } from "./path";
 import { QueryProcessor } from "./query";
 import { HashProcessor } from "./hash";
 import { StateProcessor } from "./state";
 import { isDefined } from "./helpers";
-
-type Location = ReturnType<typeof useLocation>;
+import { Location } from "history";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function route<
