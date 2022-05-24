@@ -873,13 +873,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/history@npm:^4.7.11":
-  version: 4.7.11
-  resolution: "@types/history@npm:4.7.11"
-  checksum: c92e2ba407dcab0581a9afdf98f533aa41b61a71133420a6d92b1ca9839f741ab1f9395b17454ba5b88cb86020b70b22d74a1950ccfbdfd9beeaa5459fdc3464
-  languageName: node
-  linkType: hard
-
 "@types/istanbul-lib-coverage@npm:*, @types/istanbul-lib-coverage@npm:^2.0.0, @types/istanbul-lib-coverage@npm:^2.0.1":
   version: 2.0.4
   resolution: "@types/istanbul-lib-coverage@npm:2.0.4"
@@ -943,17 +936,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-router@npm:^5.1.18":
-  version: 5.1.18
-  resolution: "@types/react-router@npm:5.1.18"
-  dependencies:
-    "@types/history": ^4.7.11
-    "@types/react": "*"
-  checksum: f08b37ee822f9f9ff904ffd0778fe2bb7c717ed3ee311610382ee024d02a35169bd3301ecde863cac21aae8fdee919501e8ea22bad0260c02c10cfbdba5c71be
+"@types/qs@npm:6.9.5":
+  version: 6.9.5
+  resolution: "@types/qs@npm:6.9.5"
+  checksum: eeb4597a9c5d3e7b3da3f6395fdfc53e435b79c863fd9d56ff14951e644d51d40870a7d8440c0f132299469941d27817b04ef3c7aa71242115eded0953f4f620
   languageName: node
   linkType: hard
 
-"@types/react@npm:*":
+"@types/react@npm:^18.0.9":
   version: 18.0.9
   resolution: "@types/react@npm:18.0.9"
   dependencies:
@@ -1108,6 +1098,13 @@ __metadata:
     "@typescript-eslint/types": 5.25.0
     eslint-visitor-keys: ^3.3.0
   checksum: ec4d0558cf53305703c18dfd7e1cd53fc0736303a51d93a875227896a230fd049951cc0600c539719cc351d2c96cb4abc6aa9dd9b3a8401f27bb8033093f35b7
+  languageName: node
+  linkType: hard
+
+"@ungap/url-search-params@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@ungap/url-search-params@npm:0.1.4"
+  checksum: 514eb89aad452c5c68462c9df73f7938f986f7e66c9b43bcde2dae9fefce80a77c024391bb0c19b41ec0adb7728bbd81b46dafd457724eb759c42d44bc65f1dc
   languageName: node
   linkType: hard
 
@@ -3702,6 +3699,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"qs@npm:6.9.4":
+  version: 6.9.4
+  resolution: "qs@npm:6.9.4"
+  checksum: 5ac0bd145f32d346d20c2fdcf19c8e548c5916458851e32527efb25be0c2cff8a3a81140c145c98a1184779b5b625c91bc7c50e147073bffb978fb7f4a9c8c8a
+  languageName: node
+  linkType: hard
+
 "queue-microtask@npm:^1.2.2":
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
@@ -3723,12 +3727,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-router-dom@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "react-router-dom@npm:6.3.0"
+  dependencies:
+    history: ^5.2.0
+    react-router: 6.3.0
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: 77603a654f8a8dc7f65535a2e5917a65f8d9ffcb06546d28dd297e52adcc4b8a84377e0115f48dca330b080af2da3e78f29d590c89307094d36927d2b1751ec3
+  languageName: node
+  linkType: hard
+
+"react-router-native@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "react-router-native@npm:6.3.0"
+  dependencies:
+    "@ungap/url-search-params": ^0.1.4
+    history: ^5.2.0
+    react-router: 6.3.0
+  peerDependencies:
+    react: ">=16.8"
+    react-native: ">=0.44"
+  checksum: 5f27b6f20db273e8759573fec7a44304fad7136e2c89b0273b47c0fecdcf547756e94d6bd51c1f25f04109892f800271b179f4d48f6ab3924756a00c92d8fc21
+  languageName: node
+  linkType: hard
+
 "react-router-typesafe-routes@workspace:.":
   version: 0.0.0-use.local
   resolution: "react-router-typesafe-routes@workspace:."
   dependencies:
     "@types/jest": ^27.5.1
-    "@types/react-router": ^5.1.18
+    "@types/react": ^18.0.9
     "@typescript-eslint/eslint-plugin": ^5.25.0
     "@typescript-eslint/parser": ^5.25.0
     conditional-type-checks: ^1.0.5
@@ -3736,17 +3767,28 @@ __metadata:
     eslint-config-prettier: ^8.5.0
     jest: ^28.1.0
     prettier: ^2.6.2
-    react: ^18.1.0
+    react: ">=16.8"
     react-router: ^6.3.0
+    react-router-dom: ^6.3.0
+    react-router-native: ^6.3.0
     rimraf: ^3.0.2
     ts-jest: ^28.0.2
+    typesafe-routes: ^7.0.2
     typescript: ^4.6.4
   peerDependencies:
+    react: ">=16.8"
     react-router: ^6.3.0
+    react-router-dom: ^6.3.0
+    react-router-native: ^6.3.0
+  peerDependenciesMeta:
+    react-router-dom:
+      optional: true
+    react-router-native:
+      optional: true
   languageName: unknown
   linkType: soft
 
-"react-router@npm:^6.3.0":
+"react-router@npm:6.3.0, react-router@npm:^6.3.0":
   version: 6.3.0
   resolution: "react-router@npm:6.3.0"
   dependencies:
@@ -3757,7 +3799,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^18.1.0":
+"react@npm:>=16.8":
   version: 18.1.0
   resolution: "react@npm:18.1.0"
   dependencies:
@@ -4297,6 +4339,22 @@ __metadata:
   version: 0.21.3
   resolution: "type-fest@npm:0.21.3"
   checksum: e6b32a3b3877f04339bae01c193b273c62ba7bfc9e325b8703c4ee1b32dc8fe4ef5dfa54bf78265e069f7667d058e360ae0f37be5af9f153b22382cd55a9afe0
+  languageName: node
+  linkType: hard
+
+"typesafe-routes@npm:^7.0.2":
+  version: 7.0.2
+  resolution: "typesafe-routes@npm:7.0.2"
+  dependencies:
+    "@types/qs": 6.9.5
+    qs: 6.9.4
+  peerDependencies:
+    react-router-dom: ^5.2.0
+    typescript: ^4.1.0
+  peerDependenciesMeta:
+    react-router-dom:
+      optional: true
+  checksum: 969868ffefbf02ab755473c7d5dd3bf9a75b6b13e84ae2d56beb01a17249b63af9954c8bda9c97639376f940d8b86653e99c3549b48478a3ae31dec6f4a5f3ab
   languageName: node
   linkType: hard
 
