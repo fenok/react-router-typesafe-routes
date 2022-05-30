@@ -44,9 +44,12 @@ export function query(
 ): QueryProcessor<Record<string, unknown>, Record<string, unknown>> {
     return {
         build(params: Record<string, unknown>): string {
-            return params && Object.keys(params).length
-                ? `?${queryString.stringify(transformers ? store(params, transformers, "query") : params, options)}`
-                : "";
+            const paramsString =
+                params && Object.keys(params).length
+                    ? queryString.stringify(transformers ? store(params, transformers, "query") : params, options)
+                    : "";
+
+            return paramsString ? `?${paramsString}` : "";
         },
         parse(query: string): Record<string, unknown> {
             const rawParams = queryString.parse(query, options);
