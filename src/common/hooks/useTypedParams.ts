@@ -1,4 +1,4 @@
-import { Route, OutParams } from "../route";
+import { Route, OutParams } from "../routeCreator";
 import { useParams } from "react-router";
 import { useMemo } from "react";
 

@@ -1,6 +1,6 @@
 import { createSearchParams } from "react-router-dom";
-import { route } from "../common";
+import { routeCreator } from "../common";
 
-const domRoute = route({ createSearchParams });
+const route = routeCreator({ createSearchParams });
 
-export { domRoute as route };
+export { route };

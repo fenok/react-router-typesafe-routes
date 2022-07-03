@@ -44,7 +44,8 @@ Note that the library is using ES6, including ES6 modules. It's designed to be p
 Route definition may look like this:
 
 ```typescript
-import { route, numberType, booleanType, hashValues } from "react-router-typesafe-routes";
+import { numberType, booleanType, hashValues } from "react-router-typesafe-routes";
+import { route } from "react-router-typesafe-routes/dom"; // Or /native
 
 const ROUTES = {
     PRODUCT: route(
@@ -294,6 +295,8 @@ Hash values are combined. If a parent allows any `string` to be a hash value, it
 ### `route()`
 
 A route is defined via the `route` helper. It accepts required `path` and `options`, and optional `children`. All `options` are optional.
+
+> Note that `route()` internally uses `createSearchParams()`, which is platform-specific, so `route()` has to be imported from either `'react-router-typesafe-routes/dom'` or `'react-router-typesafe-routes/native'`, depending on the environment.
 
 ```typescript
 const ROUTE = route(

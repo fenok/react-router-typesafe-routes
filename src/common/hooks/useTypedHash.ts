@@ -1,4 +1,4 @@
-import { Route } from "../route";
+import { Route } from "../routeCreator";
 import { useLocation } from "react-router";
 import { useMemo } from "react";
 

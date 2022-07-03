@@ -132,7 +132,7 @@ interface RouteMetaOptions {
     createSearchParams: (init?: Record<string, string | string[]>) => URLSearchParamsLike;
 }
 
-const route =
+const routeCreator =
     (metaOptions: RouteMetaOptions) =>
     <
         TChildren,
@@ -480,7 +480,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export {
-    route,
+    routeCreator,
     Route,
     InParams,
     OutParams,

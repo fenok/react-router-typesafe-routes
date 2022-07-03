@@ -1,6 +1,6 @@
 import { createSearchParams } from "react-router-native";
-import { route } from "../common";
+import { routeCreator } from "../common";
 
-const nativeRoute = route({ createSearchParams });
+const route = routeCreator({ createSearchParams });
 
-export { nativeRoute as route };
+export { route };

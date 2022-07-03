@@ -1,4 +1,4 @@
-import { Route, OutStateParams } from "../route";
+import { Route, OutStateParams } from "../routeCreator";
 import { useLocation } from "react-router";
 import { useMemo } from "react";
 
