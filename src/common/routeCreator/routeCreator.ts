@@ -128,12 +128,12 @@ interface RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes> {
     state?: TStateTypes;
 }
 
-interface RouteMetaOptions {
+interface RouteCreatorOptions {
     createSearchParams: (init?: Record<string, string | string[]>) => URLSearchParamsLike;
 }
 
 const routeCreator =
-    (metaOptions: RouteMetaOptions) =>
+    (creatorOptions: RouteCreatorOptions) =>
     <
         TChildren,
         TPath extends string = string,
@@ -148,11 +148,11 @@ const routeCreator =
         options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes> = {},
         children?: SanitizedChildren<TChildren>
     ): RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> => {
-        const decoratedChildren = decorateChildren(path, options, metaOptions, children);
+        const decoratedChildren = decorateChildren(path, options, creatorOptions, children);
 
         return {
             ...decoratedChildren,
-            ...createRoute(path, options, metaOptions),
+            ...createRoute(path, options, creatorOptions),
         };
     };
 
@@ -166,7 +166,7 @@ function decorateChildren<
 >(
     path: SanitizedPath<TPath>,
     options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>,
-    metaOptions: RouteMetaOptions,
+    creatorOptions: RouteCreatorOptions,
     children?: TChildren
 ): DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
     return Object.fromEntries(
@@ -174,7 +174,7 @@ function decorateChildren<
             key,
             isRoute(value)
                 ? {
-                      ...decorateChildren(path, options, metaOptions, value),
+                      ...decorateChildren(path, options, creatorOptions, value),
                       ...createRoute(
                           path === ""
                               ? value._originalPath
@@ -193,7 +193,7 @@ function decorateChildren<
                                   ...value._originalOptions.state,
                               },
                           },
-                          metaOptions
+                          creatorOptions
                       ),
                   }
                 : value,
@@ -212,7 +212,7 @@ function createRoute<
 >(
     path: SanitizedPath<TPath>,
     options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>,
-    metaOptions: RouteMetaOptions
+    creatorOptions: RouteCreatorOptions
 ): Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
     const keys = getKeys(path);
     const relativePath = removeIntermediateStars(path);
@@ -234,7 +234,7 @@ function createRoute<
     }
 
     function buildSearch(params: InSearchParams<TSearchTypes>) {
-        const searchString = metaOptions.createSearchParams(getPlainSearchParams(params)).toString();
+        const searchString = creatorOptions.createSearchParams(getPlainSearchParams(params)).toString();
 
         return searchString ? `?${searchString}` : "";
     }
@@ -489,7 +489,7 @@ export {
     InStateParams,
     OutStateParams,
     RouteOptions,
-    RouteMetaOptions,
+    RouteCreatorOptions,
     DecoratedChildren,
     RouteWithChildren,
     ExtractRouteParams,
