@@ -385,9 +385,8 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
                 let nextValue: unknown;
 
                 try {
-                    nextValue = value?.isArray
-                        ? value.getTyped(searchParams.getAll(key))
-                        : value?.getTyped(searchParams.get(key));
+                    const rawValue = value?.isArray ? searchParams.getAll(key) : searchParams.get(key);
+                    nextValue = rawValue !== null ? value?.getTyped(rawValue) : undefined;
                 } catch {
                     nextValue = undefined;
                 }
