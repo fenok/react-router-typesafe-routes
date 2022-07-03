@@ -489,6 +489,7 @@ export {
     InStateParams,
     OutStateParams,
     RouteOptions,
+    RouteMetaOptions,
     DecoratedChildren,
     RouteWithChildren,
     ExtractRouteParams,
