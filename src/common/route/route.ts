@@ -128,27 +128,33 @@ interface RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes> {
     state?: TStateTypes;
 }
 
-function route<
-    TChildren,
-    TPath extends string = string,
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    TPathTypes extends Partial<Record<ExtractRouteParams<SanitizedPath<TPath>>, Type<any>>> = Record<never, never>,
-    TSearchTypes extends Partial<Record<string, Type<any, string | string[]>>> = Record<never, never>,
-    THash extends string[] = never[],
-    TStateTypes extends Partial<Record<string, Type<any, any>>> = Record<never, never>
-    /* eslint-enable */
->(
-    path: SanitizedPath<TPath>,
-    options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes> = {},
-    children?: SanitizedChildren<TChildren>
-): RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
-    const decoratedChildren = decorateChildren(path, options, children);
-
-    return {
-        ...decoratedChildren,
-        ...createRoute(path, options),
-    };
+interface RouteMetaOptions {
+    createSearchParams: (init?: Record<string, string | string[]>) => URLSearchParamsLike;
 }
+
+const route =
+    (metaOptions: RouteMetaOptions) =>
+    <
+        TChildren,
+        TPath extends string = string,
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        TPathTypes extends Partial<Record<ExtractRouteParams<SanitizedPath<TPath>>, Type<any>>> = Record<never, never>,
+        TSearchTypes extends Partial<Record<string, Type<any, string | string[]>>> = Record<never, never>,
+        THash extends string[] = never[],
+        TStateTypes extends Partial<Record<string, Type<any, any>>> = Record<never, never>
+        /* eslint-enable */
+    >(
+        path: SanitizedPath<TPath>,
+        options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes> = {},
+        children?: SanitizedChildren<TChildren>
+    ): RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> => {
+        const decoratedChildren = decorateChildren(path, options, metaOptions, children);
+
+        return {
+            ...decoratedChildren,
+            ...createRoute(path, options, metaOptions),
+        };
+    };
 
 function decorateChildren<
     TPath extends string,
@@ -160,6 +166,7 @@ function decorateChildren<
 >(
     path: SanitizedPath<TPath>,
     options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>,
+    metaOptions: RouteMetaOptions,
     children?: TChildren
 ): DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
     return Object.fromEntries(
@@ -167,7 +174,7 @@ function decorateChildren<
             key,
             isRoute(value)
                 ? {
-                      ...decorateChildren(path, options, value),
+                      ...decorateChildren(path, options, metaOptions, value),
                       ...createRoute(
                           path === ""
                               ? value._originalPath
@@ -185,7 +192,8 @@ function decorateChildren<
                                   ...options.state,
                                   ...value._originalOptions.state,
                               },
-                          }
+                          },
+                          metaOptions
                       ),
                   }
                 : value,
@@ -203,7 +211,8 @@ function createRoute<
     /* eslint-enable */
 >(
     path: SanitizedPath<TPath>,
-    options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>
+    options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>,
+    metaOptions: RouteMetaOptions
 ): Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
     const keys = getKeys(path);
     const relativePath = removeIntermediateStars(path);
@@ -225,7 +234,7 @@ function createRoute<
     }
 
     function buildSearch(params: InSearchParams<TSearchTypes>) {
-        const searchString = getPlainSearchParams(params).toString();
+        const searchString = metaOptions.createSearchParams(getPlainSearchParams(params)).toString();
 
         return searchString ? `?${searchString}` : "";
     }
@@ -471,6 +480,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export {
+    route,
     Route,
     InParams,
     OutParams,
@@ -479,5 +489,9 @@ export {
     InStateParams,
     OutStateParams,
     RouteOptions,
-    route,
+    DecoratedChildren,
+    RouteWithChildren,
+    ExtractRouteParams,
+    SanitizedPath,
+    SanitizedChildren,
 };

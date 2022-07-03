@@ -1,6 +1,7 @@
 import { route } from "./route";
-import { numberType, booleanType, arrayOfType, stringType } from "../types";
-import { hashValues } from "../hashValues";
+import { createSearchParams } from "react-router-dom";
+import { numberType, booleanType, arrayOfType, stringType } from "../common";
+import { hashValues } from "../common";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("provides absolute path", () => {
@@ -505,11 +506,7 @@ it("allows search params parsing", () => {
         IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>, { foo: number; arr?: number[] }>
     >(true);
 
-    const testSearchParams = new URLSearchParams();
-
-    testSearchParams.set("arr", "1");
-    testSearchParams.append("arr", "2");
-    testSearchParams.set("foo", "foo");
+    const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo" });
 
     expect(TEST_ROUTE.getTypedSearchParams(testSearchParams)).toEqual({});
     expect(TEST_ROUTE.CHILD.getTypedSearchParams(testSearchParams)).toEqual({ arr: [1, 2], foo: "foo" });
