@@ -321,7 +321,7 @@ The `route()` helper returns a `Route` object, which has the following fields:
 -   `buildPath()`, `buildRelativePath()`, `buildSearch()`, and `buildHash()` for building parametrized URL parts. They can be used (in conjunction with `buildState()`) to e.g. build a parametrized `Location` object.
 -   `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from react-router primitives.
 -   `getPlainParams()` and `getPlainSearchParams()` for building react-router primitives from typed params. Note how hash and state don't need these functions, because `buildHash()` and `buildState()` can be used instead.
--   Any number of child routes in CONSTANT_CASE.
+-   Any number of child routes in CONSTANT_CASE or PascalCase.
 
 All other fields are not considered a part of the public API and may change at any time.
 
