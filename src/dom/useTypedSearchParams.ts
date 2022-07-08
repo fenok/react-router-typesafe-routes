@@ -18,7 +18,10 @@ export function useTypedSearchParams<
     typedDefaultInit?: InSearchParams<TSearchTypes>
 ): [
     OutSearchParams<TSearchTypes>,
-    (searchParams: InSearchParams<TSearchTypes>, navigateOptions?: NavigateOptions) => void
+    (
+        searchParams: InSearchParams<TSearchTypes>,
+        navigateOptions?: TypedNavigateOptions<InStateParams<TStateTypes>>
+    ) => void
 ] {
     const defaultInit = useMemo(
         () => (typedDefaultInit ? route.getPlainSearchParams(typedDefaultInit) : undefined),
