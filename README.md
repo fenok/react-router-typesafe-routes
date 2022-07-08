@@ -146,9 +146,9 @@ Sure enough, you can also inline child routes:
 const PRODUCT = route("product/:id", {}, { DETAILS: route("details") });
 ```
 
-It's important to understand that `DETAILS` and `PRODUCT.DETAILS` are separate routes, which may behave differently during parsing or building URLs. `DETAILS` doesn't know anything about `PRODUCT`, but `PRODUCT.DETAILS` does. In `PRODUCT.DETAILS`, `DETAILS` can be referred to as a child of `PRODUCT`.
+It's important to understand that `DETAILS` and `PRODUCT.DETAILS` are separate routes, which may behave differently during parsing or building URLs. `DETAILS` doesn't know anything about `PRODUCT`, but `PRODUCT.DETAILS` does. `DETAILS` is a standalone route, but `PRODUCT.DETAILS` is a child of `PRODUCT`.
 
-> Child routes has to be in CONSTANT_CASE to prevent overlapping with other route fields.
+> Child routes has to be in CONSTANT_CASE or PascalCase to prevent overlapping with other route fields.
 
 These child routes correspond to child routes in react-router:
 
