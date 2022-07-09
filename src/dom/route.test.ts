@@ -409,14 +409,52 @@ it("allows to mix path params parsing across multiple routes", () => {
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ id: "1", childId: "2" })).toEqual({ id: 1, childId: 2 });
 });
 
-it("throws if required path params are invalid", () => {
+it("throws if implicit path params are invalid", () => {
+    const GRANDCHILD = route("grand/:id", {});
+    const CHILD = route("child/:childId", {}, { GRANDCHILD });
+    const TEST_ROUTE = route("test", {}, { CHILD });
+
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: string }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId: string; id: string }>>(
+        true
+    );
+
+    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toEqual({});
+    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toEqual({ childId: "2" });
+    expect(() => TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toThrow();
+});
+
+it("doesn't throw if explicit path params are invalid", () => {
     const GRANDCHILD = route("grand/:id", { params: { id: numberType } });
     const CHILD = route("child/:childId", { params: { childId: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    expect(TEST_ROUTE.getTypedParams({ id: "foo", childId: "2" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ id: "foo", childId: "2" })).toEqual({ childId: 2 });
-    expect(() => TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ id: "foo", childId: "2" })).toThrow();
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId?: number }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId?: number; id?: number }>>(
+        true
+    );
+
+    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toEqual({});
+    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toEqual({ childId: 2 });
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toEqual({ childId: 2 });
+});
+
+it("doesn't throw if explicit path params with fallback are invalid", () => {
+    const GRANDCHILD = route("grand/:id", { params: { id: numberType(-1) } });
+    const CHILD = route("child/:childId", { params: { childId: numberType(-1) } }, { GRANDCHILD });
+    const TEST_ROUTE = route("test", {}, { CHILD });
+
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: number }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId: number; id: number }>>(
+        true
+    );
+
+    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toEqual({});
+    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toEqual({ childId: 2 });
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toEqual({ childId: 2, id: -1 });
 });
 
 it("allows implicit star path param parsing", () => {

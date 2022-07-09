@@ -78,10 +78,9 @@ type InParams<TPath extends string, TPathTypes> = PartialByKey<
 
 type OutParams<TPath extends string, TPathTypes> = OutParamsByKey<ExtractRouteParams<SanitizedPath<TPath>>, TPathTypes>;
 
-type OutParamsByKey<TKey extends string, TPathTypes> = PartialByKey<
-    PickWithFallback<RetrievedParams<TPathTypes>, TKey, string>,
-    "*" extends keyof Omit<TPathTypes, KeysWithFallback<TPathTypes>> ? "*" : ""
->;
+type OutParamsByKey<TKey extends string, TPathTypes> = Partial<RetrievedParams<TPathTypes>> &
+    RetrievedParams<Pick<TPathTypes, KeysWithFallback<TPathTypes>>> &
+    Record<Exclude<TKey, keyof TPathTypes>, string>;
 
 type InSearchParams<TSearchTypes> = Partial<OriginalParams<TSearchTypes>>;
 
@@ -348,23 +347,23 @@ function getTypedParamsByTypes<TKey extends string, TPathTypes extends Partial<R
     pathParams: Record<string, string | undefined>,
     types?: TPathTypes
 ): OutParamsByKey<TKey, TPathTypes> {
-    if (keys.some((key) => typeof pathParams[key] !== "string")) {
-        throw new Error("Insufficient params");
-    }
-
     const result: Record<string, unknown> = {};
 
     keys.forEach((key) => {
         if (types?.[key]) {
             try {
                 result[key] = types[key]?.getTyped(pathParams[key]);
-            } catch (error) {
-                if (key !== "*") {
-                    throw error;
-                }
+            } catch {
+                // We're good, this key is simply omitted
             }
         } else {
-            result[key] = pathParams[key];
+            if (typeof pathParams[key] === "string") {
+                result[key] = pathParams[key];
+            } else {
+                throw new Error(
+                    `Expected param ${key} to exist in the given path. Most likely you're rendering the component at a wrong path. As an escape hatch, you can explicitly specify its type as stringType('').`
+                );
+            }
         }
     });
 
