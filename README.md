@@ -25,7 +25,7 @@ Note that the library is using ES6, including ES6 modules. It's designed to be p
 
 ## Limitations
 
--   To make params merging possible, state has to be an object, and hash has to be one of the predefined strings.
+-   To make params merging possible, state has to be an object, and hash has to be one of the predefined strings (or any string).
 -   Search parameters and state fields are always considered optional, albeit it's possible to get rid of `undefined` values in parsed parameters/fields by utilizing fallbacks.
 -   Hash is always considered optional.
 
