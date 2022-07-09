@@ -236,9 +236,11 @@ Path params are inferred from the provided `path` and can be overridden (partial
 const ROUTE = route("route/:id/:subId", { params: { id: numberType } });
 ```
 
-All path params are required, except for the star (`*`) parameter. That is, if the star parameter _type_ throws during the retrieving, the star parameter is simply omitted.
+Upon building, all path params are required, except for the star (`*`) parameter.
 
-On the other hand, if any other _type_ throws, it leads to an actual error.
+Upon retrieving, if some implicitly typed param is absent (even the star parameter, because react-router parses it as an empty string), the retrieving fails with an error.
+
+However, explicitly typed params are considered optional during retrieving. That is, if such a _type_ throws during the retrieving, the corresponding value is simply omitted.
 
 > You shouldn't ever need to provide a _type_ for the star parameter, but it's technically possible.
 
