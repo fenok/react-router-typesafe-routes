@@ -9,7 +9,7 @@ type RouteWithChildren<
     THash extends string[],
     TStateTypes
 > = DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> &
-    Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes>;
+    Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes> & { $: TChildren };
 
 type DecoratedChildren<
     TChildren,
@@ -152,7 +152,8 @@ const routeCreator =
         return {
             ...decoratedChildren,
             ...createRoute(path, options, creatorOptions),
-        };
+            $: children,
+        } as RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes>;
     };
 
 function decorateChildren<

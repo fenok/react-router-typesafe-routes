@@ -18,6 +18,20 @@ it("provides absolute path", () => {
     expect(TEST_ROUTE.CHILD.GRANDCHILD.path).toEqual("/test/child/grand");
 });
 
+it("allows to uninline children", () => {
+    const GRANDCHILD = route("grand");
+    const CHILD = route("child", {}, { GRANDCHILD });
+    const TEST_ROUTE = route("test", {}, { CHILD });
+
+    assert<IsExact<typeof TEST_ROUTE.path, "/test">>(true);
+    assert<IsExact<typeof TEST_ROUTE.$.CHILD.path, "/child">>(true);
+    assert<IsExact<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.path, "/grand">>(true);
+
+    expect(TEST_ROUTE.path).toEqual("/test");
+    expect(TEST_ROUTE.$.CHILD.path).toEqual("/child");
+    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.path).toEqual("/grand");
+});
+
 it("preserves intermediate stars in absolute path", () => {
     const GRANDCHILD = route("grand");
     const CHILD = route("child/*", {}, { GRANDCHILD });
