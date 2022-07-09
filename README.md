@@ -146,6 +146,14 @@ Sure enough, you can also inline child routes:
 const PRODUCT = route("product/:id", {}, { DETAILS: route("details") });
 ```
 
+And you can uninline them later:
+
+```typescript
+PRODUCT.$.DETAILS === DETAILS;
+```
+
+That is, the `$` property of every route contains original routes, specified as children of that route.
+
 It's important to understand that `DETAILS` and `PRODUCT.DETAILS` are separate routes, which may behave differently during parsing or building URLs. `DETAILS` doesn't know anything about `PRODUCT`, but `PRODUCT.DETAILS` does. `DETAILS` is a standalone route, but `PRODUCT.DETAILS` is a child of `PRODUCT`.
 
 > Child routes has to be in CONSTANT_CASE or PascalCase to prevent overlapping with other route fields.
@@ -168,7 +176,7 @@ Note that we're using the `path` field here, which returns an absolute path. Thi
 
 > You're encouraged to use the `path` field whenever possible.
 
-As an escape hatch, you can use relative paths (note how you can't inline child routes with this approach):
+As an escape hatch, you can use relative paths (note that you can use `PRODUCT.$.DETAILS.relativePath` instead of `DETAILS.relativePath`):
 
 ```typescript jsx
 <Routes>
@@ -182,11 +190,10 @@ As an escape hatch, you can use relative paths (note how you can't inline child 
 
 > `path` contains a combined path with a leading slash (`/`), and `relativePath` contains a combined path **without intermediate stars (`*`)** and without a leading slash (`/`).
 
-Inlining children is convenient, but not always possible. If your `<Route/>` is not a direct child of another `<Route />`, not only you have to add a `*` to the parent's path, but also create a separate route definition. This is because each `<Routes/>` requires its own absolute paths.
+If your `<Route/>` is not a direct child of another `<Route />`, not only you have to add a `*` to the parent's path, but also exclude it from subsequent paths. This is because each `<Routes/>` requires its own absolute paths.
 
 ```typescript jsx
-const DETAILS = route("details");
-const PRODUCT = route("product/:id/*", {}, { DETAILS });
+const PRODUCT = route("product/:id/*", {}, { DETAILS: route("details") });
 
 <Routes>
     {/* '/product/:id/*' */}
@@ -196,7 +203,7 @@ const PRODUCT = route("product/:id/*", {}, { DETAILS });
 // Somewhere inside <Product />
 <Routes>
     {/* '/details' */}
-    <Route path={DETAILS.path} element={<ProductDetails />} />
+    <Route path={PRODUCT.$.DETAILS.path} element={<ProductDetails />} />
 </Routes>;
 ```
 
