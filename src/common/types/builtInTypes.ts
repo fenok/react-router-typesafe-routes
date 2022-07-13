@@ -57,7 +57,18 @@ export const dateType = makeCallable<Date>({
 
 export const oneOfType = <T extends (string | number | boolean)[]>(...values: T) => {
     return makeCallable<T[number]>({
-        getPlain: String,
+        getPlain: (value) => {
+            switch (typeof value) {
+                case "string":
+                    return stringType.getPlain(value);
+                case "number":
+                    return numberType.getPlain(value);
+                case "boolean":
+                    return booleanType.getPlain(value);
+                default:
+                    throw new Error(`Expected ${String(value)} to be string, number or boolean`);
+            }
+        },
         getTyped(value) {
             for (const canonicalValue of values) {
                 try {
