@@ -169,10 +169,13 @@ function decorateChildren<
     creatorOptions: RouteCreatorOptions,
     children?: TChildren
 ): DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
-    return Object.fromEntries(
-        Object.entries(children ?? {}).map(([key, value]) => [
-            key,
-            isRoute(value)
+    const result: Record<string, unknown> = {};
+
+    if (children) {
+        Object.keys(children).forEach((key) => {
+            const value = children[key as keyof typeof children];
+
+            result[key] = isRoute(value)
                 ? {
                       ...decorateChildren(path, options, creatorOptions, value),
                       ...createRoute(
@@ -196,9 +199,11 @@ function decorateChildren<
                           creatorOptions
                       ),
                   }
-                : value,
-        ])
-    ) as DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes>;
+                : value;
+        });
+    }
+
+    return result as DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes>;
 }
 
 function createRoute<
@@ -307,40 +312,55 @@ function getPlainParamsByTypes(
     params: Record<string, unknown>,
     types?: Partial<Record<string, Type<unknown>>>
 ): Record<string, string> {
-    return Object.fromEntries(
-        Object.entries(params)
-            .map(([key, value]) => [
-                key,
-                keys.includes(key) && types?.[key] && value !== undefined
-                    ? types[key]?.getPlain(value)
-                    : typeof value === "string"
-                    ? value
-                    : undefined,
-            ])
-            .filter(([, value]) => value !== undefined)
-    ) as Record<string, string>;
+    const result: Record<string, string> = {};
+
+    Object.keys(params).forEach((key) => {
+        const type = types?.[key];
+        const value = params[key];
+
+        if (type && keys.indexOf(key) !== -1 && value !== undefined) {
+            result[key] = type.getPlain(value);
+        } else if (typeof value === "string") {
+            result[key] = value;
+        }
+    });
+
+    return result;
 }
 
 function getPlainSearchParamsByTypes(
     params: Record<string, unknown>,
     types?: Partial<Record<string, Type<unknown, string | string[]>>>
 ): Record<string, string | string[]> {
-    return Object.fromEntries(
-        Object.entries(params)
-            .map(([key, value]) => [key, types?.[key] && value !== undefined ? types[key]?.getPlain(value) : undefined])
-            .filter(([, value]) => value !== undefined)
-    ) as Record<string, string | string[]>;
+    const result: Record<string, string | string[]> = {};
+
+    Object.keys(params).forEach((key) => {
+        const type = types?.[key];
+
+        if (type && params[key] !== undefined) {
+            result[key] = type.getPlain(params[key]);
+        }
+    });
+
+    return result;
 }
 
 function getPlainStateParamsByTypes(
     params: Record<string, unknown>,
     types?: Partial<Record<string, Type<unknown, unknown>>>
 ): Record<string, unknown> {
-    return Object.fromEntries(
-        Object.entries(params)
-            .map(([key, value]) => [key, types?.[key] && value !== undefined ? types[key]?.getPlain(value) : undefined])
-            .filter(([, value]) => value !== undefined)
-    ) as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+
+    Object.keys(params).forEach((key) => {
+        const type = types?.[key];
+        const value = params[key];
+
+        if (type && value !== undefined) {
+            result[key] = type.getPlain(value);
+        }
+    });
+
+    return result;
 }
 
 function getTypedParamsByTypes<TKey extends string, TPathTypes extends Partial<Record<TKey, Type<unknown>>>>(
@@ -375,33 +395,29 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
     searchParams: URLSearchParamsLike,
     types?: TSearchTypes
 ): OutSearchParams<TSearchTypes> {
-    if (!types) {
-        return {} as OutSearchParams<TSearchTypes>;
+    const result: Record<string, unknown> = {};
+
+    if (types) {
+        Object.keys(types).forEach((key) => {
+            const type = types[key];
+
+            if (type) {
+                try {
+                    result[key] = type.getTyped(type.isArray ? searchParams.getAll(key) : searchParams.get(key));
+                } catch {
+                    // We're good, the value is simply omitted
+                }
+            }
+        });
     }
 
-    return Object.fromEntries(
-        Object.entries(types)
-            .map(([key, value]) => {
-                let nextValue: unknown;
-
-                try {
-                    nextValue = value?.isArray
-                        ? value.getTyped(searchParams.getAll(key))
-                        : value?.getTyped(searchParams.get(key));
-                } catch {
-                    nextValue = undefined;
-                }
-
-                return [key, nextValue];
-            })
-            .filter(([, value]) => value !== undefined)
-    ) as OutSearchParams<TSearchTypes>;
+    return result as OutSearchParams<TSearchTypes>;
 }
 
 function getTypedHashByValues(hash?: string, hashValues?: string[]): string | undefined {
     const normalizedHash = hash?.substring(1, hash?.length);
 
-    if (hashValues?.length === 0 || (normalizedHash && hashValues?.includes(normalizedHash))) {
+    if (hashValues?.length === 0 || (normalizedHash && hashValues && hashValues.indexOf(normalizedHash) !== -1)) {
         return normalizedHash;
     }
 
@@ -412,25 +428,23 @@ function getTypedStateByTypes<TStateTypes extends Partial<Record<string, Type<un
     state: unknown,
     types?: TStateTypes
 ): OutStateParams<TStateTypes> {
-    if (!types || !isRecord(state)) {
-        return {} as OutStateParams<TStateTypes>;
+    const result: Record<string, unknown> = {};
+
+    if (types && isRecord(state)) {
+        Object.keys(types).forEach((key) => {
+            const type = types[key];
+
+            if (type) {
+                try {
+                    result[key] = type.getTyped(state[key]);
+                } catch {
+                    // We're good, the value is simply omitted
+                }
+            }
+        });
     }
 
-    return Object.fromEntries(
-        Object.entries(types)
-            .map(([key, value]) => {
-                let nextValue: unknown;
-
-                try {
-                    nextValue = value?.getTyped(state[key]);
-                } catch {
-                    nextValue = undefined;
-                }
-
-                return [key, nextValue];
-            })
-            .filter(([, value]) => value !== undefined)
-    ) as OutStateParams<TStateTypes>;
+    return result as OutStateParams<TStateTypes>;
 }
 
 function getKeys<TPath extends string>(path: TPath): ExtractRouteParams<TPath>[] {
