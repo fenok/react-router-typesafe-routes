@@ -134,7 +134,7 @@ interface RouteCreatorOptions {
 const routeCreator =
     (creatorOptions: RouteCreatorOptions) =>
     <
-        TChildren,
+        TChildren = void,
         TPath extends string = string,
         /* eslint-disable @typescript-eslint/no-explicit-any */
         TPathTypes extends Partial<Record<ExtractRouteParams<SanitizedPath<TPath>>, Type<any>>> = Record<never, never>,
