@@ -1,7 +1,6 @@
 import { Route, InSearchParams, OutSearchParams, InStateParams } from "../common";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, NavigateOptions } from "react-router-dom";
 import { useMemo, useCallback, MutableRefObject, useRef } from "react";
-import { NavigateOptions } from "react-router";
 
 export interface TypedNavigateOptions<T> extends NavigateOptions {
     state?: T;

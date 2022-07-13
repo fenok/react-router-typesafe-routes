@@ -1,5 +1,5 @@
-import { Route } from "../routeCreator";
-import { useLocation } from "react-router";
+import { Route } from "../common";
+import { useLocation } from "react-router-dom";
 import { useMemo } from "react";
 
 export function useTypedHash<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateTypes>(

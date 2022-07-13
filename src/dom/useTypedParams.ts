@@ -1,5 +1,5 @@
-import { Route, OutParams } from "../routeCreator";
-import { useParams } from "react-router";
+import { Route, OutParams } from "../common";
+import { useParams } from "react-router-dom";
 import { useMemo } from "react";
 
 export function useTypedParams<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateParams>(

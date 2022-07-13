@@ -1,5 +1,5 @@
-import { Route, OutStateParams } from "../routeCreator";
-import { useLocation } from "react-router";
+import { Route, OutStateParams } from "../common";
+import { useLocation } from "react-router-dom";
 import { useMemo } from "react";
 
 export function useTypedState<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateParams>(

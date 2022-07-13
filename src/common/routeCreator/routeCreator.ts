@@ -1,5 +1,4 @@
 import { Type, OriginalParams, RetrievedParams, KeysWithFallback } from "../types";
-import { generatePath } from "react-router";
 
 type RouteWithChildren<
     TChildren,
@@ -129,6 +128,7 @@ interface RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes> {
 
 interface RouteCreatorOptions {
     createSearchParams: (init?: Record<string, string | string[]>) => URLSearchParamsLike;
+    generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
 const routeCreator =
@@ -226,7 +226,7 @@ function createRoute<
     }
 
     function buildRelativePath(params: InParams<TPath, TPathTypes>) {
-        return generatePath(relativePath, getPlainParams(params));
+        return creatorOptions.generatePath(relativePath, getPlainParams(params));
     }
 
     function buildPath(params: InParams<TPath, TPathTypes>) {

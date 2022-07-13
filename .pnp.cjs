@@ -43,7 +43,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:28.1.0"],\
             ["prettier", "npm:2.6.2"],\
             ["react", "npm:18.1.0"],\
-            ["react-router", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"],\
             ["react-router-dom", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"],\
             ["react-router-native", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"],\
             ["rimraf", "npm:3.0.2"],\
@@ -4807,10 +4806,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0", {\
-          "packageLocation": "./.yarn/__virtual__/react-router-virtual-17ffe9c9f9/0/cache/react-router-npm-6.3.0-5ffd519487-7be673f5e7.zip/node_modules/react-router/",\
+        ["virtual:ae96b25e6a679d50608b7974d6d89ffce0965099881399d51d615ef13cdf9c333ddf836a8ee47c04c49b511e10ccbabfe749027f078706ef6a4dd47733c3587c#npm:6.3.0", {\
+          "packageLocation": "./.yarn/__virtual__/react-router-virtual-90de834b9d/0/cache/react-router-npm-6.3.0-5ffd519487-7be673f5e7.zip/node_modules/react-router/",\
           "packageDependencies": [\
-            ["react-router", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"],\
+            ["react-router", "virtual:ae96b25e6a679d50608b7974d6d89ffce0965099881399d51d615ef13cdf9c333ddf836a8ee47c04c49b511e10ccbabfe749027f078706ef6a4dd47733c3587c#npm:6.3.0"],\
             ["@types/react", "npm:18.0.9"],\
             ["history", "npm:5.3.0"],\
             ["react", "npm:18.1.0"]\
@@ -4839,7 +4838,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["history", "npm:5.3.0"],\
             ["react", "npm:18.1.0"],\
             ["react-dom", null],\
-            ["react-router", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"]\
+            ["react-router", "virtual:ae96b25e6a679d50608b7974d6d89ffce0965099881399d51d615ef13cdf9c333ddf836a8ee47c04c49b511e10ccbabfe749027f078706ef6a4dd47733c3587c#npm:6.3.0"]\
           ],\
           "packagePeers": [\
             "@types/react-dom",\
@@ -4868,7 +4867,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["history", "npm:5.3.0"],\
             ["react", "npm:18.1.0"],\
             ["react-native", null],\
-            ["react-router", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"]\
+            ["react-router", "virtual:ae96b25e6a679d50608b7974d6d89ffce0965099881399d51d615ef13cdf9c333ddf836a8ee47c04c49b511e10ccbabfe749027f078706ef6a4dd47733c3587c#npm:6.3.0"]\
           ],\
           "packagePeers": [\
             "@types/react-native",\
@@ -4894,7 +4893,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:28.1.0"],\
             ["prettier", "npm:2.6.2"],\
             ["react", "npm:18.1.0"],\
-            ["react-router", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"],\
             ["react-router-dom", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"],\
             ["react-router-native", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"],\
             ["rimraf", "npm:3.0.2"],\

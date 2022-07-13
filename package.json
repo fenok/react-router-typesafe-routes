@@ -43,7 +43,6 @@
         "jest": "^28.1.0",
         "prettier": "^2.6.2",
         "react": ">=16.8",
-        "react-router": "^6.3.0",
         "react-router-dom": "^6.3.0",
         "react-router-native": "^6.3.0",
         "rimraf": "^3.0.2",
@@ -53,7 +52,6 @@
     },
     "peerDependencies": {
         "react": ">=16.8",
-        "react-router": "^6.3.0",
         "react-router-dom": "^6.3.0",
         "react-router-native": "^6.3.0"
     },

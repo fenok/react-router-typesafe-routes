@@ -3768,7 +3768,6 @@ __metadata:
     jest: ^28.1.0
     prettier: ^2.6.2
     react: ">=16.8"
-    react-router: ^6.3.0
     react-router-dom: ^6.3.0
     react-router-native: ^6.3.0
     rimraf: ^3.0.2
@@ -3777,7 +3776,6 @@ __metadata:
     typescript: ^4.6.4
   peerDependencies:
     react: ">=16.8"
-    react-router: ^6.3.0
     react-router-dom: ^6.3.0
     react-router-native: ^6.3.0
   peerDependenciesMeta:
@@ -3788,7 +3786,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"react-router@npm:6.3.0, react-router@npm:^6.3.0":
+"react-router@npm:6.3.0":
   version: 6.3.0
   resolution: "react-router@npm:6.3.0"
   dependencies:
