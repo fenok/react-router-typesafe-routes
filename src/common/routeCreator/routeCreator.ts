@@ -371,9 +371,11 @@ function getTypedParamsByTypes<TKey extends string, TPathTypes extends Partial<R
     const result: Record<string, unknown> = {};
 
     keys.forEach((key) => {
-        if (types?.[key]) {
+        const type = types?.[key];
+
+        if (type) {
             try {
-                result[key] = types[key]?.getTyped(pathParams[key]);
+                result[key] = type.getTyped(pathParams[key]);
             } catch {
                 // We're good, this key is simply omitted
             }
@@ -405,7 +407,7 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
                 try {
                     result[key] = type.getTyped(type.isArray ? searchParams.getAll(key) : searchParams.get(key));
                 } catch {
-                    // We're good, the value is simply omitted
+                    // We're good, this key is simply omitted
                 }
             }
         });
@@ -438,7 +440,7 @@ function getTypedStateByTypes<TStateTypes extends Partial<Record<string, Type<un
                 try {
                     result[key] = type.getTyped(state[key]);
                 } catch {
-                    // We're good, the value is simply omitted
+                    // We're good, this key is simply omitted
                 }
             }
         });
