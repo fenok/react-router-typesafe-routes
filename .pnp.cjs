@@ -48,7 +48,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-router-native", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"],\
             ["rimraf", "npm:3.0.2"],\
             ["ts-jest", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:28.0.2"],\
-            ["typesafe-routes", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:7.0.2"],\
             ["typescript", "patch:typescript@npm%3A4.6.4#~builtin<compat/typescript>::version=4.6.4&hash=7ad353"]\
           ],\
           "linkType": "SOFT"\
@@ -1430,15 +1429,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-prop-types-npm-15.7.5-2aa48aa177-5b43b8b154.zip/node_modules/@types/prop-types/",\
           "packageDependencies": [\
             ["@types/prop-types", "npm:15.7.5"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
-      ["@types/qs", [\
-        ["npm:6.9.5", {\
-          "packageLocation": "./.yarn/cache/@types-qs-npm-6.9.5-98e83ee762-eeb4597a9c.zip/node_modules/@types/qs/",\
-          "packageDependencies": [\
-            ["@types/qs", "npm:6.9.5"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -5322,15 +5312,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["qs", [\
-        ["npm:6.9.4", {\
-          "packageLocation": "./.yarn/cache/qs-npm-6.9.4-7b853cfa85-5ac0bd145f.zip/node_modules/qs/",\
-          "packageDependencies": [\
-            ["qs", "npm:6.9.4"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["queue-microtask", [\
         ["npm:1.2.3", {\
           "packageLocation": "./.yarn/cache/queue-microtask-npm-1.2.3-fcc98e4e2d-b676f8c040.zip/node_modules/queue-microtask/",\
@@ -5466,7 +5447,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-router-native", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"],\
             ["rimraf", "npm:3.0.2"],\
             ["ts-jest", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:28.0.2"],\
-            ["typesafe-routes", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:7.0.2"],\
             ["typescript", "patch:typescript@npm%3A4.6.4#~builtin<compat/typescript>::version=4.6.4&hash=7ad353"]\
           ],\
           "linkType": "SOFT"\
@@ -6175,34 +6155,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/type-fest-npm-0.21.3-5ff2a9c6fd-e6b32a3b38.zip/node_modules/type-fest/",\
           "packageDependencies": [\
             ["type-fest", "npm:0.21.3"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
-      ["typesafe-routes", [\
-        ["npm:7.0.2", {\
-          "packageLocation": "./.yarn/cache/typesafe-routes-npm-7.0.2-d5ea844099-969868ffef.zip/node_modules/typesafe-routes/",\
-          "packageDependencies": [\
-            ["typesafe-routes", "npm:7.0.2"]\
-          ],\
-          "linkType": "SOFT"\
-        }],\
-        ["virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:7.0.2", {\
-          "packageLocation": "./.yarn/__virtual__/typesafe-routes-virtual-71a915a21a/0/cache/typesafe-routes-npm-7.0.2-d5ea844099-969868ffef.zip/node_modules/typesafe-routes/",\
-          "packageDependencies": [\
-            ["typesafe-routes", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:7.0.2"],\
-            ["@types/qs", "npm:6.9.5"],\
-            ["@types/react-router-dom", null],\
-            ["@types/typescript", null],\
-            ["qs", "npm:6.9.4"],\
-            ["react-router-dom", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.3.0"],\
-            ["typescript", "patch:typescript@npm%3A4.6.4#~builtin<compat/typescript>::version=4.6.4&hash=7ad353"]\
-          ],\
-          "packagePeers": [\
-            "@types/react-router-dom",\
-            "@types/typescript",\
-            "react-router-dom",\
-            "typescript"\
           ],\
           "linkType": "HARD"\
         }]\
