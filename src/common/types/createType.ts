@@ -1,6 +1,6 @@
 import { Type, CallableType } from "./type.js";
 
-export function makeCallable<TOriginal, TPlain = string, TRetrieved = TOriginal>({
+export function createType<TOriginal, TPlain = string, TRetrieved = TOriginal>({
     getPlain,
     getTyped,
     isArray,

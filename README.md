@@ -235,7 +235,7 @@ import { numberType } from "react-router-typesafe-routes";
 const ROUTE = route("my/route", { searchParams: { param: numberType(100) } });
 ```
 
-Wrap your custom _type_ with the `makeCallable()` helper to achieve the same functionality.
+Create your custom _type_ with the `createType()` helper to achieve the same functionality.
 
 #### Path params
 
@@ -367,9 +367,9 @@ interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
 -   `oneOfType` - one of the given `string`, `number`, or `boolean` values, internally uses the respective built-in _types_. E.g. `oneOfType('foo', 1, true)` means `'foo' | 1 | true`.
 -   `arrayOfType` - array of any given _type_, e.g. `arrayOfType(oneOfType(1, 2))` means `(1 | 2)[]`. Stringified as `string[]`, so it can only be used for search params or state.
 
-### `makeCallable()`
+### `createType()`
 
-The `makeCallable()` helper turns any _type_ into a callable one. Call such a _type_ to specify a fallback value, which will be used in case of an error during parameter retrieving.
+The `createType()` helper turns any _type_ into a callable one. Call such a _type_ to specify a fallback value, which will be used in case of an error during parameter retrieving.
 
 All built-in types are callable.
 

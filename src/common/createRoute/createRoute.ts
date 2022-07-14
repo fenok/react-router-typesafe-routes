@@ -131,7 +131,7 @@ interface RouteCreatorOptions {
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
-const routeCreator =
+const createRoute =
     (creatorOptions: RouteCreatorOptions) =>
     <
         TChildren = void,
@@ -151,7 +151,7 @@ const routeCreator =
 
         return {
             ...decoratedChildren,
-            ...createRoute(path, options, creatorOptions),
+            ...getRoute(path, options, creatorOptions),
             $: children,
         } as RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes>;
     };
@@ -178,7 +178,7 @@ function decorateChildren<
             result[key] = isRoute(value)
                 ? {
                       ...decorateChildren(path, options, creatorOptions, value),
-                      ...createRoute(
+                      ...getRoute(
                           path === ""
                               ? value._originalPath
                               : value._originalPath === ""
@@ -206,7 +206,7 @@ function decorateChildren<
     return result as DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes>;
 }
 
-function createRoute<
+function getRoute<
     TPath extends string,
     /* eslint-disable @typescript-eslint/no-explicit-any */
     TPathTypes extends Partial<Record<ExtractRouteParams<SanitizedPath<TPath>>, Type<any>>> = Record<never, never>,
@@ -496,7 +496,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export {
-    routeCreator,
+    createRoute,
     Route,
     InParams,
     OutParams,

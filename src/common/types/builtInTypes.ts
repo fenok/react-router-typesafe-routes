@@ -1,8 +1,8 @@
 import { Type, CallableType } from "./type.js";
-import { makeCallable } from "./makeCallable.js";
+import { createType } from "./createType.js";
 import { assertIsString, assertIsArray, assertIsBoolean, assertIsValidDate, assertIsNumber } from "./helpers.js";
 
-export const stringType = makeCallable<string>({
+export const stringType = createType<string>({
     getPlain(value) {
         return value;
     },
@@ -13,7 +13,7 @@ export const stringType = makeCallable<string>({
     },
 });
 
-export const numberType = makeCallable<number>({
+export const numberType = createType<number>({
     getPlain(value) {
         return JSON.stringify(value);
     },
@@ -27,7 +27,7 @@ export const numberType = makeCallable<number>({
     },
 });
 
-export const booleanType = makeCallable<boolean>({
+export const booleanType = createType<boolean>({
     getPlain(value) {
         return JSON.stringify(value);
     },
@@ -41,7 +41,7 @@ export const booleanType = makeCallable<boolean>({
     },
 });
 
-export const dateType = makeCallable<Date>({
+export const dateType = createType<Date>({
     getPlain(value) {
         return value.toISOString();
     },
@@ -56,7 +56,7 @@ export const dateType = makeCallable<Date>({
 });
 
 export const oneOfType = <T extends (string | number | boolean)[]>(...values: T) => {
-    return makeCallable<T[number]>({
+    return createType<T[number]>({
         getPlain: (value) => {
             switch (typeof value) {
                 case "string":
@@ -95,7 +95,7 @@ export const oneOfType = <T extends (string | number | boolean)[]>(...values: T)
 export const arrayOfType = <TOriginal, TPlain, TRetrieved>(
     type: Type<TOriginal, TPlain, TRetrieved>
 ): CallableType<TOriginal[], TPlain[], TRetrieved[]> => {
-    return makeCallable<TOriginal[], TPlain[], TRetrieved[]>({
+    return createType<TOriginal[], TPlain[], TRetrieved[]>({
         getPlain(values: TOriginal[]) {
             return values.map((value) => type.getPlain(value));
         },
