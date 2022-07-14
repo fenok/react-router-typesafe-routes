@@ -1,4 +1,4 @@
-import { Route, InSearchParams, OutSearchParams, InStateParams } from "../common";
+import { Route, InSearchParams, OutSearchParams, InStateParams } from "../common/index.js";
 import { useSearchParams, NavigateOptions } from "react-router-native";
 import { useMemo, useCallback, MutableRefObject, useRef } from "react";
 

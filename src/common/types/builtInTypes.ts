@@ -1,6 +1,6 @@
-import { Type, CallableType } from "./type";
-import { makeCallable } from "./makeCallable";
-import { assertIsString, assertIsArray, assertIsBoolean, assertIsValidDate, assertIsNumber } from "./helpers";
+import { Type, CallableType } from "./type.js";
+import { makeCallable } from "./makeCallable.js";
+import { assertIsString, assertIsArray, assertIsBoolean, assertIsValidDate, assertIsNumber } from "./helpers.js";
 
 export const stringType = makeCallable<string>({
     getPlain(value) {

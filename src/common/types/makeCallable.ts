@@ -1,4 +1,4 @@
-import { Type, CallableType } from "./type";
+import { Type, CallableType } from "./type.js";
 
 export function makeCallable<TOriginal, TPlain = string, TRetrieved = TOriginal>({
     getPlain,

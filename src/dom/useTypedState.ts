@@ -1,4 +1,4 @@
-import { Route, OutStateParams } from "../common";
+import { Route, OutStateParams } from "../common/index.js";
 import { useLocation } from "react-router-dom";
 import { useMemo } from "react";
 

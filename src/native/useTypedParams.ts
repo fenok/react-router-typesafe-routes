@@ -1,4 +1,4 @@
-import { Route, OutParams } from "../common";
+import { Route, OutParams } from "../common/index.js";
 import { useParams } from "react-router-native";
 import { useMemo } from "react";
 

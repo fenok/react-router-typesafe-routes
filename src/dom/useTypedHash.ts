@@ -1,4 +1,4 @@
-import { Route } from "../common";
+import { Route } from "../common/index.js";
 import { useLocation } from "react-router-dom";
 import { useMemo } from "react";
 

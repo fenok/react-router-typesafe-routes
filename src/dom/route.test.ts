@@ -1,7 +1,6 @@
-import { route } from "./route";
+import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
-import { numberType, booleanType, arrayOfType, stringType } from "../common";
-import { hashValues } from "../common";
+import { numberType, booleanType, arrayOfType, stringType, hashValues } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("provides absolute path", () => {

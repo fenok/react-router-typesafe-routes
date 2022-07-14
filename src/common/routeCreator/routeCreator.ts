@@ -1,4 +1,4 @@
-import { Type, OriginalParams, RetrievedParams, KeysWithFallback } from "../types";
+import { Type, OriginalParams, RetrievedParams, KeysWithFallback } from "../types/index.js";
 
 type RouteWithChildren<
     TChildren,

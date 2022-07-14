@@ -1,4 +1,4 @@
-import { Route, OutParams } from "../common";
+import { Route, OutParams } from "../common/index.js";
 import { useParams } from "react-router-dom";
 import { useMemo } from "react";
 
