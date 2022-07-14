@@ -14,7 +14,9 @@ The library provides extensible type safety for path params, search params, stat
 yarn add react-router-typesafe-routes
 ```
 
-Note that the library is using ES6, including ES6 modules. It's designed to be processed by some bundler like Webpack.
+The library is distributed as an ES module written in ES6.
+
+`react-router-typesafe-routes` contains core platform-independent functionality which is re-exported from platform-specific entry points: `react-router-typesafe-routes/dom` for web and `react-router-typesafe-routes/native` for React Native.
 
 ## Design principles
 
@@ -26,8 +28,10 @@ Note that the library is using ES6, including ES6 modules. It's designed to be p
 ## Limitations
 
 -   To make params merging possible, state has to be an object, and hash has to be one of the predefined strings (or any string).
--   Search parameters and state fields are always considered optional, albeit it's possible to get rid of `undefined` values in parsed parameters/fields by utilizing fallbacks.
--   Hash is always considered optional.
+-   Since react-router only considers path on routes matching and doesn't support param validation:
+    -   Upon URL or state building, search parameters and state fields are considered optional.
+    -   Upon URL or state parsing, **explicitly typed** parameters are considered optional, though fallbacks can be used to prevent `undefined` values. Implicitly typed path parameters are guaranteed to never be `undefined`.
+    -   Hash is always considered optional.
 
 ## How is it different from existing solutions?
 
@@ -44,8 +48,7 @@ Note that the library is using ES6, including ES6 modules. It's designed to be p
 Route definition may look like this:
 
 ```typescript
-import { numberType, booleanType, hashValues } from "react-router-typesafe-routes";
-import { route } from "react-router-typesafe-routes/dom"; // Or /native
+import { numberType, booleanType, hashValues, route } from "react-router-typesafe-routes/dom"; // Or /native
 
 const ROUTES = {
     PRODUCT: route(
@@ -91,7 +94,7 @@ import { ROUTES } from "./path/to/routes";
 Get typed path params with `useTypedParams()`:
 
 ```typescript jsx
-import { useTypedParams } from "react-router-typesafe-routes";
+import { useTypedParams } from "react-router-typesafe-routes/dom"; // Or /native
 import { ROUTES } from "./path/to/routes";
 
 // Everything is fully typed!
@@ -111,7 +114,7 @@ const [{ sectionsCount }, setTypedSearchParams] = useTypedSearchParams(ROUTES.PR
 Get typed hash with `useTypedHash()`:
 
 ```typescript jsx
-import { useTypedHash } from "react-router-typesafe-routes";
+import { useTypedHash } from "react-router-typesafe-routes/dom"; // Or /native
 import { ROUTES } from "./path/to/routes";
 
 // Everything is fully typed!
@@ -121,7 +124,7 @@ const hash = useTypedHash(ROUTES.PRODUCT.DETAILS);
 Get typed state with `useTypedState()`:
 
 ```typescript jsx
-import { useTypedState } from "react-router-typesafe-routes";
+import { useTypedState } from "react-router-typesafe-routes/dom"; // Or /native
 import { ROUTES } from "./path/to/routes";
 
 // Everything is fully typed!
@@ -305,8 +308,6 @@ Hash values are combined. If a parent allows any `string` to be a hash value, it
 
 A route is defined via the `route` helper. It accepts required `path` and `options`, and optional `children`. All `options` are optional.
 
-> Note that `route()` internally uses `createSearchParams()`, which is platform-specific, so `route()` has to be imported from either `'react-router-typesafe-routes/dom'` or `'react-router-typesafe-routes/native'`, depending on the environment.
-
 ```typescript
 const ROUTE = route(
     "my/path",
@@ -383,8 +384,6 @@ The `useTypedParams()` hook is a thin wrapper around react-router `useParams()`.
 ### `useTypedSearchParams()`
 
 The `useTypedSearchParams()` hook is a thin wrapper around react-router `useSearchParams()`. It accepts a `Route` object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
-
-> Note that `useSearchParams()` is platform-specific, so `useTypedSearchParams()` has to be imported from either `'react-router-typesafe-routes/dom'` or `'react-router-typesafe-routes/native'`, depending on the environment.
 
 ### `useTypedHash()`
 
