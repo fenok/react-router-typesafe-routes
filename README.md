@@ -226,7 +226,7 @@ Params typing and validation is done via _type_ objects. There are several [buil
 
 > You are encouraged to write your own _types_ as needed.
 
-If parsing fails or the corresponding parameter is absent, `undefined` is returned instead. You can specify a fallback to use instead of `undefined` (and TS is aware of that):
+If parsing fails (including the case when the corresponding parameter is absent), `undefined` is returned instead. You can specify a fallback to use instead of `undefined` (and TS is aware of that):
 
 ```typescript
 import { numberType } from "react-router-typesafe-routes";
