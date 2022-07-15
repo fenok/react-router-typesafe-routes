@@ -28,10 +28,9 @@ The library is distributed as an ES module written in ES6.
 ## Limitations
 
 -   To make params merging possible, state has to be an object, and hash has to be one of the predefined strings (or any string).
--   Since react-router only considers path on routes matching and doesn't support param validation:
-    -   Upon URL or state building, search parameters and state fields are considered optional.
-    -   Upon URL or state parsing, **explicitly typed** parameters are considered optional, though fallbacks can be used to prevent `undefined` values. Implicitly typed path parameters are guaranteed to never be `undefined`.
-    -   Hash is always considered optional.
+-   Since react-router only considers path on routes matching, search parameters, state fields, and hash are considered optional upon URL or state building.
+-   Since react-router doesn't support any kind of param validation, **explicitly typed** parameters (or state fields) are omitted in case of a parsing error (or parameter absence) upon URL or state parsing (though fallbacks can be used to prevent `undefined` values). Implicitly typed path parameters are never omitted, because they are returned as-is (and parameter absence leads to an error).
+-   There are no fallbacks for hash, because they don't seem to be necessary.
 
 ## How is it different from existing solutions?
 
@@ -223,19 +222,17 @@ The `path` argument provided to the `route` helper is what you would put to the 
 
 ### How typing works
 
-Params typing and validation is done via [`Type`](#type) objects. There are several [built-in types](#built-in-types).
+Params typing and validation is done via _type_ objects. There are several [built-in types](#built-in-types), and there is [`createType()`](#createtype) helper for creating custom _types_.
 
 > You are encouraged to write your own _types_ as needed.
 
-During parameter retrieving, the _type_ can throw. To avoid that in case of built-in _types_, you can call the _type_ to get its fail-proof version. Such a _type_ will return the specified fallback in case of an error (and TS is aware of that):
+If parsing fails or the corresponding parameter is absent, `undefined` is returned instead. You can specify a fallback to use instead of `undefined` (and TS is aware of that):
 
 ```typescript
 import { numberType } from "react-router-typesafe-routes";
 
 const ROUTE = route("my/route", { searchParams: { param: numberType(100) } });
 ```
-
-Create your custom _type_ with the `createType()` helper to achieve the same functionality.
 
 #### Path params
 
@@ -248,9 +245,9 @@ const ROUTE = route("route/:id/:subId", { params: { id: numberType } });
 
 Upon building, all path params are required, except for the star (`*`) parameter.
 
-Upon retrieving, if some implicitly typed param is absent (even the star parameter, because react-router parses it as an empty string), the retrieving fails with an error.
+Upon parsing, if some implicitly typed param is absent (even the star parameter, because react-router parses it as an empty string), the parsing fails with an error.
 
-However, explicitly typed params are considered optional during retrieving. That is, if such a _type_ throws during the retrieving, the corresponding value is simply omitted.
+Explicitly typed params behave as usual.
 
 > You shouldn't ever need to provide a _type_ for the star parameter, but it's technically possible.
 
@@ -263,18 +260,18 @@ Search params are determined by the provided search _types_.
 const ROUTE = route("route", { searchParams: { filter: stringType } });
 ```
 
-All search parameters are optional. That is, if such a _type_ throws during the retrieving, the corresponding value is simply omitted.
+All search parameters are optional.
 
-#### State
+#### State fields
 
-State params are determined by the provided state _types_. To make state merging possible, the state is assumed to always be an object.
+State fields are determined by the provided state _types_. To make state merging possible, the state is assumed to always be an object.
 
 ```typescript
 // Here, we define a state parameter 'fromList' of 'boolean' type
 const ROUTE = route("route", { state: { fromList: booleanType } });
 ```
 
-All state parameters are optional. That is, if such a _type_ throws during the retrieving, the corresponding value is simply omitted.
+All state fields are optional.
 
 Note that built-in _types_ convert the given values to `string` (or `string[]`), which is not required in case of state, because it can contain any serializable value. In the future, the library may provide _types_ specifically for state, but in the meantime they can be implemented in the userland.
 
@@ -290,6 +287,8 @@ const ROUTE_DEFINED_HASH = route("route", { hash: hashValues("about", "more") })
 const ROUTE_ANY_HASH = route("route", { hash: hashValues() });
 ```
 
+Hash is always optional.
+
 > Note that `hashValues()` is the equivalent of `[] as const` and is used only to make typing more convenient.
 
 ### How params work for nested routes
@@ -298,7 +297,7 @@ Child routes implicitly have all parameters of their parents. For parameters wit
 
 > Parameters with the same name are discouraged.
 
-Note that a parent path _type_ will take precedence of an implicit child path param.
+Note that an explicit parent path param will take precedence of an implicit child path param.
 
 Hash values are combined. If a parent allows any `string` to be a hash value, its children can't override that.
 
@@ -306,7 +305,7 @@ Hash values are combined. If a parent allows any `string` to be a hash value, it
 
 ### `route()`
 
-A route is defined via the `route` helper. It accepts required `path` and `options`, and optional `children`. All `options` are optional.
+A route is defined via the `route()` helper. It accepts required `path` and `options`, and optional `children`. All `options` are optional.
 
 ```typescript
 const ROUTE = route(
@@ -321,9 +320,7 @@ const ROUTE = route(
 );
 ```
 
-### `Route`
-
-The `route()` helper returns a `Route` object, which has the following fields:
+The `route()` helper returns a route object, which has the following fields:
 
 -   `path` and `relativePath`, which can be passed to the `path` prop of react-router `<Route/>`.
 -   `buildUrl()` and `buildRelativeUrl()` for building parametrized URLs which can be passed to e.g. the `to` prop of react-router `<Link />`.
@@ -336,9 +333,20 @@ The `route()` helper returns a `Route` object, which has the following fields:
 
 All other fields are not considered a part of the public API and may change at any time.
 
-### `Type`
+### Built-in types
 
-The `Type` interface defines _types_ for typing path params, search params, hash, and state.
+-   `stringType` - `string`, stringified as-is.
+-   `numberType` - `number`, stringified by `JSON.stringify`.
+-   `booleanType` - `boolean`, stringified by `JSON.stringify`.
+-   `dateType` - `Date`, stringified as an ISO string.
+-   `oneOfType` - one of the given `string`, `number`, or `boolean` values, internally uses the respective built-in _types_. E.g. `oneOfType('foo', 1, true)` means `'foo' | 1 | true`.
+-   `arrayOfType` - array of any given _type_, e.g. `arrayOfType(oneOfType(1, 2))` means `(1 | 2)[]`. Stringified as `string[]`, so it can only be used for search params or state.
+
+All built-in types can be called to specify a fallback.
+
+### `createType()`
+
+The `createType()` helper is used to create custom types. It accepts a _type_ object (strictly speaking, it simply decorates the given _type_, adding the fallback functionality):
 
 ```typescript
 interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
@@ -354,24 +362,11 @@ interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
 
 -   `getPlain()` transforms the given value from `TOriginal` into `TPlain`.
 
--   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlan()` (for instance, it can happen if we didn't specify some search parameter or state field, or specified it bypassing the library).
+-   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlan()` (it may be absent or invalid).
 
 -   `isArray` is a helper flag specific for `URLSearchParams`, so we know when to `.get()` and when to `.getAll()`.
 
-### Built-in types
-
--   `stringType` - `string`, stringified as-is.
--   `numberType` - `number`, stringified by `JSON.stringify`.
--   `booleanType` - `boolean`, stringified by `JSON.stringify`.
--   `dateType` - `Date`, stringified as an ISO string.
--   `oneOfType` - one of the given `string`, `number`, or `boolean` values, internally uses the respective built-in _types_. E.g. `oneOfType('foo', 1, true)` means `'foo' | 1 | true`.
--   `arrayOfType` - array of any given _type_, e.g. `arrayOfType(oneOfType(1, 2))` means `(1 | 2)[]`. Stringified as `string[]`, so it can only be used for search params or state.
-
-### `createType()`
-
-The `createType()` helper turns any _type_ into a callable one. Call such a _type_ to specify a fallback value, which will be used in case of an error during parameter retrieving.
-
-All built-in types are callable.
+All built-in types are created via this helper.
 
 ### `hashValues()`
 
@@ -383,7 +378,7 @@ The `useTypedParams()` hook is a thin wrapper around react-router `useParams()`.
 
 ### `useTypedSearchParams()`
 
-The `useTypedSearchParams()` hook is a thin wrapper around react-router `useSearchParams()`. It accepts a `Route` object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
+The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around react-router `useSearchParams()`. It accepts a `Route` object as the first parameter, and the rest of the API is basically the same, but everything is properly typed. One notable difference is that `setSearchParams()` can also accept a callback, which will be called with the current search params.
 
 ### `useTypedHash()`
 
