@@ -283,23 +283,23 @@ function getRoute<
     }
 
     return {
-        __options__: options,
-        __path__: path,
-        relativePath,
         path: `/${path}`,
-        getPlainParams,
-        getPlainSearchParams,
+        relativePath,
+        buildUrl,
+        buildRelativeUrl,
         buildPath,
         buildRelativePath,
         buildSearch,
         buildHash,
         buildState,
-        buildUrl,
-        buildRelativeUrl,
         getTypedParams,
         getTypedSearchParams,
         getTypedHash,
         getTypedState,
+        getPlainParams,
+        getPlainSearchParams,
+        __path__: path,
+        __options__: options,
     };
 }
 
