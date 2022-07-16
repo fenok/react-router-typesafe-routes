@@ -16,6 +16,12 @@
     "main": "common/index.js",
     "module": "common/index.js",
     "types": "common/index.d.ts",
+    "exports": {
+        ".": "./common/index.js",
+        "./dom": "./dom/index.js",
+        "./native": "./native/index.js",
+        "./package.json": "./package.json"
+    },
     "sideEffects": false,
     "files": [
         "common/",
