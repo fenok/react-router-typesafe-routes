@@ -126,13 +126,13 @@ interface RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes> {
     state?: TStateTypes;
 }
 
-interface RouteCreatorOptions {
+interface CreateRouteOptions {
     createSearchParams: (init?: Record<string, string | string[]>) => URLSearchParamsLike;
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
 const createRoute =
-    (creatorOptions: RouteCreatorOptions) =>
+    (creatorOptions: CreateRouteOptions) =>
     <
         TChildren = void,
         TPath extends string = string,
@@ -166,7 +166,7 @@ function decorateChildren<
 >(
     path: SanitizedPath<TPath>,
     options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>,
-    creatorOptions: RouteCreatorOptions,
+    creatorOptions: CreateRouteOptions,
     children?: TChildren
 ): DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
     const result: Record<string, unknown> = {};
@@ -213,7 +213,7 @@ function getRoute<
 >(
     path: SanitizedPath<TPath>,
     options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>,
-    creatorOptions: RouteCreatorOptions
+    creatorOptions: CreateRouteOptions
 ): Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
     const keys = getKeys(path);
     const relativePath = removeIntermediateStars(path);
@@ -493,17 +493,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export {
     createRoute,
+    CreateRouteOptions,
+    RouteOptions,
     Route,
+    RouteWithChildren,
+    DecoratedChildren,
     InParams,
     OutParams,
     InSearchParams,
     OutSearchParams,
     InStateParams,
     OutStateParams,
-    RouteOptions,
-    RouteCreatorOptions,
-    DecoratedChildren,
-    RouteWithChildren,
     ExtractRouteParams,
     SanitizedPath,
     SanitizedChildren,
