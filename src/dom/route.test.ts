@@ -433,8 +433,8 @@ it("throws if implicit path params are invalid", () => {
         true
     );
 
-    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toEqual({ childId: "2" });
+    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
+    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: "2" });
     expect(() => TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toThrow();
 });
 
@@ -449,9 +449,9 @@ it("doesn't throw if explicit path params are invalid", () => {
         true
     );
 
-    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toEqual({ childId: 2 });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toEqual({ childId: 2 });
+    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
+    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2 });
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2, id: undefined });
 });
 
 it("doesn't throw if explicit path params with fallback are invalid", () => {
@@ -465,9 +465,9 @@ it("doesn't throw if explicit path params with fallback are invalid", () => {
         true
     );
 
-    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toEqual({ childId: 2 });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toEqual({ childId: 2, id: -1 });
+    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
+    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2 });
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2, id: -1 });
 });
 
 it("allows implicit star path param parsing", () => {
@@ -512,7 +512,7 @@ it("allows explicit star path param parsing (with fallback)", () => {
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "" })).toEqual({ "*": 42 });
 });
 
-it("silently omits invalid star path param", () => {
+it("doesn't throw if explicit star param is invalid", () => {
     const GRANDCHILD = route("grand/*", { params: { "*": numberType } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
@@ -521,9 +521,9 @@ it("silently omits invalid star path param", () => {
     assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
     assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*"?: number }>>(true);
 
-    expect(TEST_ROUTE.getTypedParams({ "*": "foo" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "foo" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "foo" })).toEqual({});
+    expect(TEST_ROUTE.getTypedParams({ "*": "foo" })).toStrictEqual({});
+    expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "foo" })).toStrictEqual({});
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "foo" })).toStrictEqual({ "*": undefined });
 });
 
 it("allows intermediate star param parsing", () => {
