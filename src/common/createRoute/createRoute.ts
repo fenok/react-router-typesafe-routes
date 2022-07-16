@@ -61,8 +61,8 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
         searchParams?: InSearchParams<TSearchTypes>,
         hash?: THash[number]
     ) => string;
-    _originalOptions: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>;
-    _originalPath: TPath;
+    __options__: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>;
+    __path__: TPath;
 }
 
 interface URLSearchParamsLike {
@@ -179,21 +179,17 @@ function decorateChildren<
                 ? {
                       ...decorateChildren(path, options, creatorOptions, value),
                       ...getRoute(
-                          path === ""
-                              ? value._originalPath
-                              : value._originalPath === ""
-                              ? path
-                              : `${path}/${value._originalPath}`,
+                          path === "" ? value.__path__ : value.__path__ === "" ? path : `${path}/${value.__path__}`,
                           {
-                              params: { ...options.params, ...value._originalOptions.params },
+                              params: { ...options.params, ...value.__options__.params },
                               searchParams: {
                                   ...options.searchParams,
-                                  ...value._originalOptions.searchParams,
+                                  ...value.__options__.searchParams,
                               },
-                              hash: mergeHashValues(options.hash, value._originalOptions.hash),
+                              hash: mergeHashValues(options.hash, value.__options__.hash),
                               state: {
                                   ...options.state,
-                                  ...value._originalOptions.state,
+                                  ...value.__options__.state,
                               },
                           },
                           creatorOptions
@@ -287,8 +283,8 @@ function getRoute<
     }
 
     return {
-        _originalOptions: options,
-        _originalPath: path,
+        __options__: options,
+        __path__: path,
         relativePath,
         path: `/${path}`,
         getPlainParams,
@@ -488,7 +484,7 @@ function isRoute(
     string[],
     Record<never, never>
 > {
-    return Boolean(value && typeof value === "object" && "_originalOptions" in value && "_originalPath" in value);
+    return Boolean(value && typeof value === "object" && "__options__" in value && "__path__" in value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
