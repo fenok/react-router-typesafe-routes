@@ -10,12 +10,6 @@ export function assertIsNumber(value: unknown, message?: string): asserts value 
     }
 }
 
-export function assertIsNotNaN(value: unknown, message?: string): asserts value is number {
-    if (Number.isNaN(value)) {
-        throw new Error(message ?? `Unexpected NaN`);
-    }
-}
-
 export function assertIsBoolean(value: unknown, message?: string): asserts value is boolean {
     if (typeof value !== "boolean") {
         throw new Error(message ?? `Expected ${String(value)} to be a boolean`);
