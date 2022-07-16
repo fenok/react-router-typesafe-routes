@@ -29,7 +29,7 @@ The library is distributed as an ES module written in ES6.
 
 -   To make params merging possible, state has to be an object, and hash has to be one of the predefined strings (or any string).
 -   Since react-router only considers path on routes matching, search parameters, state fields, and hash are considered optional upon URL or state building.
--   Since react-router doesn't support any kind of param validation, **explicitly typed** parameters (or state fields) are omitted in case of a parsing error (or parameter absence) upon URL or state parsing (though fallbacks can be used to prevent `undefined` values). Implicitly typed path parameters are never omitted, because they are returned as-is (and parameter absence leads to an error).
+-   Since react-router doesn't support any kind of param validation, **explicitly typed** parameters (or state fields) are `undefined` in case of a parsing error (or parameter absence) upon URL or state parsing (though fallbacks can be used to prevent `undefined` values). Implicitly typed path parameters are never `undefined`, because they are returned as-is (and parameter absence leads to an error).
 -   There are no fallbacks for hash, because they don't seem to be necessary.
 
 ## How is it different from existing solutions?
@@ -362,7 +362,7 @@ interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
 
 -   `getPlain()` transforms the given value from `TOriginal` into `TPlain`.
 
--   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlan()` (it may be absent or invalid).
+-   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlan()` (it may be absent or invalid). Note that the library catches this error and returns `undefined` instead.
 
 -   `isArray` is a helper flag specific for `URLSearchParams`, so we know when to `.get()` and when to `.getAll()`.
 

@@ -377,7 +377,7 @@ function getTypedParamsByTypes<TKey extends string, TPathTypes extends Partial<R
             try {
                 result[key] = type.getTyped(pathParams[key]);
             } catch {
-                // We're good, this key is simply omitted
+                result[key] = undefined;
             }
         } else {
             if (typeof pathParams[key] === "string") {
@@ -407,7 +407,7 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
                 try {
                     result[key] = type.getTyped(type.isArray ? searchParams.getAll(key) : searchParams.get(key));
                 } catch {
-                    // We're good, this key is simply omitted
+                    result[key] = undefined;
                 }
             }
         });
@@ -440,7 +440,7 @@ function getTypedStateByTypes<TStateTypes extends Partial<Record<string, Type<un
                 try {
                     result[key] = type.getTyped(state[key]);
                 } catch {
-                    // We're good, this key is simply omitted
+                    result[key] = undefined;
                 }
             }
         });
