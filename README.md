@@ -132,7 +132,7 @@ const { fromProductList } = useTypedState(ROUTES.PRODUCT.DETAILS);
 
 ## Concepts
 
-### Nesting
+### How nesting works
 
 Any route can be a child of another route:
 
@@ -213,7 +213,7 @@ const PRODUCT = route("product/:id/*", {}, { DETAILS: route("details") });
 
 ### How typing works
 
-Params typing and validation is done via _type_ objects. There are several [built-in types](#built-in-types), and there is [`createType()`](#createtype) helper for creating custom _types_.
+Params typing and validation is done via _type_ objects. There are several [built-in types](#built-in-types), and there is [`createType()`](#createtype) helper for creating custom _types_. Hash is typed via the [`hashValues()`](#hashvalues) helper.
 
 > You are encouraged to write your own _types_ as needed.
 
@@ -320,7 +320,7 @@ The `path` argument is what you would put to the `path` property of a `<Route/>`
 
 The `options` argument specifies types of the route. See ["How typing works"](#how-typing-works).
 
-The `children` argument specifies child rputes of the route. See ["Nesting"](#nesting).
+The `children` argument specifies child rputes of the route. See ["How nesting works"](#how-nesting-works).
 
 The `route()` helper returns a route object, which has the following fields:
 
