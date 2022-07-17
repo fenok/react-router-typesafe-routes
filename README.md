@@ -220,8 +220,6 @@ Params typing and validation is done via _type_ objects. There are several [buil
 If parsing fails (including the case when the corresponding parameter is absent), `undefined` is returned instead. In case of _types_, you can specify a fallback to use instead of `undefined` (and TS is aware of that):
 
 ```typescript
-import { numberType } from "react-router-typesafe-routes";
-
 const ROUTE = route("my/route", { searchParams: { param: numberType(100) } });
 ```
 
