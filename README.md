@@ -362,7 +362,7 @@ The `route()` helper returns a route object, which has the following fields:
 -   `$`, which contains original routes, specified as child routes of that route. These routes are unaffected by the parent route.
 -   Any number of child routes in CONSTANT_CASE or PascalCase.
 
-All other fields are not considered a part of the public API and may change at any time.
+There are also some internal fields prefixed with `__`.
 
 ### Built-in types
 
