@@ -217,12 +217,43 @@ Params typing and validation is done via _type_ objects. There are several [buil
 
 > You are encouraged to write your own _types_ as needed.
 
-If parsing fails (including the case when the corresponding parameter is absent), `undefined` is returned instead. You can specify a fallback to use instead of `undefined` (and TS is aware of that):
+If parsing fails (including the case when the corresponding parameter is absent), `undefined` is returned instead. In case of _types_, you can specify a fallback to use instead of `undefined` (and TS is aware of that):
 
 ```typescript
 import { numberType } from "react-router-typesafe-routes";
 
 const ROUTE = route("my/route", { searchParams: { param: numberType(100) } });
+```
+
+There are no fallbacks for hash, though.
+
+#### Throwing instead of returning undefined
+
+Returning `undefined` for invalid or absent params provides flexibility, but sometimes throwing is preferable instead. In the future, the library may provide an option for that, but for now you can do it in the userland.
+
+You can assert individual params:
+
+```typescript
+function assertIsRequired<T>(value: T | undefined): asserts value is T {
+    if (value === undefined) throw new Error("Unexpected undefined");
+}
+
+// In some component
+const { id } = useTypedParams(MY_ROUTE);
+assertIsRequired(id); // After this line TS knows that id is not undefined
+```
+
+Or you can assert the whole object:
+
+```typescript
+function required<T extends Record<string, unknown>>(obj: T): Required<T> {
+    if (Object.values(obj).includes(undefined)) throw new Error("Unexpected undefined");
+
+    return obj as Required<T>;
+}
+
+// In some component
+const { id } = required(useTypedParams(MY_ROUTE)); // TS knows that id is not undefined
 ```
 
 #### Path params
