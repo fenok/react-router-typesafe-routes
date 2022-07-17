@@ -311,12 +311,16 @@ const ROUTE = route(
 );
 ```
 
-The `path` argument provided to the `route()` helper is what you would put to the `path` property of a `<Route/>`, but without leading or trailing slashes (`/`). More specifically, it can:
+The `path` argument is what you would put to the `path` property of a `<Route/>`, but without leading or trailing slashes (`/`). More specifically, it can:
 
 -   be a simple segment or a group of segments (`'product'`, `'product/details'`).
 -   have any number of parameters anywhere (`':id/product'`, `'product/:id/more'`).
 -   **end** with a star (`'product/:id/*'`, `'*'`)
 -   be an empty string (`''`).
+
+The `options` argument specifies types of the route. See ["How typing works"](#how-typing-works).
+
+The `children` argument specifies child rputes of the route. See ["Nesting"](#nesting).
 
 The `route()` helper returns a route object, which has the following fields:
 
@@ -368,20 +372,20 @@ All built-in types are created via this helper.
 
 ### `hashValues()`
 
-The `hashValues()` helper types the hash part of the URL.
+The `hashValues()` helper types the hash part of the URL. See ["How typing works - Hash"](#hash).
 
 ### `useTypedParams()`
 
-The `useTypedParams()` hook is a thin wrapper around react-router `useParams()`. It accepts a `Route` object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
+The `useTypedParams()` hook is a thin wrapper around react-router `useParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
 
 ### `useTypedSearchParams()`
 
-The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around react-router `useSearchParams()`. It accepts a `Route` object as the first parameter, and the rest of the API is basically the same, but everything is properly typed. One notable difference is that `setSearchParams()` can also accept a callback, which will be called with the current search params.
+The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around react-router `useSearchParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed. One notable difference is that `setSearchParams()` can also accept a callback, which will be called with the current search params.
 
 ### `useTypedHash()`
 
-The `useTypedHash()` hook is a thin wrapper around react-router `useLocation()`. It accepts a `Route` object as the first parameter and returns a typed hash.
+The `useTypedHash()` hook is a thin wrapper around react-router `useLocation()`. It accepts a route object as the first parameter and returns a typed hash.
 
 ### `useTypedState()`
 
-The `useTypedState()` hook is a thin wrapper around react-router `useLocation()`. It accepts a `Route` object as the first parameter and returns a typed state.
+The `useTypedState()` hook is a thin wrapper around react-router `useLocation()`. It accepts a route object as the first parameter and returns a typed state.
