@@ -24,6 +24,6 @@ export function assertIsArray(value: unknown, message?: string): asserts value i
 
 export function assertIsValidDate(value: Date, message?: string): asserts value is Date {
     if (Number.isNaN(value.getTime())) {
-        throw new Error(message ?? `Unexpected invalid date`);
+        throw new Error(message ?? `Expected ${String(value)} to be a valid date`);
     }
 }
