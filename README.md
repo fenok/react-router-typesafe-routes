@@ -229,7 +229,7 @@ There are no fallbacks for hash, though.
 
 #### Throwing instead of returning undefined
 
-Returning `undefined` for invalid or absent params provides flexibility, but sometimes throwing is preferable instead. In the future, the library may provide an option for that, but for now you can do it in the userland.
+Returning `undefined` for invalid or absent params provides flexibility, but sometimes throwing is preferable instead, especially for path params. In the future, the library may provide an option for that, but for now you can do it in the userland.
 
 You can assert individual params:
 
