@@ -6,7 +6,7 @@ Comprehensive type-safe routes for react-router v6 with first-class support for 
 
 > ⚠ For react-router v5, see [v0.3.2](https://www.npmjs.com/package/react-router-typesafe-routes/v/0.3.2).
 
-The library provides extensible type safety for path params, search params, state, and hash on building and parsing URLs, including nested routes.
+The library provides extensible type safety via validation for path params, search params, state, and hash on building and parsing URLs and state objects, including nested routes.
 
 ## Installation
 
@@ -211,15 +211,6 @@ const PRODUCT = route("product/:id/*", {}, { DETAILS: route("details") });
 
 > Note that star doesn't necessarily mean that the subsequent routes can't be rendered as direct children.
 
-### What `path` values are allowed
-
-The `path` argument provided to the `route` helper is what you would put to the `path` property of a `<Route/>`, but without leading or trailing slashes (`/`). More specifically, it can:
-
--   be a simple segment or a group of segments (`'product'`, `'product/details'`).
--   have any number of parameters anywhere (`':id/product'`, `'product/:id/more'`).
--   **end** with a star (`'product/:id/*'`, `'*'`)
--   be an empty string (`''`).
-
 ### How typing works
 
 Params typing and validation is done via _type_ objects. There are several [built-in types](#built-in-types), and there is [`createType()`](#createtype) helper for creating custom _types_.
@@ -319,6 +310,13 @@ const ROUTE = route(
     { CHILD_ROUTE }
 );
 ```
+
+The `path` argument provided to the `route()` helper is what you would put to the `path` property of a `<Route/>`, but without leading or trailing slashes (`/`). More specifically, it can:
+
+-   be a simple segment or a group of segments (`'product'`, `'product/details'`).
+-   have any number of parameters anywhere (`':id/product'`, `'product/:id/more'`).
+-   **end** with a star (`'product/:id/*'`, `'*'`)
+-   be an empty string (`''`).
 
 The `route()` helper returns a route object, which has the following fields:
 
