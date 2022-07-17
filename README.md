@@ -1,6 +1,6 @@
 # React-Router-Typesafe-Routes
 
-Comprehensive type-safe routes for react-router v6 with first-class support for nested routes.
+Comprehensive type-safe routes for react-router v6 with first-class support for nested routes and param validation.
 
 [![npm](https://img.shields.io/npm/v/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
 
