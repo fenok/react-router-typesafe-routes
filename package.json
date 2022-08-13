@@ -10,7 +10,10 @@
         "react-router6",
         "react"
     ],
-    "repository": "github:fenok/react-router-typesafe-routes",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/fenok/react-router-typesafe-routes.git"
+    },
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
     "type": "module",
