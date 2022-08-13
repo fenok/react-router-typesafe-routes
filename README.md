@@ -34,6 +34,8 @@ The library is distributed as an ES module written in ES6.
 
 ## How is it different from existing solutions?
 
+-   [typed-react-router](https://www.npmjs.com/package/typed-react-router) only handles path params. It also forces the use of [Route Objects](https://reactrouter.com/docs/en/v6/examples/route-objects) and doesn't allow relative links.
+
 -   [typesafe-routes](https://www.npmjs.com/package/typesafe-routes) (as well as seemingly based on it [react-typesafe-routes](https://www.npmjs.com/package/react-typesafe-routes)) only handles path and search params. It wasn't developed with modern react-router in mind and therefore doesn't play well with it.
 
 -   [typesafe-react-router](https://www.npmjs.com/package/typesafe-react-router) only handles path params and has no concept of nested routes.
