@@ -34,6 +34,8 @@ The library is distributed as an ES module written in ES6.
 
 ## How is it different from existing solutions?
 
+-   [typed-react-router](https://www.npmjs.com/package/typed-react-router) only handles path params. It also forces the use of [Route Objects](https://reactrouter.com/docs/en/v6/examples/route-objects) and doesn't allow relative links.
+
 -   [typesafe-routes](https://www.npmjs.com/package/typesafe-routes) (as well as seemingly based on it [react-typesafe-routes](https://www.npmjs.com/package/react-typesafe-routes)) only handles path and search params. It wasn't developed with modern react-router in mind and therefore doesn't play well with it.
 
 -   [typesafe-react-router](https://www.npmjs.com/package/typesafe-react-router) only handles path params and has no concept of nested routes.
@@ -192,7 +194,7 @@ As an escape hatch, you can use relative paths (note that you can use `PRODUCT.$
 
 > `path` contains a combined path with a leading slash (`/`), and `relativePath` contains a combined path **without intermediate stars (`*`)** and without a leading slash (`/`).
 
-If your `<Route/>` is not a direct child of another `<Route />`, not only you have to add a `*` to the parent's path, but also exclude it from subsequent paths. This is because each `<Routes/>` requires its own absolute paths.
+If your `<Route/>` is not a direct child of another `<Route />`, not only you have to add a `*` to the parent path, but also exclude it from subsequent paths. This is because each `<Routes/>` requires its own absolute paths.
 
 ```typescript jsx
 const PRODUCT = route("product/:id/*", {}, { DETAILS: route("details") });
@@ -349,7 +351,7 @@ The `path` argument is what you would put to the `path` property of a `<Route/>`
 
 The `options` argument specifies types of the route. See ["How typing works"](#how-typing-works).
 
-The `children` argument specifies child rputes of the route. See ["How nesting works"](#how-nesting-works).
+The `children` argument specifies child routes of the route. See ["How nesting works"](#how-nesting-works).
 
 The `route()` helper returns a route object, which has the following fields:
 
