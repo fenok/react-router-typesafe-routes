@@ -17,5 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Return value of `buildState` method is now properly typed as `Record<string, unknown>` instead of `unknown`.
 -   Hook dependencies are now properly listed, which is checked by ESLint. This fixes `useTypedSearchParams` for dynamic routes.
+-   Prevent access to internal `useUpdatingRef` helper.
 
 [unreleased]: https://github.com/fenok/react-router-typesafe-routes/tree/dev

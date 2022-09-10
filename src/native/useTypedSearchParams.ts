@@ -1,19 +1,13 @@
 import { Route, InSearchParams, OutSearchParams, InStateParams } from "../common/index.js";
-import { useSearchParams, NavigateOptions, createSearchParams } from "react-router-dom";
+import { useSearchParams, NavigateOptions, createSearchParams } from "react-router-native";
 import { useMemo, useCallback, MutableRefObject, useRef } from "react";
 
-export interface TypedNavigateOptions<T> extends NavigateOptions {
+interface TypedNavigateOptions<T> extends NavigateOptions {
     state?: T;
     preserveUntyped?: boolean;
 }
 
-export function useTypedSearchParams<
-    TPath extends string,
-    TPathTypes,
-    TSearchTypes,
-    THash extends string[],
-    TStateTypes
->(
+function useTypedSearchParams<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateTypes>(
     route: Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes>,
     typedDefaultInit?: InSearchParams<TSearchTypes>
 ): [
@@ -62,7 +56,7 @@ export function useTypedSearchParams<
     return [typedSearchParams, setTypedSearchParams];
 }
 
-export function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {
+function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {
     for (const [key, val] of source.entries()) {
         target.append(key, val);
     }
@@ -70,9 +64,11 @@ export function appendSearchParams(target: URLSearchParams, source: URLSearchPar
     return target;
 }
 
-export function useUpdatingRef<T>(value: T): MutableRefObject<T> {
+function useUpdatingRef<T>(value: T): MutableRefObject<T> {
     const valueRef = useRef(value);
     valueRef.current = value;
 
     return valueRef;
 }
+
+export { useTypedSearchParams, TypedNavigateOptions };
