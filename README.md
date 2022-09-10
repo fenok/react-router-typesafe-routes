@@ -359,7 +359,8 @@ The `route()` helper returns a route object, which has the following fields:
 -   `buildUrl()` and `buildRelativeUrl()` for building parametrized URLs which can be passed to e.g. the `to` prop of react-router `<Link />`.
 -   `buildState()` for building typed states, which can be passed to e.g. the `state` prop of react-router `<Link />`.
 -   `buildPath()`, `buildRelativePath()`, `buildSearch()`, and `buildHash()` for building parametrized URL parts. They can be used (in conjunction with `buildState()`) to e.g. build a parametrized `Location` object.
--   `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from react-router primitives.
+-   `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from react-router primitives. Untyped params are omitted.
+-   `getUntypedSearchParams()` and `getUntypedState()` for retrieving untyped params from react-router primitives. Typed params are omitted. Note that all path params are inherently typed, as well as hash.
 -   `getPlainParams()` and `getPlainSearchParams()` for building react-router primitives from typed params. Note how hash and state don't need these functions, because `buildHash()` and `buildState()` can be used instead.
 -   `$`, which contains original routes, specified as child routes of that route. These routes are unaffected by the parent route.
 -   Any number of child routes in CONSTANT_CASE or PascalCase.
@@ -395,7 +396,7 @@ interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
 
 -   `getPlain()` transforms the given value from `TOriginal` into `TPlain`.
 
--   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlan()` (it may be absent or invalid). Note that the library catches this error and returns `undefined` instead.
+-   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlain()` (it may be absent or invalid). Note that the library catches this error and returns `undefined` instead.
 
 -   `isArray` is a helper flag specific for `URLSearchParams`, so we know when to `.get()` and when to `.getAll()`.
 
@@ -411,7 +412,14 @@ The `useTypedParams()` hook is a thin wrapper around react-router `useParams()`.
 
 ### `useTypedSearchParams()`
 
-The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around react-router `useSearchParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed. One notable difference is that `setSearchParams()` can also accept a callback, which will be called with the current search params.
+The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around react-router `useSearchParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
+
+Notable differences:
+
+-   `setTypedSearchParams()` can also accept a callback, which will be called with the current typed search params.
+-   `setTypedSearchParams()` has an additional `preserveUntyped` option. If `true`, existing untyped (by the given route) search parameters will remain intact. Note that this option has no effect on the `state` option. That is, there is no way to preserve untyped state fields.
+
+> In the future, the library may provide the same improvements for state. For now, it can be implemented in the userland in the form of a custom hook.
 
 ### `useTypedHash()`
 

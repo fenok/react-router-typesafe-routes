@@ -28,6 +28,9 @@ jobs:
       - name: Bump version
         run: yarn version apply
 
+      - name: Update CHANGELOG.md
+        run: yarn node ./update-changelog.js
+
       - name: Retrieve version from package.json
         id: package-version
         uses: martinbeentjes/npm-get-version-action@v1.1.0
