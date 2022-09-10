@@ -8,7 +8,7 @@ let changelog = readFileSync(changelogPath, { encoding: "utf8" });
 changelog = changelog.replace("[Unreleased]", `[${pkg.version}] - ${new Date().toISOString().split("T")[0]}`);
 changelog = changelog.replace(
     /\[unreleased]: .*/,
-    `[${pkg.version}]: https://github.com/fenok/react-router-typesafe-routes/tree/${pkg.version}`
+    `[${pkg.version}]: https://github.com/fenok/react-router-typesafe-routes/tree/v${pkg.version}`
 );
 
 writeFileSync(changelogPath, changelog, { encoding: "utf8" });
