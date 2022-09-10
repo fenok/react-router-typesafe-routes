@@ -396,7 +396,7 @@ interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
 
 -   `getPlain()` transforms the given value from `TOriginal` into `TPlain`.
 
--   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlan()` (it may be absent or invalid). Note that the library catches this error and returns `undefined` instead.
+-   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlain()` (it may be absent or invalid). Note that the library catches this error and returns `undefined` instead.
 
 -   `isArray` is a helper flag specific for `URLSearchParams`, so we know when to `.get()` and when to `.getAll()`.
 
