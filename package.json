@@ -1,6 +1,6 @@
 {
     "name": "react-router-typesafe-routes",
-    "version": "0.4.1",
+    "version": "0.4.2",
     "description": "Comprehensive type-safe routes for react-router v6 with first-class support for nested routes and param validation.",
     "keywords": [
         "typesafe",
