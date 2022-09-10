@@ -621,9 +621,13 @@ it("allows state params parsing", () => {
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildState>[0], { foo?: string }>>(true);
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildState>[0], { foo?: string; bar?: number }>>(true);
 
-    const state = { foo: "test", bar: "1" };
+    const state = { foo: "test", bar: "1", untyped: "untyped" };
 
     expect(TEST_ROUTE.getTypedState(state)).toEqual({});
     expect(TEST_ROUTE.CHILD.getTypedState(state)).toEqual({ foo: "test" });
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedState(state)).toEqual({ foo: "test", bar: 1 });
+
+    expect(TEST_ROUTE.getUntypedState(state)).toEqual({ foo: "test", bar: "1", untyped: "untyped" });
+    expect(TEST_ROUTE.CHILD.getUntypedState(state)).toEqual({ bar: "1", untyped: "untyped" });
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getUntypedState(state)).toEqual({ untyped: "untyped" });
 });
