@@ -47,11 +47,12 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
     getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     getTypedHash: (hash: string) => THash[number] | undefined;
     getTypedState: (state: unknown) => OutStateParams<TStateTypes>;
+    getUntypedState: (state: unknown) => Record<string, unknown>;
     buildPath: (params: InParams<TPath, TPathTypes>) => string;
     buildRelativePath: (params: InParams<TPath, TPathTypes>) => string;
     buildSearch: (params: InSearchParams<TSearchTypes>) => string;
     buildHash: (hash: THash[number]) => string;
-    buildState: (state: InStateParams<TStateTypes>) => unknown;
+    buildState: (state: InStateParams<TStateTypes>) => Record<string, unknown>;
     buildUrl: (
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
@@ -286,6 +287,22 @@ function getRoute<
         return getTypedStateByTypes(state, options.state);
     }
 
+    function getUntypedState(state: unknown) {
+        const result: Record<string, unknown> = {};
+
+        if (!isRecord(state)) return result;
+
+        const typedKeys = options.state ? Object.keys(options.state) : [];
+
+        Object.keys(state).forEach((key) => {
+            if (typedKeys.indexOf(key) === -1) {
+                result[key] = state[key];
+            }
+        });
+
+        return result;
+    }
+
     function getTypedHash(hash: string) {
         return getTypedHashByValues(hash, options.hash);
     }
@@ -305,6 +322,7 @@ function getRoute<
         getUntypedSearchParams,
         getTypedHash,
         getTypedState,
+        getUntypedState,
         getPlainParams,
         getPlainSearchParams,
         __path__: path,

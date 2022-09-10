@@ -32,10 +32,11 @@ export function useTypedSearchParams<
 
     const [searchParams, setSearchParams] = useSearchParams(defaultInit);
 
-    const typedSearchParams = useMemo(() => route.getTypedSearchParams(searchParams), [searchParams]);
-    const untypedSearchParams = useMemo(() => route.getUntypedSearchParams(searchParams), [searchParams]);
+    const typedSearchParams = useMemo(() => route.getTypedSearchParams(searchParams), [route, searchParams]);
+    const untypedSearchParams = useMemo(() => route.getUntypedSearchParams(searchParams), [route, searchParams]);
 
     const typedSearchParamsRef = useUpdatingRef(typedSearchParams);
+    const untypedSearchParamsRef = useUpdatingRef(untypedSearchParams);
 
     const setTypedSearchParams = useCallback(
         (
@@ -48,14 +49,14 @@ export function useTypedSearchParams<
                 route.getPlainSearchParams(typeof params === "function" ? params(typedSearchParamsRef.current) : params)
             );
 
-            if (preserveUntyped) appendSearchParams(nextParams, untypedSearchParams);
+            if (preserveUntyped) appendSearchParams(nextParams, untypedSearchParamsRef.current);
 
             setSearchParams(nextParams, {
                 ...(state ? { state: route.buildState(state) } : {}),
                 ...restNavigateOptions,
             });
         },
-        [route, setSearchParams, typedSearchParamsRef]
+        [route, setSearchParams, typedSearchParamsRef, untypedSearchParamsRef]
     );
 
     return [typedSearchParams, setTypedSearchParams];
