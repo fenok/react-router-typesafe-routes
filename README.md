@@ -29,7 +29,6 @@ The library is distributed as an ES module written in ES6.
 
 -   To make params merging possible, state has to be an object, and hash has to be one of the predefined strings (or any string).
 -   Since react-router only considers path on routes matching, search parameters, state fields, and hash are considered optional upon URL or state building.
--   Since react-router doesn't support any kind of param validation, **explicitly typed** parameters (or state fields) are `undefined` in case of a parsing error (or parameter absence) upon URL or state parsing (though fallbacks can be used to prevent `undefined` values). Implicitly typed path parameters are never `undefined`, because they are returned as-is (and parameter absence leads to an error).
 -   There are no fallbacks for hash, because they don't seem to be necessary.
 
 ## How is it different from existing solutions?
@@ -225,36 +224,15 @@ If parsing fails (including the case when the corresponding parameter is absent)
 const ROUTE = route("my/route", { searchParams: { param: numberType(100) } });
 ```
 
+You can also specify `throwable` as a fallback, in which case, instead of returning `undefined`, the original error will be thrown (this is mostly suitable for path params):
+
+```typescript
+import { throwable } from "react-router-typesafe-routes/dom"; // Or /native
+
+const ROUTE = route("route/:id", { params: { id: numberType(throwable) } });
+```
+
 There are no fallbacks for hash, though.
-
-#### Throwing instead of returning undefined
-
-Returning `undefined` for invalid or absent params provides flexibility, but sometimes throwing is preferable instead, especially for path params. In the future, the library may provide an option for that, but for now you can do it in the userland.
-
-You can assert individual params:
-
-```typescript
-function assertIsRequired<T>(value: T | undefined): asserts value is T {
-    if (value === undefined) throw new Error("Unexpected undefined");
-}
-
-// In some component
-const { id } = useTypedParams(MY_ROUTE);
-assertIsRequired(id); // After this line TS knows that id is not undefined
-```
-
-Or you can assert the whole object:
-
-```typescript
-function required<T extends Record<string, unknown>>(obj: T): Required<T> {
-    if (Object.values(obj).includes(undefined)) throw new Error("Unexpected undefined");
-
-    return obj as Required<T>;
-}
-
-// In some component
-const { id } = required(useTypedParams(MY_ROUTE)); // TS knows that id is not undefined
-```
 
 #### Path params
 
@@ -396,7 +374,7 @@ interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
 
 -   `getPlain()` transforms the given value from `TOriginal` into `TPlain`.
 
--   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlain()` (it may be absent or invalid). Note that the library catches this error and returns `undefined` instead.
+-   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlain()` (it may be absent or invalid). Note that, by default, the library catches this error and returns `undefined` instead.
 
 -   `isArray` is a helper flag specific for `URLSearchParams`, so we know when to `.get()` and when to `.getAll()`.
 
