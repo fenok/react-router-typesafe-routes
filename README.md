@@ -29,7 +29,7 @@ The library is distributed as an ES module written in ES6.
 
 -   To make params merging possible, state has to be an object, and hash has to be one of the predefined strings (or any string).
 -   Since react-router only considers path on routes matching, search parameters, state fields, and hash are considered optional upon URL or state building.
--   There are no fallbacks for hash, because they don't seem to be necessary.
+-   Hash is always considered optional upon URL parsing.
 
 ## How is it different from existing solutions?
 

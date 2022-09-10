@@ -589,6 +589,10 @@ it("allows hash parsing", () => {
 
     const testHash = "#foo";
 
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedHash>, undefined>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedHash>, "foo" | "bar" | undefined>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedHash>, string | undefined>>(true);
+
     expect(TEST_ROUTE.getTypedHash(testHash)).toEqual(undefined);
     expect(TEST_ROUTE.CHILD.getTypedHash(testHash)).toEqual("foo");
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedHash(testHash)).toEqual("foo");
