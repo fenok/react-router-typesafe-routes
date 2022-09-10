@@ -43,14 +43,16 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
     getPlainParams: (params: InParams<TPath, TPathTypes>) => Record<string, string | undefined>;
     getPlainSearchParams: (params: InSearchParams<TSearchTypes>) => Record<string, string | string[]>;
     getTypedParams: (params: Record<string, string | undefined>) => OutParams<TPath, TPathTypes>;
-    getTypedSearchParams: (searchParams: URLSearchParamsLike) => OutSearchParams<TSearchTypes>;
+    getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSearchTypes>;
+    getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     getTypedHash: (hash: string) => THash[number] | undefined;
     getTypedState: (state: unknown) => OutStateParams<TStateTypes>;
+    getUntypedState: (state: unknown) => Record<string, unknown>;
     buildPath: (params: InParams<TPath, TPathTypes>) => string;
     buildRelativePath: (params: InParams<TPath, TPathTypes>) => string;
     buildSearch: (params: InSearchParams<TSearchTypes>) => string;
     buildHash: (hash: THash[number]) => string;
-    buildState: (state: InStateParams<TStateTypes>) => unknown;
+    buildState: (state: InStateParams<TStateTypes>) => Record<string, unknown>;
     buildUrl: (
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
@@ -63,11 +65,6 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
     ) => string;
     __options__: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>;
     __path__: TPath;
-}
-
-interface URLSearchParamsLike {
-    get(key: string): string | null;
-    getAll(key: string): string[];
 }
 
 type InParams<TPath extends string, TPathTypes> = PartialByKey<
@@ -127,7 +124,7 @@ interface RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes> {
 }
 
 interface CreateRouteOptions {
-    createSearchParams: (init?: Record<string, string | string[]>) => URLSearchParamsLike;
+    createSearchParams: (init?: Record<string, string | string[]> | URLSearchParams) => URLSearchParams;
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
@@ -270,12 +267,40 @@ function getRoute<
         return getTypedParamsByTypes(keys, params, options.params);
     }
 
-    function getTypedSearchParams(params: URLSearchParamsLike) {
+    function getTypedSearchParams(params: URLSearchParams) {
         return getTypedSearchParamsByTypes(params, options.searchParams);
+    }
+
+    function getUntypedSearchParams(params: URLSearchParams) {
+        const result = creatorOptions.createSearchParams(params);
+
+        if (!options.searchParams) return result;
+
+        Object.keys(options.searchParams).forEach((key) => {
+            result.delete(key);
+        });
+
+        return result;
     }
 
     function getTypedState(state: unknown) {
         return getTypedStateByTypes(state, options.state);
+    }
+
+    function getUntypedState(state: unknown) {
+        const result: Record<string, unknown> = {};
+
+        if (!isRecord(state)) return result;
+
+        const typedKeys = options.state ? Object.keys(options.state) : [];
+
+        Object.keys(state).forEach((key) => {
+            if (typedKeys.indexOf(key) === -1) {
+                result[key] = state[key];
+            }
+        });
+
+        return result;
     }
 
     function getTypedHash(hash: string) {
@@ -294,8 +319,10 @@ function getRoute<
         buildState,
         getTypedParams,
         getTypedSearchParams,
+        getUntypedSearchParams,
         getTypedHash,
         getTypedState,
+        getUntypedState,
         getPlainParams,
         getPlainSearchParams,
         __path__: path,
@@ -390,7 +417,7 @@ function getTypedParamsByTypes<TKey extends string, TPathTypes extends Partial<R
 }
 
 function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string, Type<unknown, string | string[]>>>>(
-    searchParams: URLSearchParamsLike,
+    searchParams: URLSearchParams,
     types?: TSearchTypes
 ): OutSearchParams<TSearchTypes> {
     const result: Record<string, unknown> = {};

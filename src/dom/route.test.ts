@@ -557,11 +557,23 @@ it("allows search params parsing", () => {
         IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>, { foo: number; arr?: number[] }>
     >(true);
 
-    const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo" });
+    const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo", untyped: "untyped" });
 
     expect(TEST_ROUTE.getTypedSearchParams(testSearchParams)).toEqual({});
     expect(TEST_ROUTE.CHILD.getTypedSearchParams(testSearchParams)).toEqual({ arr: [1, 2], foo: "foo" });
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams(testSearchParams)).toEqual({ arr: [1, 2], foo: 0 });
+
+    expect(TEST_ROUTE.getUntypedSearchParams(testSearchParams).getAll("arr")).toEqual(["1", "2"]);
+    expect(TEST_ROUTE.CHILD.getUntypedSearchParams(testSearchParams).getAll("arr")).toEqual([]);
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getUntypedSearchParams(testSearchParams).getAll("arr")).toEqual([]);
+
+    expect(TEST_ROUTE.getUntypedSearchParams(testSearchParams).get("foo")).toEqual("foo");
+    expect(TEST_ROUTE.CHILD.getUntypedSearchParams(testSearchParams).get("foo")).toEqual(null);
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getUntypedSearchParams(testSearchParams).get("foo")).toEqual(null);
+
+    expect(TEST_ROUTE.getUntypedSearchParams(testSearchParams).get("untyped")).toEqual("untyped");
+    expect(TEST_ROUTE.CHILD.getUntypedSearchParams(testSearchParams).get("untyped")).toEqual("untyped");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getUntypedSearchParams(testSearchParams).get("untyped")).toEqual("untyped");
 });
 
 it("allows hash parsing", () => {
@@ -609,9 +621,13 @@ it("allows state params parsing", () => {
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildState>[0], { foo?: string }>>(true);
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildState>[0], { foo?: string; bar?: number }>>(true);
 
-    const state = { foo: "test", bar: "1" };
+    const state = { foo: "test", bar: "1", untyped: "untyped" };
 
     expect(TEST_ROUTE.getTypedState(state)).toEqual({});
     expect(TEST_ROUTE.CHILD.getTypedState(state)).toEqual({ foo: "test" });
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedState(state)).toEqual({ foo: "test", bar: 1 });
+
+    expect(TEST_ROUTE.getUntypedState(state)).toEqual({ foo: "test", bar: "1", untyped: "untyped" });
+    expect(TEST_ROUTE.CHILD.getUntypedState(state)).toEqual({ bar: "1", untyped: "untyped" });
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getUntypedState(state)).toEqual({ untyped: "untyped" });
 });

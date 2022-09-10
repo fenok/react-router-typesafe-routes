@@ -2,3 +2,4 @@ common
 dom
 native
 !src/*
+update-changelog.js
