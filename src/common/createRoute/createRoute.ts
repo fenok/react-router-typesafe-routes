@@ -1,4 +1,11 @@
-import { Type, OriginalParams, RetrievedParams, KeysWithFallback } from "../types/index.js";
+import {
+    Type,
+    OriginalParams,
+    RetrievedParams,
+    KeysWithFallback,
+    throwable,
+    ThrowableFallback,
+} from "../types/index.js";
 
 type RouteWithChildren<
     TChildren,
@@ -399,7 +406,11 @@ function getTypedParamsByTypes<TKey extends string, TPathTypes extends Partial<R
         if (type) {
             try {
                 result[key] = type.getTyped(pathParams[key]);
-            } catch {
+            } catch (error) {
+                if (isThrowableError(error)) {
+                    throw error[0];
+                }
+
                 result[key] = undefined;
             }
         } else {
@@ -429,7 +440,11 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
             if (type) {
                 try {
                     result[key] = type.getTyped(type.isArray ? searchParams.getAll(key) : searchParams.get(key));
-                } catch {
+                } catch (error) {
+                    if (isThrowableError(error)) {
+                        throw error[0];
+                    }
+
                     result[key] = undefined;
                 }
             }
@@ -462,7 +477,11 @@ function getTypedStateByTypes<TStateTypes extends Partial<Record<string, Type<un
             if (type) {
                 try {
                     result[key] = type.getTyped(state[key]);
-                } catch {
+                } catch (error) {
+                    if (isThrowableError(error)) {
+                        throw error[0];
+                    }
+
                     result[key] = undefined;
                 }
             }
@@ -516,6 +535,10 @@ function isRoute(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value && typeof value === "object");
+}
+
+function isThrowableError(error: unknown): error is [unknown, ThrowableFallback] {
+    return Array.isArray(error) && error[1] === throwable;
 }
 
 export {

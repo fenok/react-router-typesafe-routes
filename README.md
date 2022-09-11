@@ -23,14 +23,13 @@ The library is distributed as an ES module written in ES6.
 -   Mess with react-router API as little as possible.
 -   No unsafe type casts.
 -   Extensibility to allow better typing and/or validation.
--   Completeness: cover every aspect of the URL.
+-   Completeness: cover all route params.
 
 ## Limitations
 
 -   To make params merging possible, state has to be an object, and hash has to be one of the predefined strings (or any string).
 -   Since react-router only considers path on routes matching, search parameters, state fields, and hash are considered optional upon URL or state building.
--   Since react-router doesn't support any kind of param validation, **explicitly typed** parameters (or state fields) are `undefined` in case of a parsing error (or parameter absence) upon URL or state parsing (though fallbacks can be used to prevent `undefined` values). Implicitly typed path parameters are never `undefined`, because they are returned as-is (and parameter absence leads to an error).
--   There are no fallbacks for hash, because they don't seem to be necessary.
+-   Hash is always considered optional upon URL parsing.
 
 ## How is it different from existing solutions?
 
@@ -225,36 +224,15 @@ If parsing fails (including the case when the corresponding parameter is absent)
 const ROUTE = route("my/route", { searchParams: { param: numberType(100) } });
 ```
 
+You can also specify `throwable` as a fallback, in which case, instead of returning `undefined`, the original error will be thrown (this is mostly suitable for path params):
+
+```typescript
+import { throwable } from "react-router-typesafe-routes/dom"; // Or /native
+
+const ROUTE = route("route/:id", { params: { id: numberType(throwable) } });
+```
+
 There are no fallbacks for hash, though.
-
-#### Throwing instead of returning undefined
-
-Returning `undefined` for invalid or absent params provides flexibility, but sometimes throwing is preferable instead, especially for path params. In the future, the library may provide an option for that, but for now you can do it in the userland.
-
-You can assert individual params:
-
-```typescript
-function assertIsRequired<T>(value: T | undefined): asserts value is T {
-    if (value === undefined) throw new Error("Unexpected undefined");
-}
-
-// In some component
-const { id } = useTypedParams(MY_ROUTE);
-assertIsRequired(id); // After this line TS knows that id is not undefined
-```
-
-Or you can assert the whole object:
-
-```typescript
-function required<T extends Record<string, unknown>>(obj: T): Required<T> {
-    if (Object.values(obj).includes(undefined)) throw new Error("Unexpected undefined");
-
-    return obj as Required<T>;
-}
-
-// In some component
-const { id } = required(useTypedParams(MY_ROUTE)); // TS knows that id is not undefined
-```
 
 #### Path params
 
@@ -327,7 +305,7 @@ Hash values are combined. If a parent allows any `string` to be a hash value, it
 
 ### `route()`
 
-A route is defined via the `route()` helper. It accepts required `path` and `options`, and optional `children`. All `options` are optional.
+A route is defined via the `route()` helper. It accepts required `path` and optional `options` and `children`. All `options` are optional.
 
 ```typescript
 const ROUTE = route(
@@ -396,7 +374,7 @@ interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
 
 -   `getPlain()` transforms the given value from `TOriginal` into `TPlain`.
 
--   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlain()` (it may be absent or invalid). Note that the library catches this error and returns `undefined` instead.
+-   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlain()` (it may be absent or invalid). Note that, by default, the library catches this error and returns `undefined` instead.
 
 -   `isArray` is a helper flag specific for `URLSearchParams`, so we know when to `.get()` and when to `.getAll()`.
 
@@ -406,11 +384,15 @@ All built-in types are created via this helper.
 
 The `hashValues()` helper types the hash part of the URL. See ["How typing works - Hash"](#hash).
 
-### `useTypedParams()`
+### Hooks
+
+All hooks are designed in such a way that they can be reimplemented in the userland. If something isn't working for you, you can get yourself unstuck by creating your own hooks.
+
+#### `useTypedParams()`
 
 The `useTypedParams()` hook is a thin wrapper around react-router `useParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
 
-### `useTypedSearchParams()`
+#### `useTypedSearchParams()`
 
 The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around react-router `useSearchParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
 
@@ -419,12 +401,12 @@ Notable differences:
 -   `setTypedSearchParams()` can also accept a callback, which will be called with the current typed search params.
 -   `setTypedSearchParams()` has an additional `preserveUntyped` option. If `true`, existing untyped (by the given route) search parameters will remain intact. Note that this option has no effect on the `state` option. That is, there is no way to preserve untyped state fields.
 
-> In the future, the library may provide the same improvements for state. For now, it can be implemented in the userland in the form of a custom hook.
+> In the future, the library may provide the same improvements for state. For now, this can be implemented in the userland in the form of a custom hook.
 
-### `useTypedHash()`
+#### `useTypedHash()`
 
 The `useTypedHash()` hook is a thin wrapper around react-router `useLocation()`. It accepts a route object as the first parameter and returns a typed hash.
 
-### `useTypedState()`
+#### `useTypedState()`
 
 The `useTypedState()` hook is a thin wrapper around react-router `useLocation()`. It accepts a route object as the first parameter and returns a typed state.
