@@ -384,11 +384,15 @@ All built-in types are created via this helper.
 
 The `hashValues()` helper types the hash part of the URL. See ["How typing works - Hash"](#hash).
 
-### `useTypedParams()`
+### Hooks
+
+All hooks are designed in such a way that they can be reimplemented in the userland. If something isn't working for you, you can get yourself unstuck by creating your own hooks.
+
+#### `useTypedParams()`
 
 The `useTypedParams()` hook is a thin wrapper around react-router `useParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
 
-### `useTypedSearchParams()`
+#### `useTypedSearchParams()`
 
 The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around react-router `useSearchParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
 
@@ -399,10 +403,10 @@ Notable differences:
 
 > In the future, the library may provide the same improvements for state. For now, it can be implemented in the userland in the form of a custom hook.
 
-### `useTypedHash()`
+#### `useTypedHash()`
 
 The `useTypedHash()` hook is a thin wrapper around react-router `useLocation()`. It accepts a route object as the first parameter and returns a typed hash.
 
-### `useTypedState()`
+#### `useTypedState()`
 
 The `useTypedState()` hook is a thin wrapper around react-router `useLocation()`. It accepts a route object as the first parameter and returns a typed state.
