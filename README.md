@@ -23,7 +23,7 @@ The library is distributed as an ES module written in ES6.
 -   Mess with react-router API as little as possible.
 -   No unsafe type casts.
 -   Extensibility to allow better typing and/or validation.
--   Completeness: cover every aspect of the URL.
+-   Completeness: cover all route params.
 
 ## Limitations
 
