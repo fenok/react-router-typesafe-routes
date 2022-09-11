@@ -26,4 +26,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Prevent access to internal `useUpdatingRef` helper.
 
 [unreleased]: https://github.com/fenok/react-router-typesafe-routes/tree/dev
-[0.4.2]: https://github.com/fenok/react-router-typesafe-routes/tree/0.4.2
+[0.4.2]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.4.2
