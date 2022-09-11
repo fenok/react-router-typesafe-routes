@@ -305,7 +305,7 @@ Hash values are combined. If a parent allows any `string` to be a hash value, it
 
 ### `route()`
 
-A route is defined via the `route()` helper. It accepts required `path` and `options`, and optional `children`. All `options` are optional.
+A route is defined via the `route()` helper. It accepts required `path` and optional `options` and `children`. All `options` are optional.
 
 ```typescript
 const ROUTE = route(
