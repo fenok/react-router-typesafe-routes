@@ -5,8 +5,10 @@ interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
 }
 
 interface CallableType<TOriginal, TPlain = string, TRetrieved = TOriginal> extends Type<TOriginal, TPlain, TRetrieved> {
-    (fallback: TRetrieved): Type<TOriginal, TPlain, TRetrieved> & { __brand: "withFallback" };
+    (fallback: TRetrieved | ThrowableFallback): Type<TOriginal, TPlain, TRetrieved> & { __brand: "withFallback" };
 }
+
+type ThrowableFallback = { __brand: "throwable" };
 
 type OriginalParams<TTypes> = Params<TTypes, true>;
 type RetrievedParams<TTypes> = Params<TTypes>;
@@ -27,4 +29,4 @@ type TypeValue<T, TUseOriginal extends boolean> = T extends Type<infer TOriginal
         : TRetrieved
     : never;
 
-export { Type, CallableType, OriginalParams, RetrievedParams, KeysWithFallback };
+export { Type, CallableType, OriginalParams, RetrievedParams, KeysWithFallback, ThrowableFallback };
