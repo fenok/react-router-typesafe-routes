@@ -305,7 +305,7 @@ Hash values are combined. If a parent allows any `string` to be a hash value, it
 
 ### `route()`
 
-A route is defined via the `route()` helper. It accepts required `path` and optional `options` and `children`. All `options` are optional.
+A route is defined via the `route()` helper. It accepts required `path` and optional `types` and `children`. All `types` fields are optional.
 
 ```typescript
 const ROUTE = route(
@@ -327,7 +327,7 @@ The `path` argument is what you would put to the `path` property of a `<Route/>`
 -   **end** with a star (`'product/:id/*'`, `'*'`)
 -   be an empty string (`''`).
 
-The `options` argument specifies types of the route. See ["How typing works"](#how-typing-works).
+The `types` argument specifies types of the route. See ["How typing works"](#how-typing-works).
 
 The `children` argument specifies child routes of the route. See ["How nesting works"](#how-nesting-works).
 
@@ -340,6 +340,7 @@ The `route()` helper returns a route object, which has the following fields:
 -   `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from react-router primitives. Untyped params are omitted.
 -   `getUntypedSearchParams()` and `getUntypedState()` for retrieving untyped params from react-router primitives. Typed params are omitted. Note that all path params are inherently typed, as well as hash.
 -   `getPlainParams()` and `getPlainSearchParams()` for building react-router primitives from typed params. Note how hash and state don't need these functions, because `buildHash()` and `buildState()` can be used instead.
+-   `types`, which contains original _types_, specified for that route. Can be used for sharing _types_ with other routes.
 -   `$`, which contains original routes, specified as child routes of that route. These routes are unaffected by the parent route.
 -   Any number of child routes in CONSTANT_CASE or PascalCase.
 
