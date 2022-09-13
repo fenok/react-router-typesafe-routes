@@ -51,9 +51,9 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
     getPlainSearchParams: (params: InSearchParams<TSearchTypes>) => Record<string, string | string[]>;
     getTypedParams: (params: Record<string, string | undefined>) => OutParams<TPath, TPathTypes>;
     getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSearchTypes>;
-    getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     getTypedHash: (hash: string) => THash[number] | undefined;
     getTypedState: (state: unknown) => OutStateParams<TStateTypes>;
+    getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     getUntypedState: (state: unknown) => Record<string, unknown>;
     buildPath: (params: InParams<TPath, TPathTypes>) => string;
     buildRelativePath: (params: InParams<TPath, TPathTypes>) => string;
@@ -326,14 +326,14 @@ function getRoute<
         buildState,
         getTypedParams,
         getTypedSearchParams,
-        getUntypedSearchParams,
         getTypedHash,
         getTypedState,
+        getUntypedSearchParams,
         getUntypedState,
         getPlainParams,
         getPlainSearchParams,
-        __path__: path,
         types: types,
+        __path__: path,
     };
 }
 
