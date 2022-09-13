@@ -338,7 +338,7 @@ The `route()` helper returns a route object, which has the following fields:
 -   `buildState()` for building typed states, which can be passed to e.g. the `state` prop of react-router `<Link />`.
 -   `buildPath()`, `buildRelativePath()`, `buildSearch()`, and `buildHash()` for building parametrized URL parts. They can be used (in conjunction with `buildState()`) to e.g. build a parametrized `Location` object.
 -   `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from react-router primitives. Untyped params are omitted.
--   `getUntypedSearchParams()` and `getUntypedState()` for retrieving untyped params from react-router primitives. Typed params are omitted. Note that all path params are inherently typed, as well as hash.
+-   `getUntypedSearchParams()` and `getUntypedState()` for retrieving untyped params from react-router primitives. Typed params are omitted. Note that hash is always typed, and there doesn't seem to be a use-case for untyped path params.
 -   `getPlainParams()` and `getPlainSearchParams()` for building react-router primitives from typed params. Note how hash and state don't need these functions, because `buildHash()` and `buildState()` can be used instead.
 -   `types`, which contains _types_ of the route, including parent types, if any. Can be used for sharing _types_ with other routes.
 -   `$`, which contains original child routes. These routes are unaffected by the parent route.
