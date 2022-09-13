@@ -70,7 +70,7 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
         searchParams?: InSearchParams<TSearchTypes>,
         hash?: THash[number]
     ) => string;
-    __options__: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>;
+    types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>;
     __path__: TPath;
 }
 
@@ -123,20 +123,20 @@ type ExtractRouteParams<TPath extends string> = string extends TPath
     ? "*"
     : never;
 
-interface RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes> {
+interface RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes> {
     params?: TPathTypes;
     searchParams?: TSearchTypes;
     hash?: THash;
     state?: TStateTypes;
 }
 
-interface CreateRouteOptions {
+interface RouteOptions {
     createSearchParams: (init?: Record<string, string | string[]> | URLSearchParams) => URLSearchParams;
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
 const createRoute =
-    (creatorOptions: CreateRouteOptions) =>
+    (creatorOptions: RouteOptions) =>
     <
         TChildren = void,
         TPath extends string = string,
@@ -148,14 +148,14 @@ const createRoute =
         /* eslint-enable */
     >(
         path: SanitizedPath<TPath>,
-        options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes> = {},
+        types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes> = {},
         children?: SanitizedChildren<TChildren>
     ): RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> => {
-        const decoratedChildren = decorateChildren(path, options, creatorOptions, children);
+        const decoratedChildren = decorateChildren(path, types, creatorOptions, children);
 
         return {
             ...decoratedChildren,
-            ...getRoute(path, options, creatorOptions),
+            ...getRoute(path, types, creatorOptions),
             $: children,
         } as RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes>;
     };
@@ -169,8 +169,8 @@ function decorateChildren<
     TChildren
 >(
     path: SanitizedPath<TPath>,
-    options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>,
-    creatorOptions: CreateRouteOptions,
+    types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>,
+    creatorOptions: RouteOptions,
     children?: TChildren
 ): DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
     const result: Record<string, unknown> = {};
@@ -181,19 +181,19 @@ function decorateChildren<
 
             result[key] = isRoute(value)
                 ? {
-                      ...decorateChildren(path, options, creatorOptions, value),
+                      ...decorateChildren(path, types, creatorOptions, value),
                       ...getRoute(
                           path === "" ? value.__path__ : value.__path__ === "" ? path : `${path}/${value.__path__}`,
                           {
-                              params: { ...options.params, ...value.__options__.params },
+                              params: { ...types.params, ...value.types.params },
                               searchParams: {
-                                  ...options.searchParams,
-                                  ...value.__options__.searchParams,
+                                  ...types.searchParams,
+                                  ...value.types.searchParams,
                               },
-                              hash: mergeHashValues(options.hash, value.__options__.hash),
+                              hash: mergeHashValues(types.hash, value.types.hash),
                               state: {
-                                  ...options.state,
-                                  ...value.__options__.state,
+                                  ...types.state,
+                                  ...value.types.state,
                               },
                           },
                           creatorOptions
@@ -216,18 +216,18 @@ function getRoute<
     /* eslint-enable */
 >(
     path: SanitizedPath<TPath>,
-    options: RouteOptions<TPathTypes, TSearchTypes, THash, TStateTypes>,
-    creatorOptions: CreateRouteOptions
+    types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>,
+    creatorOptions: RouteOptions
 ): Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
     const keys = getKeys(path);
     const relativePath = removeIntermediateStars(path);
 
     function getPlainParams(params: InParams<TPath, TPathTypes>) {
-        return getPlainParamsByTypes(keys, params, options.params);
+        return getPlainParamsByTypes(keys, params, types.params);
     }
 
     function getPlainSearchParams(params: InSearchParams<TSearchTypes>) {
-        return getPlainSearchParamsByTypes(params, options.searchParams);
+        return getPlainSearchParamsByTypes(params, types.searchParams);
     }
 
     function buildRelativePath(params: InParams<TPath, TPathTypes>) {
@@ -249,7 +249,7 @@ function getRoute<
     }
 
     function buildState(params: InStateParams<TStateTypes>) {
-        return getPlainStateParamsByTypes(params, options.state);
+        return getPlainStateParamsByTypes(params, types.state);
     }
 
     function buildRelativeUrl(
@@ -271,19 +271,19 @@ function getRoute<
     }
 
     function getTypedParams(params: Record<string, string | undefined>) {
-        return getTypedParamsByTypes(keys, params, options.params);
+        return getTypedParamsByTypes(keys, params, types.params);
     }
 
     function getTypedSearchParams(params: URLSearchParams) {
-        return getTypedSearchParamsByTypes(params, options.searchParams);
+        return getTypedSearchParamsByTypes(params, types.searchParams);
     }
 
     function getUntypedSearchParams(params: URLSearchParams) {
         const result = creatorOptions.createSearchParams(params);
 
-        if (!options.searchParams) return result;
+        if (!types.searchParams) return result;
 
-        Object.keys(options.searchParams).forEach((key) => {
+        Object.keys(types.searchParams).forEach((key) => {
             result.delete(key);
         });
 
@@ -291,7 +291,7 @@ function getRoute<
     }
 
     function getTypedState(state: unknown) {
-        return getTypedStateByTypes(state, options.state);
+        return getTypedStateByTypes(state, types.state);
     }
 
     function getUntypedState(state: unknown) {
@@ -299,7 +299,7 @@ function getRoute<
 
         if (!isRecord(state)) return result;
 
-        const typedKeys = options.state ? Object.keys(options.state) : [];
+        const typedKeys = types.state ? Object.keys(types.state) : [];
 
         Object.keys(state).forEach((key) => {
             if (typedKeys.indexOf(key) === -1) {
@@ -311,7 +311,7 @@ function getRoute<
     }
 
     function getTypedHash(hash: string) {
-        return getTypedHashByValues(hash, options.hash);
+        return getTypedHashByValues(hash, types.hash);
     }
 
     return {
@@ -333,7 +333,7 @@ function getRoute<
         getPlainParams,
         getPlainSearchParams,
         __path__: path,
-        __options__: options,
+        types: types,
     };
 }
 
@@ -530,7 +530,7 @@ function isRoute(
     string[],
     Record<never, never>
 > {
-    return Boolean(value && typeof value === "object" && "__options__" in value && "__path__" in value);
+    return Boolean(value && typeof value === "object" && "types" in value && "__path__" in value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -543,8 +543,8 @@ function isThrowableError(error: unknown): error is [unknown, ThrowableFallback]
 
 export {
     createRoute,
-    CreateRouteOptions,
     RouteOptions,
+    RouteTypes,
     Route,
     RouteWithChildren,
     DecoratedChildren,
