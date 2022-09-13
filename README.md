@@ -340,8 +340,8 @@ The `route()` helper returns a route object, which has the following fields:
 -   `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from react-router primitives. Untyped params are omitted.
 -   `getUntypedSearchParams()` and `getUntypedState()` for retrieving untyped params from react-router primitives. Typed params are omitted. Note that all path params are inherently typed, as well as hash.
 -   `getPlainParams()` and `getPlainSearchParams()` for building react-router primitives from typed params. Note how hash and state don't need these functions, because `buildHash()` and `buildState()` can be used instead.
--   `types`, which contains original _types_, specified for that route. Can be used for sharing _types_ with other routes.
--   `$`, which contains original routes, specified as child routes of that route. These routes are unaffected by the parent route.
+-   `types`, which contains _types_ of the route, including parent types, if any. Can be used for sharing _types_ with other routes.
+-   `$`, which contains original child routes. These routes are unaffected by the parent route.
 -   Any number of child routes in CONSTANT_CASE or PascalCase.
 
 There are also some internal fields prefixed with `__`.
