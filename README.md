@@ -159,7 +159,7 @@ That is, the `$` property of every route contains original routes, specified as 
 
 It's important to understand that `DETAILS` and `PRODUCT.DETAILS` are separate routes, which may behave differently during parsing or building URLs. `DETAILS` doesn't know anything about `PRODUCT`, but `PRODUCT.DETAILS` does. `DETAILS` is a standalone route, but `PRODUCT.DETAILS` is a child of `PRODUCT`.
 
-> Child routes has to be in CONSTANT_CASE or PascalCase to prevent overlapping with other route fields.
+> Child routes have to be in CONSTANT_CASE or PascalCase to prevent overlapping with other route fields.
 
 These child routes correspond to child routes in react-router:
 
