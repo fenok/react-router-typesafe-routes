@@ -33,7 +33,7 @@
         "native/"
     ],
     "engines": {
-        "node": "^16.14.2"
+        "node": ">=14"
     },
     "scripts": {
         "format": "prettier --write --ignore-unknown .",
