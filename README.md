@@ -226,6 +226,8 @@ If parsing fails (including the case when the corresponding parameter is absent)
 const ROUTE = route("my/route", { searchParams: { param: numberType(100) } });
 ```
 
+This fallback is not returned directly. Instead, it is run through the _type_ to ensure its validity, so the resulting _type_ is guaranteed to have a valid fallback. If the fallback is invalid, the corresponsing error will be thrown.
+
 You can also specify `throwable` as a fallback, in which case, instead of returning `undefined`, the original error will be thrown (this is mostly suitable for path params):
 
 ```typescript

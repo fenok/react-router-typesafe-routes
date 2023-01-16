@@ -5,7 +5,7 @@ interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
 }
 
 interface CallableType<TOriginal, TPlain = string, TRetrieved = TOriginal> extends Type<TOriginal, TPlain, TRetrieved> {
-    (fallback: TRetrieved | ThrowableFallback): Type<TOriginal, TPlain, TRetrieved> & { __brand: "withFallback" };
+    (fallback: TOriginal | ThrowableFallback): Type<TOriginal, TPlain, TRetrieved> & { __brand: "withFallback" };
 }
 
 type ThrowableFallback = { __brand: "throwable" };

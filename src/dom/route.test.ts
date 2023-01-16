@@ -1,6 +1,6 @@
 import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
-import { numberType, booleanType, arrayOfType, stringType, hashValues, throwable } from "../common/index.js";
+import { numberType, booleanType, arrayOfType, stringType, hashValues, throwable, dateType } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("provides absolute path", () => {
@@ -698,4 +698,8 @@ it("throws if throwable state params are invalid", () => {
     expect(TEST_ROUTE.getTypedState(state)).toEqual({});
     expect(TEST_ROUTE.CHILD.getTypedState(state)).toEqual({ foo: "test" });
     expect(() => TEST_ROUTE.CHILD.GRANDCHILD.getTypedState(state)).toThrow();
+});
+
+it("throws upon specifying an invalid fallback", () => {
+    expect(() => route("", { searchParams: { id: dateType(new Date("foo")) } })).toThrow();
 });
