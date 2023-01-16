@@ -7,21 +7,25 @@ export function createType<TOriginal, TPlain = string, TRetrieved = TOriginal>({
     getTyped,
     isArray,
 }: Type<TOriginal, TPlain, TRetrieved>): CallableType<TOriginal, TPlain, TRetrieved> {
-    const getType = (fallback: TRetrieved | ThrowableFallback) => ({
-        getPlain: getPlain,
-        getTyped: (plainValue: unknown) => {
-            try {
-                return getTyped(plainValue);
-            } catch (error) {
-                if (fallback !== throwable) {
-                    return fallback;
-                }
+    const getType = (fallback: TOriginal | ThrowableFallback) => {
+        const validFallback = fallback !== throwable ? getTyped(getPlain(fallback as TOriginal)) : fallback;
 
-                throw [error, throwable];
-            }
-        },
-        isArray,
-    });
+        return {
+            getPlain: getPlain,
+            getTyped: (plainValue: unknown) => {
+                try {
+                    return getTyped(plainValue);
+                } catch (error) {
+                    if (validFallback !== throwable) {
+                        return validFallback;
+                    }
+
+                    throw [error, throwable];
+                }
+            },
+            isArray,
+        };
+    };
 
     return Object.assign(getType, { getPlain, getTyped, isArray }) as CallableType<TOriginal, TPlain, TRetrieved>;
 }

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+-   Fallbacks are now run through type functions to ensure fallbacks validity, and therefore `TRetrieved` was replaced with `TOriginal` in their type. This is technically a breaking change, but it only affects custom types where `TRetrieved` is not assignable to `TOriginal`, which should be extremely rare.
+
 ## [0.5.1] - 2022-12-14
 
 ### Added
@@ -23,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
--   Renamed `CreateRouteOptions` and `RouteOptions` into `RouteOptions` and `RouteTypes` respectively.
+-   Rename `CreateRouteOptions` and `RouteOptions` into `RouteOptions` and `RouteTypes` respectively.
 
 ## [0.4.3] - 2022-09-11
 
@@ -45,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Hook dependencies are now properly listed, which is checked by ESLint. This fixes `useTypedSearchParams` for dynamic routes.
 -   Prevent access to internal `useUpdatingRef` helper.
 
+[unreleased]: https://github.com/fenok/react-router-typesafe-routes/tree/dev
 [0.5.1]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.5.1
 [0.5.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.5.0
 [0.4.3]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.4.3
