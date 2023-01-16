@@ -345,15 +345,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.7.6":
-  version: 7.18.0
-  resolution: "@babel/runtime@npm:7.18.0"
-  dependencies:
-    regenerator-runtime: ^0.13.4
-  checksum: 9d0caa5fe690623fb6c5df6fb3b3581d227b55ef9f7c35eba0da83d10aa756669a81fe521ac4dbc007e5790716bac40ebe71ff098e2d1a9599dd696a282a3e95
-  languageName: node
-  linkType: hard
-
 "@babel/template@npm:^7.16.7, @babel/template@npm:^7.3.3":
   version: 7.16.7
   resolution: "@babel/template@npm:7.16.7"
@@ -788,6 +779,13 @@ __metadata:
     mkdirp: ^1.0.4
     rimraf: ^3.0.2
   checksum: 1388777b507b0c592d53f41b9d182e1a8de7763bc625fc07999b8edbc22325f074e5b3ec90af79c89d6987fdb2325bc66d59f483258543c14a43661621f841b0
+  languageName: node
+  linkType: hard
+
+"@remix-run/router@npm:1.3.0":
+  version: 1.3.0
+  resolution: "@remix-run/router@npm:1.3.0"
+  checksum: 5141e9703d29cd29334ccb9e5f22ee6973bf121574e06509489b7623a12549bd188cfc322eac1263f913353087f132a641579280e94558f346adc2b0b65080d0
   languageName: node
   linkType: hard
 
@@ -2564,15 +2562,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"history@npm:^5.2.0":
-  version: 5.3.0
-  resolution: "history@npm:5.3.0"
-  dependencies:
-    "@babel/runtime": ^7.7.6
-  checksum: d73c35df49d19ac172f9547d30a21a26793e83f16a78386d99583b5bf1429cc980799fcf1827eb215d31816a6600684fba9686ce78104e23bd89ec239e7c726f
-  languageName: node
-  linkType: hard
-
 "html-escaper@npm:^2.0.0":
   version: 2.0.2
   resolution: "html-escaper@npm:2.0.2"
@@ -4188,30 +4177,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^6.3.0":
-  version: 6.3.0
-  resolution: "react-router-dom@npm:6.3.0"
+"react-router-dom@npm:^6.7.0":
+  version: 6.7.0
+  resolution: "react-router-dom@npm:6.7.0"
   dependencies:
-    history: ^5.2.0
-    react-router: 6.3.0
+    "@remix-run/router": 1.3.0
+    react-router: 6.7.0
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 77603a654f8a8dc7f65535a2e5917a65f8d9ffcb06546d28dd297e52adcc4b8a84377e0115f48dca330b080af2da3e78f29d590c89307094d36927d2b1751ec3
+  checksum: b5175b0c0560a45ee5b1f924af038b48bb29711839cbe65e2859a299f74740598bd90db438e205517b9568e7c5e6e6cb22fe1554f9763d60f6e347a8883940f9
   languageName: node
   linkType: hard
 
-"react-router-native@npm:^6.3.0":
-  version: 6.3.0
-  resolution: "react-router-native@npm:6.3.0"
+"react-router-native@npm:^6.7.0":
+  version: 6.7.0
+  resolution: "react-router-native@npm:6.7.0"
   dependencies:
     "@ungap/url-search-params": ^0.1.4
-    history: ^5.2.0
-    react-router: 6.3.0
+    react-router: 6.7.0
   peerDependencies:
     react: ">=16.8"
     react-native: ">=0.44"
-  checksum: 5f27b6f20db273e8759573fec7a44304fad7136e2c89b0273b47c0fecdcf547756e94d6bd51c1f25f04109892f800271b179f4d48f6ab3924756a00c92d8fc21
+  checksum: 6e4db024f8a85b81f3c56925e0615c9e93824cc778fba36826b31243dec855325327d8ebd802fd5571e16c67bbb438985d8d839da3ed87966553228f1582ad03
   languageName: node
   linkType: hard
 
@@ -4231,15 +4219,15 @@ __metadata:
     jest: ^28.1.0
     prettier: ^2.6.2
     react: ">=16.8"
-    react-router-dom: ^6.3.0
-    react-router-native: ^6.3.0
+    react-router-dom: ^6.7.0
+    react-router-native: ^6.7.0
     rimraf: ^3.0.2
     ts-jest: ^28.0.2
     typescript: ^4.6.4
   peerDependencies:
     react: ">=16.8"
-    react-router-dom: ^6.3.0
-    react-router-native: ^6.3.0
+    react-router-dom: ^6.7.0
+    react-router-native: ^6.7.0
   peerDependenciesMeta:
     react-router-dom:
       optional: true
@@ -4248,14 +4236,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"react-router@npm:6.3.0":
-  version: 6.3.0
-  resolution: "react-router@npm:6.3.0"
+"react-router@npm:6.7.0":
+  version: 6.7.0
+  resolution: "react-router@npm:6.7.0"
   dependencies:
-    history: ^5.2.0
+    "@remix-run/router": 1.3.0
   peerDependencies:
     react: ">=16.8"
-  checksum: 7be673f5e72104be01e6ab274516bdb932efd93305243170690f6560e3bd1035dd1df3d3c9ce1e0f452638a2529f43a1e77dcf0934fc8031c4783da657be13ca
+  checksum: 6dda5f084e04355c8deacb631fcd8472f3590dbd54d19175401aa1ed6bc6a2a244cd4d70cdb4fc81d2d800d75923461189e9e6a853c1838af78eff3021e4efbe
   languageName: node
   linkType: hard
 
@@ -4276,13 +4264,6 @@ __metadata:
     string_decoder: ^1.1.1
     util-deprecate: ^1.0.1
   checksum: d4ea81502d3799439bb955a3a5d1d808592cf3133350ed352aeaa499647858b27b1c4013984900238b0873ec8d0d8defce72469fb7a83e61d53f5ad61cb80dc8
-  languageName: node
-  linkType: hard
-
-"regenerator-runtime@npm:^0.13.4":
-  version: 0.13.9
-  resolution: "regenerator-runtime@npm:0.13.9"
-  checksum: 65ed455fe5afd799e2897baf691ca21c2772e1a969d19bb0c4695757c2d96249eb74ee3553ea34a91062b2a676beedf630b4c1551cc6299afb937be1426ec55e
   languageName: node
   linkType: hard
 
