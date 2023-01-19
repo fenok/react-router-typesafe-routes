@@ -121,7 +121,7 @@ import { ROUTES } from "./path/to/routes";
     // Search params: { infoVisible?: boolean }.
     // State fields: { fromUserList?: boolean }.
     // Hash: "info" | "comments" | undefined
-    to={ROUTES.USER.DETAILS.buildUrl({ id: 1, lang: "en" }, { infoVisible: true }, "info")}
+    to={ROUTES.USER.DETAILS.buildPath({ id: 1, lang: "en" }, { infoVisible: true }, "info")}
     state={ROUTES.USER.DETAILS.buildState({ fromUserList: true })}
 >
     /user/1/details/en?infoVisible=true#info
@@ -131,7 +131,7 @@ import { ROUTES } from "./path/to/routes";
 <Link
     // Path params: { lang?: string } -- optionality is governed by the path pattern.
     // $ effectively cuts everything to the left.
-    to={ROUTES.USER.$.DETAILS.buildRelativeUrl({ lang: "en" })}
+    to={ROUTES.USER.$.DETAILS.buildRelativePath({ lang: "en" })}
 >
     details/en
 </Link>;
@@ -403,9 +403,9 @@ The `route()` helper returns a route object, which has the following fields:
 
 -   `path` and `relativePath`, where `path` contains a combined path pattern with a leading slash (`/`), and `relativePath` contains a combined path pattern **without intermediate stars (`*`)** and without a leading slash (`/`). They can be passed to e.g. the `path` prop of React Router `<Route/>`.
     > ❗ At the time of writing, patterns with optional segments [can't](https://github.com/remix-run/react-router/discussions/9862) be used in `matchPath`/`useMatch`.
--   `buildUrl()` and `buildRelativeUrl()` for building parametrized URL paths which can be passed to e.g. the `to` prop of React Router `<Link />`.
+-   `buildPath()` and `buildRelativePath()` for building parametrized URL paths (pathname + search + hash) which can be passed to e.g. the `to` prop of React Router `<Link />`.
 -   `buildState()` for building typed states, which can be passed to e.g. the `state` prop of React Router `<Link />`.
--   `buildPath()`, `buildRelativePath()`, `buildSearch()`, and `buildHash()` for building parametrized URL parts. They can be used (in conjunction with `buildState()`) to e.g. build a parametrized `Location` object.
+-   `buildSearch()` and `buildHash()` for building parametrized URL parts. They can be used (in conjunction with `buildState()` and `buildPath()`/`buildRelativePath()`) to e.g. build a parametrized `Location` object.
 -   `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
 -   `getUntypedSearchParams()` and `getUntypedState()` for retrieving untyped params from React Router primitives. Typed params are omitted. Note that hash is always typed, and there doesn't seem to be a use-case for untyped path params.
 -   `getPlainParams()` and `getPlainSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions, because `buildHash()` and `buildState()` can be used instead.
@@ -553,10 +553,10 @@ However, this approach have the following drawbacks:
 
 ```typescript jsx
 // This is allowed, but makes no sense, since there is no pagination on About page.
-ROUTE.ABOUT.buildUrl({}, { page: 1 });
+ROUTE.ABOUT.buildPath({}, { page: 1 });
 
 // This won't work, but we actually need this param.
-ROUTE.$.POST.buildUrl({}, { page: 1 });
+ROUTE.$.POST.buildPath({}, { page: 1 });
 ```
 
 #### Composition

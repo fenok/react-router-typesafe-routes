@@ -6,6 +6,7 @@ import {
     throwable,
     ThrowableFallback,
 } from "../types/index.js";
+import { warn } from "../warn.js";
 
 type RouteWithChildren<
     TChildren,
@@ -55,22 +56,32 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
     getTypedState: (state: unknown) => OutStateParams<TStateTypes>;
     getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     getUntypedState: (state: unknown) => Record<string, unknown>;
-    buildPath: (params: InParams<TPath, TPathTypes>) => string;
-    buildRelativePath: (params: InParams<TPath, TPathTypes>) => string;
+    buildPath: (
+        params: InParams<TPath, TPathTypes>,
+        searchParams?: InSearchParams<TSearchTypes>,
+        hash?: THash[number]
+    ) => string;
+    buildRelativePath: (
+        params: InParams<TPath, TPathTypes>,
+        searchParams?: InSearchParams<TSearchTypes>,
+        hash?: THash[number]
+    ) => string;
     buildSearch: (params: InSearchParams<TSearchTypes>) => string;
     buildHash: (hash: THash[number]) => string;
     buildState: (state: InStateParams<TStateTypes>) => Record<string, unknown>;
+    types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>;
+    /** @deprecated Use buildPath instead. */
     buildUrl: (
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
         hash?: THash[number]
     ) => string;
+    /** @deprecated Use buildRelativePath instead. */
     buildRelativeUrl: (
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
         hash?: THash[number]
     ) => string;
-    types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>;
 }
 
 type InParams<TPath extends string, TPathTypes> = PartialByKey<
@@ -265,12 +276,8 @@ function getRoute<
         return getPlainSearchParamsByTypes(params, types.searchParams);
     }
 
-    function buildRelativePath(params: InParams<TPath, TPathTypes>) {
+    function buildRelativePathname(params: InParams<TPath, TPathTypes>) {
         return creatorOptions.generatePath(relativePath, getPlainParams(params));
-    }
-
-    function buildPath(params: InParams<TPath, TPathTypes>) {
-        return `/${buildRelativePath(params)}`;
     }
 
     function buildSearch(params: InSearchParams<TSearchTypes>) {
@@ -287,14 +294,31 @@ function getRoute<
         return getPlainStateParamsByTypes(params, types.state);
     }
 
+    function buildRelativePath(
+        params: InParams<TPath, TPathTypes>,
+        searchParams?: InSearchParams<TSearchTypes>,
+        hash?: THash[number]
+    ) {
+        return `${buildRelativePathname(params)}${searchParams !== undefined ? buildSearch(searchParams) : ""}${
+            hash !== undefined ? buildHash(hash) : ""
+        }`;
+    }
+
     function buildRelativeUrl(
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
         hash?: THash[number]
     ) {
-        return `${buildRelativePath(params)}${searchParams !== undefined ? buildSearch(searchParams) : ""}${
-            hash !== undefined ? buildHash(hash) : ""
-        }`;
+        warn("buildRelativeUrl is deprecated, use buildRelativePath instead.");
+        return buildRelativePath(params, searchParams, hash);
+    }
+
+    function buildPath(
+        params: InParams<TPath, TPathTypes>,
+        searchParams?: InSearchParams<TSearchTypes>,
+        hash?: THash[number]
+    ) {
+        return `/${buildRelativePath(params, searchParams, hash)}`;
     }
 
     function buildUrl(
@@ -302,7 +326,8 @@ function getRoute<
         searchParams?: InSearchParams<TSearchTypes>,
         hash?: THash[number]
     ) {
-        return `/${buildRelativeUrl(params, searchParams, hash)}`;
+        warn("buildUrl is deprecated, use buildPath instead.");
+        return buildPath(params, searchParams, hash);
     }
 
     function getTypedParams(params: Record<string, string | undefined>) {
@@ -352,8 +377,6 @@ function getRoute<
     return {
         path: `/${path}`,
         relativePath,
-        buildUrl,
-        buildRelativeUrl,
         buildPath,
         buildRelativePath,
         buildSearch,
@@ -368,6 +391,8 @@ function getRoute<
         getPlainParams,
         getPlainSearchParams,
         types: types,
+        buildUrl,
+        buildRelativeUrl,
     };
 }
 

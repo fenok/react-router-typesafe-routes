@@ -228,13 +228,13 @@ it("allows implicit path params", () => {
     const CHILD = route("child/:id", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], { id: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], { id: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { id: string }>>(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({ id: "42" })).toEqual("/test/child/42");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ id: "24" })).toEqual("/test/child/24/grand");
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({ id: "42" })).toEqual("/test/child/42");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: "24" })).toEqual("/test/child/24/grand");
 });
 
 it("allows explicit path params", () => {
@@ -242,13 +242,13 @@ it("allows explicit path params", () => {
     const CHILD = route("child/:id", { params: { id: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], { id: number }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], { id: number }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id: number }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { id: number }>>(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({ id: 42 })).toEqual("/test/child/42");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ id: 24 })).toEqual("/test/child/24/grand");
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({ id: 42 })).toEqual("/test/child/42");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: 24 })).toEqual("/test/child/24/grand");
 });
 
 it("allows to mix explicit and implicit path params", () => {
@@ -256,13 +256,13 @@ it("allows to mix explicit and implicit path params", () => {
     const CHILD = route("child/:id/:value", { params: { id: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], { id: number; value: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], { id: number; value: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id: number; value: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { id: number; value: string }>>(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({ id: 42, value: "foo" })).toEqual("/test/child/42/foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ id: 24, value: "bar" })).toEqual("/test/child/24/bar/grand");
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({ id: 42, value: "foo" })).toEqual("/test/child/42/foo");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: 24, value: "bar" })).toEqual("/test/child/24/bar/grand");
 });
 
 it("allows to mix explicit and implicit path params in case of optional params", () => {
@@ -270,18 +270,18 @@ it("allows to mix explicit and implicit path params in case of optional params",
     const CHILD = route("child/:id?/:value?", { params: { id: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], { id?: number; value?: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id?: number; value?: string }>>(true);
     assert<
         IsExact<
-            Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0],
+            Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0],
             { id?: number; value?: string; name: string }
         >
     >(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({ id: 42 })).toEqual("/test/child/42");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ id: 24, value: "bar", name: "baz" })).toEqual(
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({ id: 42 })).toEqual("/test/child/42");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: 24, value: "bar", name: "baz" })).toEqual(
         "/test/child/24/bar/grand/baz"
     );
 });
@@ -291,15 +291,18 @@ it("allows to mix explicit and implicit path params across multiple routes", () 
     const CHILD = route("child/:id/:value", { params: { id: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], { id: number; value: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id: number; value: string }>>(true);
     assert<
-        IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], { id: number; value: string; name: string }>
+        IsExact<
+            Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0],
+            { id: number; value: string; name: string }
+        >
     >(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({ id: 42, value: "foo" })).toEqual("/test/child/42/foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ id: 24, value: "bar", name: "baz" })).toEqual(
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({ id: 42, value: "foo" })).toEqual("/test/child/42/foo");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: 24, value: "bar", name: "baz" })).toEqual(
         "/test/child/24/bar/grand/baz"
     );
 });
@@ -309,13 +312,13 @@ it("prioritizes children when mixing path params with the same name", () => {
     const CHILD = route("child/:id/:value", { params: { id: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], { id: number; value: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], { id: boolean; value: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id: number; value: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { id: boolean; value: string }>>(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({ id: 42, value: "foo" })).toEqual("/test/child/42/foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ id: false, value: "bar" })).toEqual(
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({ id: 42, value: "foo" })).toEqual("/test/child/42/foo");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: false, value: "bar" })).toEqual(
         "/test/child/false/bar/grand/false"
     );
 });
@@ -325,13 +328,13 @@ it("allows implicit star path param", () => {
     const CHILD = route("child/*", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], { "*"?: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { "*"?: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({ "*": "star/param" })).toEqual("/test/child/star/param");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ "*": "star/param" })).toEqual("/test/child/grand");
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/star/param");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/grand");
 });
 
 it("allows implicit optional star path param", () => {
@@ -339,13 +342,13 @@ it("allows implicit optional star path param", () => {
     const CHILD = route("child/*?", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], { "*"?: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { "*"?: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({ "*": "star/param" })).toEqual("/test/child/star/param");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ "*": "star/param" })).toEqual("/test/child/grand");
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/star/param");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/grand");
 });
 
 it("allows explicit star path param", () => {
@@ -353,13 +356,13 @@ it("allows explicit star path param", () => {
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], { "*"?: number }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { "*"?: number }>>(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ "*": 42 })).toEqual("/test/child/grand/42");
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({})).toEqual("/test/child");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": 42 })).toEqual("/test/child/grand/42");
 });
 
 it("allows explicit optional star path param", () => {
@@ -367,13 +370,13 @@ it("allows explicit optional star path param", () => {
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], { "*"?: number }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { "*"?: number }>>(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ "*": 42 })).toEqual("/test/child/grand/42");
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({})).toEqual("/test/child");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": 42 })).toEqual("/test/child/grand/42");
 });
 
 it("always treats star param as optional upon building", () => {
@@ -381,13 +384,13 @@ it("always treats star param as optional upon building", () => {
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], { "*"?: number }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { "*"?: number }>>(true);
 
-    expect(TEST_ROUTE.buildUrl({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({})).toEqual("/test/child/grand");
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({})).toEqual("/test/child");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
 });
 
 it("allows star path param in the middle of combined path", () => {
@@ -395,13 +398,13 @@ it("allows star path param in the middle of combined path", () => {
     const CHILD = route("child/*", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[0], { "*"?: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { "*"?: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
 
-    expect(TEST_ROUTE.buildUrl({ "*": "foo" })).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({ "*": "foo" })).toEqual("/test/child/foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({ "*": "foo" })).toEqual("/test/child/grand");
+    expect(TEST_ROUTE.buildPath({ "*": "foo" })).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({ "*": "foo" })).toEqual("/test/child/foo");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": "foo" })).toEqual("/test/child/grand");
 });
 
 it("allows search params", () => {
@@ -409,13 +412,13 @@ it("allows search params", () => {
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[1], Record<never, never> | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[1], Record<never, never> | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[1], { foo?: number } | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[1], Record<never, never> | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[1], { foo?: number } | undefined>>(true);
 
-    expect(TEST_ROUTE.buildUrl({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({}, {})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({}, { foo: 1 })).toEqual("/test/child/grand?foo=1");
+    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({}, {})).toEqual("/test/child");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, { foo: 1 })).toEqual("/test/child/grand?foo=1");
 });
 
 it("allows to mix search params across multiple routes", () => {
@@ -423,18 +426,18 @@ it("allows to mix search params across multiple routes", () => {
     const CHILD = route("child", { searchParams: { bar: arrayOfType(numberType) } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[1], Record<never, never> | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[1], { bar?: number[] } | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[1], { bar?: number[] } | undefined>>(true);
     assert<
         IsExact<
-            Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[1],
+            Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[1],
             { foo?: number; bar?: number[] } | undefined
         >
     >(true);
 
-    expect(TEST_ROUTE.buildUrl({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({}, { bar: [1, 2] })).toEqual("/test/child?bar=1&bar=2");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({}, { foo: 1, bar: [1, 2] })).toEqual(
+    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({}, { bar: [1, 2] })).toEqual("/test/child?bar=1&bar=2");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, { foo: 1, bar: [1, 2] })).toEqual(
         "/test/child/grand?foo=1&bar=1&bar=2"
     );
 });
@@ -444,13 +447,13 @@ it("prioritizes children when mixing search params with the same name", () => {
     const CHILD = route("child", { searchParams: { foo: arrayOfType(numberType) } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[1], Record<never, never> | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[1], { foo?: number[] } | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[1], { foo?: number } | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[1], { foo?: number[] } | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[1], { foo?: number } | undefined>>(true);
 
-    expect(TEST_ROUTE.buildUrl({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({}, { foo: [1, 2] })).toEqual("/test/child?foo=1&foo=2");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({}, { foo: 1 })).toEqual("/test/child/grand?foo=1");
+    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({}, { foo: [1, 2] })).toEqual("/test/child?foo=1&foo=2");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, { foo: 1 })).toEqual("/test/child/grand?foo=1");
 });
 
 it("allows implicit hash params", () => {
@@ -458,13 +461,13 @@ it("allows implicit hash params", () => {
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[2], string | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[2], undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[2], string | undefined>>(true);
 
-    expect(TEST_ROUTE.buildUrl({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({}, {})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({}, {}, "my-id")).toEqual("/test/child/grand#my-id");
+    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({}, {})).toEqual("/test/child");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, {}, "my-id")).toEqual("/test/child/grand#my-id");
 });
 
 it("allows explicit hash params", () => {
@@ -472,13 +475,13 @@ it("allows explicit hash params", () => {
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[2], "foo" | "bar" | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[2], undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[2], "foo" | "bar" | undefined>>(true);
 
-    expect(TEST_ROUTE.buildUrl({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({}, {})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({}, {}, "foo")).toEqual("/test/child/grand#foo");
+    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({}, {})).toEqual("/test/child");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, {}, "foo")).toEqual("/test/child/grand#foo");
 });
 
 it("allows mixing explicit hash params across multiple routes", () => {
@@ -486,15 +489,15 @@ it("allows mixing explicit hash params across multiple routes", () => {
     const CHILD = route("child", { hash: hashValues("baz") }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[2], "baz" | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[2], "baz" | "foo" | "bar" | undefined>>(
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[2], "baz" | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[2], "baz" | "foo" | "bar" | undefined>>(
         true
     );
 
-    expect(TEST_ROUTE.buildUrl({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({}, {}, "baz")).toEqual("/test/child#baz");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({}, {}, "baz")).toEqual("/test/child/grand#baz");
+    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({}, {}, "baz")).toEqual("/test/child#baz");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, {}, "baz")).toEqual("/test/child/grand#baz");
 });
 
 it("allows mixing explicit and implicit hash params across multiple routes", () => {
@@ -502,13 +505,13 @@ it("allows mixing explicit and implicit hash params across multiple routes", () 
     const CHILD = route("child", { hash: hashValues("baz") }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildUrl>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildUrl>[2], "baz" | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildUrl>[2], string | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[2], "baz" | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[2], string | undefined>>(true);
 
-    expect(TEST_ROUTE.buildUrl({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildUrl({}, {}, "baz")).toEqual("/test/child#baz");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildUrl({}, {}, "anything")).toEqual("/test/child/grand#anything");
+    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
+    expect(TEST_ROUTE.CHILD.buildPath({}, {}, "baz")).toEqual("/test/child#baz");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, {}, "anything")).toEqual("/test/child/grand#anything");
 });
 
 it("allows state params", () => {
