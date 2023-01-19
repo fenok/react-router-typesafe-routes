@@ -476,10 +476,7 @@ The `useTypedParams()` hook is a thin wrapper around React Router `useParams()`.
 
 The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around React Router `useSearchParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
 
-Notable differences:
-
--   `setTypedSearchParams()` can also accept a callback, which will be called with the current typed search params.
--   `setTypedSearchParams()` has an additional `preserveUntyped` option. If `true`, existing untyped (by the given route) search parameters will remain intact. Note that this option has no effect on the `state` option. That is, there is no way to preserve untyped state fields.
+The only notable difference is that `setTypedSearchParams()` has an additional `preserveUntyped` option. If `true`, existing untyped (by the given route) search parameters will remain intact. Note that this option has no effect on the `state` option. That is, there is no way to preserve untyped state fields.
 
 > ❗ In the future, the library may provide the same improvements for state. For now, this can be implemented in the userland in the form of a custom hook.
 
