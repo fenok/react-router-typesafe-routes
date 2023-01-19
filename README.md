@@ -342,7 +342,9 @@ const ROUTE = route("route", { state: { fromList: booleanType } });
 
 All state fields are optional.
 
-> ❗Note that built-in types convert the given values to `string` (or `string[]`), which is not required in case of state, because it can contain any serializable value. In the future, the library may provide types specifically for state, but in the meantime they can be implemented in the userland.
+Since state can contain any serializable value, we will likely need much more powerful types for it. The easiest way to create them is to use some third-party validation library. See [Yup type](#yup-type) for a Yup-based example.
+
+> ❗ Note that built-in types convert the given values to `string` (or `string[]`), which is not required in case of state. If that's something you care about, you'll need to create custom types.
 
 #### Hash
 
@@ -492,6 +494,8 @@ The `useTypedHash()` hook is a thin wrapper around React Router `useLocation()`.
 
 ### Creating custom types
 
+#### Basic type
+
 In this example, we will create a type that allows to pass `number` or `string` upon URL path building, stores this value as `string` and parses this value as `number`.
 
 ```typescript jsx
@@ -520,6 +524,42 @@ export const looseNumberType = createType<string | number, string, number>({
         return parsedValue;
     },
 });
+```
+
+#### Yup type
+
+In this example, we will use [Yup](https://github.com/jquense/yup) for param validation, which is mostly suitable for state fields. We assume the use of Yup `1.0.0`.
+
+```typescript jsx
+import { Schema, InferType } from "yup";
+
+// This is a type creator, which accepts a Yup schema and returns usual type object.
+export const yupType = <TSchema extends Schema>(schema: TSchema) => {
+    // Note that the value is stored as-is, which is only possible for state fields.
+    return createType<InferType<TSchema>, InferType<TSchema>>({
+        getPlain(value) {
+            return value;
+        },
+        getTyped(value) {
+            // We have to use sync validation.
+            return schema.validateSync(value);
+        },
+    });
+};
+
+// This is almost the same, but the value is stored as string, so it can be used anywhere!
+export const yupStringType = <TSchema extends Schema>(schema: TSchema) => {
+    return createType<InferType<TSchema>>({
+        getPlain(value) {
+            return JSON.stringify(value);
+        },
+        getTyped(value) {
+            assertIsString(value);
+
+            return schema.validateSync(JSON.parse(value));
+        },
+    });
+};
 ```
 
 ### Sharing types between routes
