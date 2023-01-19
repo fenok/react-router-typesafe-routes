@@ -588,6 +588,34 @@ it("allows to mix path params parsing across multiple routes", () => {
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ id: "1", childId: "2" })).toEqual({ id: 1, childId: 2 });
 });
 
+it("provides untyped path params", () => {
+    const GRANDCHILD = route("grand/:id", {});
+    const CHILD = route("child/:childId/:opt?", { params: { childId: numberType } }, { GRANDCHILD });
+    const TEST_ROUTE = route("test", {}, { CHILD });
+
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.getUntypedParams>, Record<string, string | undefined>>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getUntypedParams>, Record<string, string | undefined>>>(true);
+    assert<
+        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getUntypedParams>, Record<string, string | undefined>>
+    >(true);
+
+    expect(TEST_ROUTE.getUntypedParams({ id: "1", childId: "2", opt: "3", untyped: "untyped" })).toStrictEqual({
+        id: "1",
+        childId: "2",
+        opt: "3",
+        untyped: "untyped",
+    });
+    expect(TEST_ROUTE.CHILD.getUntypedParams({ id: "1", childId: "2", opt: "3", untyped: "untyped" })).toStrictEqual({
+        id: "1",
+        untyped: "untyped",
+    });
+    expect(
+        TEST_ROUTE.CHILD.GRANDCHILD.getUntypedParams({ id: "1", childId: "2", opt: "3", untyped: "untyped" })
+    ).toStrictEqual({
+        untyped: "untyped",
+    });
+});
+
 it("throws if implicit path params are invalid", () => {
     const GRANDCHILD = route("grand/:id", {});
     const CHILD = route("child/:childId", {}, { GRANDCHILD });
