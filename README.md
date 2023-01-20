@@ -592,7 +592,7 @@ In this example, we will use [Yup](https://github.com/jquense/yup) for param val
 import { Schema, InferType } from "yup";
 
 // This is a type creator, which accepts a Yup schema and returns usual type object.
-export const yupType = <TSchema extends Schema>(schema: TSchema) => {
+export const yupStateType = <TSchema extends Schema>(schema: TSchema) => {
     // Note that the value is stored as-is, which is only possible for state fields.
     return createType<InferType<TSchema>, InferType<TSchema>>({
         getPlain(value) {
@@ -606,7 +606,8 @@ export const yupType = <TSchema extends Schema>(schema: TSchema) => {
 };
 
 // This is almost the same, but the value is stored as string, so it can be used anywhere!
-export const yupStringType = <TSchema extends Schema>(schema: TSchema) => {
+// The only downside is that string values will be serialized like this: 'foo' => '"foo"'.
+export const yupType = <TSchema extends Schema>(schema: TSchema) => {
     return createType<InferType<TSchema>>({
         getPlain(value) {
             return JSON.stringify(value);
@@ -615,6 +616,20 @@ export const yupStringType = <TSchema extends Schema>(schema: TSchema) => {
             assertIsString(value);
 
             return schema.validateSync(JSON.parse(value));
+        },
+    });
+};
+
+// To mitigate this, we can accept only string schemas and remove value serialization.
+export const yupStringType = <TSchema extends Schema<string>>(schema: TSchema) => {
+    return createType<InferType<TSchema>>({
+        getPlain(value) {
+            return value;
+        },
+        getTyped(value) {
+            assertIsString(value);
+
+            return schema.validateSync(value);
         },
     });
 };
