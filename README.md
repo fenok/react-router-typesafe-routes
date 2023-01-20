@@ -370,6 +370,60 @@ Child routes inherit all type objects from their parent. For parameters with the
 
 Hash values are combined. If a parent allows any `string` to be a hash value, its children can't override that.
 
+#### Type composition
+
+It's pretty common to have completely unrelated routes that share the same set of params. One such example is pagination params.
+
+We can use nesting and put common types to a single common route:
+
+```typescript jsx
+const ROUTE = route(
+    "",
+    { searchParams: { page: numberType } },
+    { USER: route("user"), POST: route("post"), ABOUT: route("about") }
+);
+
+// We can use this common ROUTE to get the page param anywhere:
+const [{ page }] = useTypedSearchParams(ROUTE);
+```
+
+However, this approach has the following drawbacks:
+
+-   All routes will have all common params, even if they don't actually need them.
+-   Common params are lost upon child uninlining.
+-   All common params are defined in one place, which may get cluttered.
+-   We can't share path params this way, because they require the corresponding path pattern.
+
+```typescript jsx
+// This is allowed, but makes no sense, since there is no pagination on About page.
+ROUTE.ABOUT.buildPath({}, { page: 1 });
+
+// This won't work, but we actually need this param.
+ROUTE.$.POST.buildPath({}, { page: 1 });
+```
+
+To mitigate these issues, we can use type composition via the `compose` helper:
+
+```typescript jsx
+const PAGINATION_FRAGMENT = route("", { searchParams: { page: numberType } });
+
+const ROUTES = {
+    // This route uses pagination params and also has its own search params.
+    USER: route("user", compose({ searchParams: { showRemoved: booleanType } })(PAGINATION_FRAGMENT)),
+    // This route only uses pagination params.
+    POST: route("post", compose(PAGINATION_FRAGMENT)),
+    // This route doesn't use pagination params
+    ABOUT: route("about"),
+};
+
+// We can use PAGINATION_FRAGMENT to get the page param anywhere:
+const [{ page }] = useTypedSearchParams(PAGINATION_FRAGMENT);
+```
+
+The `compose` helper accepts either a set of type objects, or a route which type objects should be used, and returns a callable set of type objects, which can be called to add more types. We can compose any number of types. For params with the same name, the latest type in the chain has precedence.
+
+> ❗ Types for path params will only be used if path pattern has corresponding dynamic segments.
+
 ## API
 
 ### `route()`
@@ -411,9 +465,13 @@ The `route()` helper returns a route object, which has the following fields:
 -   `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
 -   `getUntypedParams()`, `getUntypedSearchParams()`, and `getUntypedState()` for retrieving untyped params from React Router primitives. Typed params are omitted. Note that hash is always typed.
 -   `getPlainParams()` and `getPlainSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions, because `buildHash()` and `buildState()` can be used instead.
--   `types`, which contains type objects of the route, including parent types, if any. Can be used for sharing type objects with other routes.
+-   `types`, which contains type objects of the route, including parent types, if any. Can be used for sharing type objects with other routes, though normally you should use the [`compose()`](#compose) helper instead of direct use of `types`.
 -   `$`, which contains original child routes. These routes are unaffected by the parent route.
 -   Any number of child routes starting with an uppercase letter.
+
+### `compose()`
+
+The `compose()` helper is used for type composition. See [Type composition](#type-composition).
 
 ### Built-in types
 
@@ -561,57 +619,3 @@ export const yupStringType = <TSchema extends Schema>(schema: TSchema) => {
     });
 };
 ```
-
-### Sharing types between routes
-
-It's pretty common to have completely unrelated routes that share the same set of params. One such example is pagination.
-
-#### Inheritance
-
-The easiest way to share types between unrelated routes is to put them to single common route:
-
-```typescript jsx
-const ROUTE = route(
-    "",
-    { searchParams: { page: numberType } },
-    { USER: route("user"), POST: route("post"), ABOUT: route("about") }
-);
-
-// We can use this common ROUTE to get the page param anywhere:
-const [{ page }] = useTypedSearchParams(ROUTE);
-```
-
-However, this approach have the following drawbacks:
-
--   All routes will have all common params, even if they don't actually need them.
--   Common params are lost upon child uninlining.
--   All common params are defined in one place, which may get cluttered.
--   We can't share path params this way, because they require the corresponding path pattern.
-
-```typescript jsx
-// This is allowed, but makes no sense, since there is no pagination on About page.
-ROUTE.ABOUT.buildPath({}, { page: 1 });
-
-// This won't work, but we actually need this param.
-ROUTE.$.POST.buildPath({}, { page: 1 });
-```
-
-#### Composition
-
-This drawbacks can be solved by route composition:
-
-```typescript jsx
-// We could also make such fragment for path params
-const PAGINATION_FRAGMENT = route("", { searchParams: { page: numberType } });
-
-const ROUTES = {
-    USER: route("user", { searchParams: { ...PAGINATION_FRAGMENT.types.searchParams } }),
-    POST: route("post", { searchParams: { ...PAGINATION_FRAGMENT.types.searchParams } }),
-    ABOUT: route("about"),
-};
-
-// We can use PAGINATION_FRAGMENT to get the page param anywhere:
-const [{ page }] = useTypedSearchParams(PAGINATION_FRAGMENT);
-```
-
-This API is far from prefect, but I'm not sure how to implement a proper [Composition API](https://github.com/fenok/react-router-typesafe-routes/issues/13).

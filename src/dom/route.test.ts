@@ -1,6 +1,15 @@
 import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
-import { numberType, booleanType, arrayOfType, stringType, hashValues, throwable, dateType } from "../common/index.js";
+import {
+    numberType,
+    booleanType,
+    arrayOfType,
+    stringType,
+    hashValues,
+    throwable,
+    dateType,
+    compose,
+} from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("allows to uninline children", () => {
@@ -926,4 +935,42 @@ it("throws if throwable state params are invalid", () => {
 
 it("throws upon specifying an invalid fallback", () => {
     expect(() => route("", { searchParams: { id: dateType(new Date("foo")) } })).toThrow();
+});
+
+it("allows types composition", () => {
+    const PATH = route(":id", { params: { id: numberType } });
+    const SEARCH = route("", { searchParams: { page: numberType } });
+    const STATE = route("", { state: { fromList: booleanType } });
+    const HASH = route("", { hash: hashValues("about", "more") });
+
+    const ROUTE = route(
+        ":id/:subId",
+        compose({
+            params: {
+                subId: numberType,
+            },
+            searchParams: {
+                ordered: booleanType,
+                page: booleanType, // This should be overridden
+            },
+            state: {
+                hidden: booleanType,
+            },
+            hash: hashValues("info"),
+        })(PATH)(SEARCH)(STATE)(HASH)
+    );
+
+    assert<IsExact<Parameters<typeof ROUTE.buildPath>[0], { id: number; subId: number }>>(true);
+
+    assert<IsExact<Parameters<typeof ROUTE.buildPath>[1], { page?: number; ordered?: boolean } | undefined>>(true);
+
+    assert<IsExact<Parameters<typeof ROUTE.buildPath>[2], "about" | "more" | "info" | undefined>>(true);
+
+    assert<IsExact<Parameters<typeof ROUTE.buildState>[0], { fromList?: boolean; hidden?: boolean }>>(true);
+
+    expect(ROUTE.buildPath({ id: 1, subId: 2 }, { page: 1, ordered: true }, "info")).toEqual(
+        "/1/2?page=1&ordered=true#info"
+    );
+
+    expect(ROUTE.buildState({ fromList: true, hidden: true })).toStrictEqual({ fromList: "true", hidden: "true" });
 });

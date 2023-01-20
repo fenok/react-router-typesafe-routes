@@ -7,6 +7,7 @@ import {
     ThrowableFallback,
 } from "../types/index.js";
 import { warn } from "../warn.js";
+import { mergeHashValues } from "../mergeHashValues.js";
 
 type RouteWithChildren<
     TChildren,
@@ -30,7 +31,7 @@ type DecoratedChildren<
         infer TChildChildren,
         infer TChildPath,
         infer TChildPathTypes,
-        infer TChildQueryTypes,
+        infer TChildSearchTypes,
         infer TChildHash,
         infer TChildStateTypes
     >
@@ -38,7 +39,7 @@ type DecoratedChildren<
               TChildChildren,
               TPath extends "" ? TChildPath : TChildPath extends "" ? TPath : `${TPath}/${TChildPath}`,
               TPathTypes & TChildPathTypes,
-              TSearchTypes & TChildQueryTypes,
+              TSearchTypes & TChildSearchTypes,
               THash | TChildHash,
               TStateTypes & TChildStateTypes
           >
@@ -602,18 +603,6 @@ function getKeys<TPath extends string>(path: TPath): [PathParam<TPath>[], PathPa
 
 function removeIntermediateStars<TPath extends string>(path: TPath): PathWithoutIntermediateStars<TPath> {
     return path.replace(/\*\??\//g, "") as PathWithoutIntermediateStars<TPath>;
-}
-
-function mergeHashValues<T, U>(firstHash?: T[], secondHash?: U[]): (T | U)[] | undefined {
-    if (!firstHash && !secondHash) {
-        return undefined;
-    }
-
-    if (firstHash?.length === 0 || secondHash?.length === 0) {
-        return [];
-    }
-
-    return [...(firstHash ?? []), ...(secondHash ?? [])];
 }
 
 function isRoute(
