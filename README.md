@@ -538,7 +538,7 @@ The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around React Rout
 
 The only notable difference is that `setTypedSearchParams()` has an additional `preserveUntyped` option. If `true`, existing untyped (by the given route) search parameters will remain intact. Note that this option has no effect on the `state` option. That is, there is no way to preserve untyped state fields.
 
-> ❗ In the future, the library may provide the same improvements for state. For now, this can be implemented in the userland in the form of a custom hook.
+The reason for this is that `useTypedSearchParams()` is intended to be a simple wrapper around `useSearchParams()`, and the latter doesn't provide any access to current state. If [this proposal](https://github.com/remix-run/react-router/discussions/9950) goes through, it would be very easy to implement, but for now the only way to achieve this is to create a custom hook.
 
 #### `useTypedState()`
 
