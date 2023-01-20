@@ -584,6 +584,32 @@ export const looseNumberType = createType<string | number, string, number>({
 });
 ```
 
+#### RegExp type
+
+In this example, we will create a type for validating string params with a RegExp.
+
+```typescript jsx
+// This is a type creator, which accepts a RegExp and returns usual type object.
+export const regExpType = (regExp: RegExp) =>
+    createType<string>({
+        getPlain(value) {
+            return value;
+        },
+        getTyped(value) {
+            // We expect the result from getPlain here, which is string.
+            // We use a built-in helper.
+            assertIsString(value);
+
+            // We expect the whole string to match the given RegExp.
+            if (value.match(regExp)?.[0] !== value) {
+                throw new Error(`"${value}" does not match ${String(regExp)}`);
+            }
+
+            return value;
+        },
+    });
+```
+
 #### Yup type
 
 In this example, we will use [Yup](https://github.com/jquense/yup) for param validation, which is mostly suitable for state fields. We assume the use of Yup `1.0.0`.
@@ -613,8 +639,11 @@ export const yupType = <TSchema extends Schema>(schema: TSchema) => {
             return JSON.stringify(value);
         },
         getTyped(value) {
+            // We expect the result from getPlain here, which is string.
+            // We use a built-in helper.
             assertIsString(value);
 
+            // We have to use sync validation.
             return schema.validateSync(JSON.parse(value));
         },
     });
@@ -627,8 +656,11 @@ export const yupStringType = <TSchema extends Schema<string>>(schema: TSchema) =
             return value;
         },
         getTyped(value) {
+            // We expect the result from getPlain here, which is string.
+            // We use a built-in helper.
             assertIsString(value);
 
+            // We have to use sync validation.
             return schema.validateSync(value);
         },
     });
