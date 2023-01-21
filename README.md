@@ -548,25 +548,47 @@ The `useTypedState()` hook is a thin wrapper around React Router `useLocation()`
 
 The `useTypedHash()` hook is a thin wrapper around React Router `useLocation()`. It accepts a route object as the first parameter and returns a typed hash.
 
-## Recipes
+## Examples
 
-### Creating custom types
+### Custom types
 
-#### Basic type
+Here are some types that you might find useful. You can simply copy them to your project or base your own types upon them.
 
-In this example, we will create a type that allows to pass `number` or `string` upon URL path building, stores this value as `string` and parses this value as `number`.
+#### Loose string type
+
+This is a type similar to `stringType`, but it also allows to pass `number` or `boolean` upon URL parts or state building.
 
 ```typescript jsx
 // We use createType helper, which adds the fallback functionality.
 // It's a generic, and we specify the necessary types there.
-export const looseNumberType = createType<string | number, string, number>({
-    // Here, the value is string | number, and we need to return a string.
+export const looseStringType = createType<string | number | boolean, string, string>({
+    // Here, the value is string | number | boolean, and we need to return a string.
     // This function shouldn't throw.
     getPlain(value) {
         return String(value);
     },
-    // Here, the value is unknown, and we try to convert it to number.
-    // If we can't, we should throw.
+    // Here, the value is unknown, and we check if it's a string.
+    // If it's not, we should throw.
+    getTyped(value) {
+        // We expect the result from getPlain here, which is string.
+        // We use a built-in helper that throws if the value is not a string.
+        assertIsString(value);
+
+        return parsedValue;
+    },
+});
+```
+
+#### Integer type
+
+This is a type similar to `numberType`, but it also validates that the number is an integer.
+
+```typescript jsx
+export const integerType = createType<number, string, number>({
+    getPlain(value) {
+        // We have to convert number to string.
+        return JSON.stringify(value);
+    },
     getTyped(value) {
         // We expect the result from getPlain here, which is string.
         // We use a built-in helper.
@@ -579,14 +601,19 @@ export const looseNumberType = createType<string | number, string, number>({
         // We use a built-in helper.
         assertIsNumber(parsedValue);
 
-        return parsedValue;
+        // Finally, we check if the number is an integer.
+        if (!Number.isInteger(parsedValue)) {
+            throw new Error(`Expected ${parsedValue} to be integer.`);
+        }
+
+        return value;
     },
 });
 ```
 
 #### RegExp type
 
-In this example, we will create a type for validating string params with a RegExp.
+This is a type similar to `stringType`, but it also allows to validate parsed value with a RegExp.
 
 ```typescript jsx
 // This is a type creator, which accepts a RegExp and returns usual type object.
@@ -610,9 +637,15 @@ export const regExpType = (regExp: RegExp) =>
     });
 ```
 
-#### Yup type
+#### Yup types
 
-In this example, we will use [Yup](https://github.com/jquense/yup) for param validation, which is mostly suitable for state fields. We assume the use of Yup `1.0.0`.
+This is a set of types that use [Yup](https://github.com/jquense/yup) for validation.
+
+-   `yupStateType` stores values as-is, which is useful for state fields.
+-   `yupType` stores values as `string` and can be used anywhere.
+-   `yupStringType` is similar to `yupType`, but it can only work with strings, and it doesn't add quotes upon serializing.
+
+> ❗ We assume the use of Yup `1.0.0`
 
 ```typescript jsx
 import { Schema, InferType } from "yup";
