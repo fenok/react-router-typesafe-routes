@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Breaking**: Minimal required React Router version is changed to `6.7.0` due to optional path segments support.
 -   **Breaking**: Rename `ExtractRouteParams` to `PathParam` for parity with React Router.
 -   `buildPath`/`buildRelativePath` now accept additional arguments and behave exactly like `buildUrl`/`buildRelativeUrl`.
+-   `setTypedSearchParams` is switched to React Router implementation of functional updates.
 
 ### Deprecated
 
