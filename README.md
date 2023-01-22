@@ -361,7 +361,7 @@ const ROUTE = route("route", { state: { fromList: booleanType } });
 
 All state fields are optional.
 
-Since the state can contain any serializable value, we will likely need much more powerful types for it. The easiest way to create them is to use some third-party validation library. See [Yup type](#yup-type) for a Yup-based example.
+Since the state can contain any serializable value, we will likely need much more powerful types for it. The easiest way to create them is to use some third-party validation library. See [Yup types](#yup-types) for a Yup-based example.
 
 > ❗ Note that built-in types convert the given values to `string` (or `string[]`), which is not required in the case of the state. If that's something you care about, you'll need to create custom types.
 
@@ -678,7 +678,7 @@ This is a set of types that use [Yup](https://github.com/jquense/yup) for valida
 -   `yupType` stores values as `string` and can be used anywhere.
 -   `yupStringType` is similar to `yupType`, but it can only work with strings, and it doesn't add quotes upon serializing.
 
-> ❗ We assume the use of Yup `1.0.0`
+> ❗ We assume the use of Yup v1.0.0
 
 ```typescript jsx
 import { Schema, InferType } from "yup";
