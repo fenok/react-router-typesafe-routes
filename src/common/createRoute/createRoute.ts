@@ -7,7 +7,7 @@ import {
     ThrowableFallback,
 } from "../types/index.js";
 import { warn } from "../warn.js";
-import { mergeHashValues } from "../mergeHashValues.js";
+import { RouteTypes, types } from "./types.js";
 
 type RouteWithChildren<
     TChildren,
@@ -171,13 +171,6 @@ type PathParam<
     ? SanitizedPathParam<TParam, TKind, TMode>
     : never;
 
-interface RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes> {
-    params?: TPathTypes;
-    searchParams?: TSearchTypes;
-    hash?: THash;
-    state?: TStateTypes;
-}
-
 interface RouteOptions {
     createSearchParams: (init?: Record<string, string | string[]> | URLSearchParams) => URLSearchParams;
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
@@ -217,7 +210,7 @@ function decorateChildren<
     TChildren
 >(
     path: SanitizedPath<TPath>,
-    types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>,
+    typesObj: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>,
     creatorOptions: RouteOptions,
     children?: TChildren
 ): DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
@@ -229,21 +222,10 @@ function decorateChildren<
 
             result[key] = isRoute(value)
                 ? {
-                      ...decorateChildren(path, types, creatorOptions, value),
+                      ...decorateChildren(path, typesObj, creatorOptions, value),
                       ...getRoute(
                           path === "" ? value.path.substring(1) : value.path === "/" ? path : `${path}${value.path}`,
-                          {
-                              params: { ...types.params, ...value.types.params },
-                              searchParams: {
-                                  ...types.searchParams,
-                                  ...value.types.searchParams,
-                              },
-                              hash: mergeHashValues(types.hash, value.types.hash),
-                              state: {
-                                  ...types.state,
-                                  ...value.types.state,
-                              },
-                          },
+                          types(typesObj)(value.types),
                           creatorOptions
                       ),
                   }
@@ -629,7 +611,6 @@ function isThrowableError(error: unknown): error is [unknown, ThrowableFallback]
 export {
     createRoute,
     RouteOptions,
-    RouteTypes,
     Route,
     RouteWithChildren,
     DecoratedChildren,

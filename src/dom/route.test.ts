@@ -8,7 +8,7 @@ import {
     hashValues,
     throwable,
     dateType,
-    compose,
+    types,
 } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 
@@ -945,7 +945,7 @@ it("allows types composition", () => {
 
     const ROUTE = route(
         ":id/:subId",
-        compose({
+        types({
             params: {
                 subId: numberType,
             },

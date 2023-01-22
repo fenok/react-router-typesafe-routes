@@ -425,18 +425,18 @@ ROUTE.ABOUT.buildPath({}, { page: 1 });
 ROUTE.$.POST.buildPath({}, { page: 1 });
 ```
 
-To mitigate these issues, we can use type composition via the `compose` helper:
+To mitigate these issues, we can use type composition via the [`types()`](#types) helper:
 
 ```typescript jsx
-import { route, compose, numberType, stringType, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, types, numberType, stringType, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
 
 const PAGINATION_FRAGMENT = route("", { searchParams: { page: numberType } });
 
 const ROUTES = {
     // This route uses pagination params and also has its own search params.
-    USER: route("user", compose({ searchParams: { q: stringType } })(PAGINATION_FRAGMENT)),
+    USER: route("user", types({ searchParams: { q: stringType } })(PAGINATION_FRAGMENT)),
     // This route only uses pagination params.
-    POST: route("post", compose(PAGINATION_FRAGMENT)),
+    POST: route("post", types(PAGINATION_FRAGMENT)),
     // This route doesn't use pagination params
     ABOUT: route("about"),
 };
@@ -445,7 +445,7 @@ const ROUTES = {
 const [{ page }] = useTypedSearchParams(PAGINATION_FRAGMENT);
 ```
 
-The `compose` helper accepts either a set of types (including hash values), or a route which types should be used, and returns a callable set of types, which can be called to add more types. We can compose any number of types, and they are merged in the same way as types in nested routes.
+The `types()` helper accepts either a set of types (including hash values), or a route which types should be used, and returns a callable set of types, which can be called to add more types. We can compose any number of types, and they are merged in the same way as types in nested routes.
 
 > ❗ Types for path params will only be used if the path pattern has the corresponding dynamic segments.
 
@@ -492,7 +492,7 @@ The `route()` helper returns a route object, which has the following fields:
 -   `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
 -   `getUntypedParams()`, `getUntypedSearchParams()`, and `getUntypedState()` for retrieving untyped params from React Router primitives. Typed params are omitted. Note that the hash is always typed.
 -   `getPlainParams()` and `getPlainSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `buildHash()` and `buildState()` can be used instead.
--   `types`, which contains type objects and hash values of the route. Can be used for sharing types with other routes, though normally you should use the [`compose()`](#compose) helper instead.
+-   `types`, which contains type objects and hash values of the route. Can be used for sharing types with other routes, though normally you should use the [`types()`](#types) helper instead.
 -   `$`, which contains the original child routes. These routes are unaffected by the parent route.
 -   Any number of child routes starting with an uppercase letter.
 
@@ -545,9 +545,9 @@ There are several built-in helpers which can be used for creating custom types. 
 
 The `hashValues()` helper types the hash part of the URL. See [Typing: Hash](#hash).
 
-### `compose()`
+### `types()`
 
-The `compose()` helper is used for types composition. See [Typing: Types composition](#types-composition).
+The `types()` helper is used for types composition. See [Typing: Types composition](#types-composition).
 
 ### Hooks
 

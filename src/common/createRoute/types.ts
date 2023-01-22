@@ -1,46 +1,50 @@
-import { RouteTypes } from "./createRoute/index.js";
-import { mergeHashValues } from "./mergeHashValues.js";
-
-export type Compose<TPathTypes, TSearchTypes, THash extends string[], TStateTypes> = RouteTypes<
+type Types<TPathTypes, TSearchTypes, THash extends string[], TStateTypes> = RouteTypes<
     TPathTypes,
     TSearchTypes,
     THash,
     TStateTypes
 > &
     (<TChildPathTypes, TChildSearchTypes, TChildHash extends string[], TChildStateTypes>(
-        types:
+        typesOrRoute:
             | {
                   types: RouteTypes<TChildPathTypes, TChildSearchTypes, TChildHash, TChildStateTypes>;
               }
             | RouteTypes<TChildPathTypes, TChildSearchTypes, TChildHash, TChildStateTypes>
-    ) => Compose<
+    ) => Types<
         TPathTypes & TChildPathTypes,
         TSearchTypes & TChildSearchTypes,
         THash | TChildHash,
         TStateTypes & TChildStateTypes
     >);
 
-export function compose<TPathTypes, TSearchTypes, THash extends string[], TStateTypes>(
-    types:
+interface RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes> {
+    params?: TPathTypes;
+    searchParams?: TSearchTypes;
+    hash?: THash;
+    state?: TStateTypes;
+}
+
+function types<TPathTypes, TSearchTypes, THash extends string[], TStateTypes>(
+    typesOrRoute:
         | {
               types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>;
           }
         | RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>
-): Compose<TPathTypes, TSearchTypes, THash, TStateTypes> {
+): Types<TPathTypes, TSearchTypes, THash, TStateTypes> {
     const normalizedTypes: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes> =
-        "types" in types ? types.types : types;
+        "types" in typesOrRoute ? typesOrRoute.types : typesOrRoute;
 
     const result = <TChildPathTypes, TChildSearchTypes, TChildHash extends string[], TChildStateTypes>(
-        childTypes:
+        childTypesOrRoute:
             | {
                   types: RouteTypes<TChildPathTypes, TChildSearchTypes, TChildHash, TChildStateTypes>;
               }
             | RouteTypes<TChildPathTypes, TChildSearchTypes, TChildHash, TChildStateTypes>
     ) => {
         const normalizedChildTypes: RouteTypes<TChildPathTypes, TChildSearchTypes, TChildHash, TChildStateTypes> =
-            "types" in childTypes ? childTypes.types : childTypes;
+            "types" in childTypesOrRoute ? childTypesOrRoute.types : childTypesOrRoute;
 
-        return compose({
+        return types({
             types: {
                 params: { ...normalizedTypes.params, ...normalizedChildTypes.params },
                 searchParams: { ...normalizedTypes.searchParams, ...normalizedChildTypes.searchParams },
@@ -50,5 +54,19 @@ export function compose<TPathTypes, TSearchTypes, THash extends string[], TState
         });
     };
 
-    return Object.assign(result, normalizedTypes) as Compose<TPathTypes, TSearchTypes, THash, TStateTypes>;
+    return Object.assign(result, normalizedTypes) as Types<TPathTypes, TSearchTypes, THash, TStateTypes>;
 }
+
+function mergeHashValues<T, U>(firstHash?: T[], secondHash?: U[]): (T | U)[] | undefined {
+    if (!firstHash && !secondHash) {
+        return undefined;
+    }
+
+    if (firstHash?.length === 0 || secondHash?.length === 0) {
+        return [];
+    }
+
+    return [...(firstHash ?? []), ...(secondHash ?? [])];
+}
+
+export { types, Types, RouteTypes };
