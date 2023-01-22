@@ -92,19 +92,19 @@ import { ROUTES } from "./path/to/routes";
 // Absolute paths
 <Routes>
     {/* /user/:id */}
-    <Route path={ROUTES.USER.path} element={<Product />}>
+    <Route path={ROUTES.USER.path} element={<User />}>
         {/* /user/:id/details/:lang? */}
-        <Route path={ROUTES.USER.DETAILS.path} element={<ProductDetails />} />
+        <Route path={ROUTES.USER.DETAILS.path} element={<UserDetails />} />
     </Route>
 </Routes>;
 
 // Relative paths
 <Routes>
     {/* user/:id */}
-    <Route path={ROUTES.USER.relativePath} element={<Product />}>
+    <Route path={ROUTES.USER.relativePath} element={<User />}>
         {/* details/:lang? */}
         {/* $ effectively cuts everything to the left. */}
-        <Route path={ROUTES.USER.$.DETAILS.relativePath} element={<ProductDetails />} />
+        <Route path={ROUTES.USER.$.DETAILS.relativePath} element={<UserDetails />} />
     </Route>
 </Routes>;
 ```
@@ -249,9 +249,9 @@ import { Route, Routes } from "react-router-dom"; // Or -native
 
 <Routes>
     {/* 'user/:id' */}
-    <Route path={USER.relativePath} element={<Product />}>
+    <Route path={USER.relativePath} element={<User />}>
         {/* 'details' */}
-        <Route path={USER.$.DETAILS.relativePath} element={<ProductDetails />} />
+        <Route path={USER.$.DETAILS.relativePath} element={<UserDetails />} />
     </Route>
 </Routes>;
 ```
@@ -266,17 +266,17 @@ If your `<Route/>` is rendered in a nested `<Routes />`, you have to not only ad
 import { Route, Routes } from "react-router-dom"; // Or -native
 import { route } from "react-router-typesafe-routes/dom"; // Or /native
 
-const PRODUCT = route("product/:id/*", {}, { DETAILS: route("details") });
+const USER = route("user/:id/*", {}, { DETAILS: route("details") });
 
 <Routes>
     {/* '/user/:id/*' */}
-    <Route path={USER.path} element={<Product />} />
+    <Route path={USER.path} element={<User />} />
 </Routes>;
 
-// Somewhere inside <Product />
+// Somewhere inside <User />
 <Routes>
     {/* '/details' */}
-    <Route path={USER.$.DETAILS.path} element={<ProductDetails />} />
+    <Route path={USER.$.DETAILS.path} element={<UserDetails />} />
 </Routes>;
 ```
 
