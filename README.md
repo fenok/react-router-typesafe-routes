@@ -428,13 +428,13 @@ ROUTE.$.POST.buildPath({}, { page: 1 });
 To mitigate these issues, we can use type composition via the `compose` helper:
 
 ```typescript jsx
-import { route, compose, numberType, booleanType, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, compose, numberType, stringType, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
 
 const PAGINATION_FRAGMENT = route("", { searchParams: { page: numberType } });
 
 const ROUTES = {
     // This route uses pagination params and also has its own search params.
-    USER: route("user", compose({ searchParams: { showRemoved: booleanType } })(PAGINATION_FRAGMENT)),
+    USER: route("user", compose({ searchParams: { q: stringType } })(PAGINATION_FRAGMENT)),
     // This route only uses pagination params.
     POST: route("post", compose(PAGINATION_FRAGMENT)),
     // This route doesn't use pagination params
