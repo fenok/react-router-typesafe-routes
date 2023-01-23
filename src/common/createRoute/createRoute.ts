@@ -17,7 +17,9 @@ type RouteWithChildren<
     THash extends string[],
     TStateTypes
 > = DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> &
-    Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes> & { $: TChildren };
+    Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes> & {
+        $: DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes, true>;
+    };
 
 type DecoratedChildren<
     TChildren,
@@ -25,7 +27,8 @@ type DecoratedChildren<
     TPathTypes,
     TSearchTypes,
     THash extends string[],
-    TStateTypes
+    TStateTypes,
+    TExcludePath extends boolean = false
 > = {
     [TKey in keyof TChildren]: TChildren[TKey] extends RouteWithChildren<
         infer TChildChildren,
@@ -37,8 +40,14 @@ type DecoratedChildren<
     >
         ? RouteWithChildren<
               TChildChildren,
-              TPath extends "" ? TChildPath : TChildPath extends "" ? TPath : `${TPath}/${TChildPath}`,
-              TPathTypes & TChildPathTypes,
+              TExcludePath extends true
+                  ? TChildPath
+                  : TPath extends ""
+                  ? TChildPath
+                  : TChildPath extends ""
+                  ? TPath
+                  : `${TPath}/${TChildPath}`,
+              TExcludePath extends true ? TChildPathTypes : TPathTypes & TChildPathTypes,
               TSearchTypes & TChildSearchTypes,
               THash | TChildHash,
               TStateTypes & TChildStateTypes
@@ -192,12 +201,10 @@ const createRoute =
         types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes> = {},
         children?: SanitizedChildren<TChildren>
     ): RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> => {
-        const decoratedChildren = decorateChildren(path, types, creatorOptions, children);
-
         return {
-            ...decoratedChildren,
+            ...decorateChildren(path, types, creatorOptions, children, false),
             ...getRoute(path, types, creatorOptions),
-            $: children,
+            $: decorateChildren(path, types, creatorOptions, children, true),
         } as RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes>;
     };
 
@@ -207,13 +214,15 @@ function decorateChildren<
     TSearchTypes,
     THash extends string[],
     TStateTypes,
-    TChildren
+    TChildren,
+    TExcludePath extends boolean
 >(
     path: SanitizedPath<TPath>,
     typesObj: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>,
     creatorOptions: RouteOptions,
-    children?: TChildren
-): DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
+    children: TChildren | undefined,
+    excludePath: TExcludePath
+): DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes, TExcludePath> {
     const result: Record<string, unknown> = {};
 
     if (children) {
@@ -222,18 +231,23 @@ function decorateChildren<
 
             result[key] = isRoute(value)
                 ? {
-                      ...decorateChildren(path, typesObj, creatorOptions, value),
+                      ...decorateChildren(path, typesObj, creatorOptions, value, excludePath),
                       ...getRoute(
-                          path === "" ? value.path.substring(1) : value.path === "/" ? path : `${path}${value.path}`,
-                          types(typesObj)(value.types),
+                          excludePath || path === ""
+                              ? value.path.substring(1)
+                              : value.path === "/"
+                              ? path
+                              : `${path}${value.path}`,
+                          types(excludePath ? { ...typesObj, params: undefined } : typesObj)(value.types),
                           creatorOptions
                       ),
+                      $: decorateChildren(path, typesObj, creatorOptions, value.$, true),
                   }
                 : value;
         });
     }
 
-    return result as DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes>;
+    return result as DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes, TExcludePath>;
 }
 
 function getRoute<

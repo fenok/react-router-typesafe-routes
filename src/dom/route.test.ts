@@ -12,20 +12,6 @@ import {
 } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 
-it("allows to uninline children", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
-
-    assert<IsExact<typeof TEST_ROUTE.path, "/test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.$.CHILD.path, "/child">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.path, "/grand">>(true);
-
-    expect(TEST_ROUTE.path).toEqual("/test");
-    expect(TEST_ROUTE.$.CHILD.path).toEqual("/child");
-    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.path).toEqual("/grand");
-});
-
 it("provides absolute path", () => {
     const GRANDCHILD = route("grand");
     const CHILD = route("child", {}, { GRANDCHILD });
@@ -973,4 +959,125 @@ it("allows types composition", () => {
     );
 
     expect(ROUTE.buildState({ fromList: true, hidden: true })).toStrictEqual({ fromList: "true", hidden: "true" });
+});
+
+it("allows to trim path pattern", () => {
+    const GRANDCHILD = route("grand");
+    const CHILD = route("child", {}, { GRANDCHILD });
+    const TEST_ROUTE = route("test", {}, { CHILD });
+
+    assert<IsExact<typeof TEST_ROUTE.path, "/test">>(true);
+    assert<IsExact<typeof TEST_ROUTE.$.CHILD.path, "/child">>(true);
+    assert<IsExact<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.path, "/grand">>(true);
+    assert<IsExact<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.path, "/child/grand">>(true);
+
+    expect(TEST_ROUTE.path).toEqual("/test");
+    expect(TEST_ROUTE.$.CHILD.path).toEqual("/child");
+    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.path).toEqual("/grand");
+    expect(TEST_ROUTE.$.CHILD.GRANDCHILD.path).toEqual("/child/grand");
+});
+
+it("allows to inherit non-path params in trimmed children", () => {
+    const GRANDCHILD = route("grand", {
+        searchParams: { baz: booleanType },
+        state: { stateBaz: stringType },
+        hash: hashValues("hashBaz"),
+    });
+    const CHILD = route(
+        "child",
+        { searchParams: { bar: stringType }, state: { stateBar: numberType }, hash: hashValues("hashBar") },
+        { GRANDCHILD }
+    );
+    const TEST_ROUTE = route(
+        "test",
+        { searchParams: { foo: numberType }, state: { stateFoo: booleanType }, hash: hashValues("hashFoo") },
+        { CHILD }
+    );
+
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], { foo?: number } | undefined>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], "hashFoo" | undefined>>(true);
+
+    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.buildPath>[0], Record<never, never>>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.buildPath>[1], { foo?: number; bar?: string } | undefined>>(
+        true
+    );
+    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.buildPath>[2], "hashFoo" | "hashBar" | undefined>>(true);
+
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
+    assert<
+        IsExact<
+            Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath>[1],
+            { foo?: number; bar?: string; baz?: boolean } | undefined
+        >
+    >(true);
+    assert<
+        IsExact<
+            Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath>[2],
+            "hashFoo" | "hashBar" | "hashBaz" | undefined
+        >
+    >(true);
+
+    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
+    assert<
+        IsExact<
+            Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath>[1],
+            { foo?: number; bar?: string; baz?: boolean } | undefined
+        >
+    >(true);
+    assert<
+        IsExact<
+            Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath>[2],
+            "hashFoo" | "hashBar" | "hashBaz" | undefined
+        >
+    >(true);
+
+    expect(TEST_ROUTE.buildPath({}, { foo: 1 }, "hashFoo")).toEqual("/test?foo=1#hashFoo");
+    expect(TEST_ROUTE.$.CHILD.buildPath({}, { foo: 1, bar: "test" }, "hashBar")).toEqual(
+        "/child?foo=1&bar=test#hashBar"
+    );
+    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath({}, { foo: 1, bar: "test", baz: false }, "hashBaz")).toEqual(
+        "/grand?foo=1&bar=test&baz=false#hashBaz"
+    );
+    expect(TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath({}, { foo: 1, bar: "test", baz: false }, "hashBaz")).toEqual(
+        "/child/grand?foo=1&bar=test&baz=false#hashBaz"
+    );
+
+    const testSearchParams = createSearchParams({ foo: "1", bar: "test", baz: "false" });
+
+    expect(TEST_ROUTE.getTypedSearchParams(testSearchParams)).toStrictEqual({ foo: 1 });
+    expect(TEST_ROUTE.$.CHILD.getTypedSearchParams(testSearchParams)).toStrictEqual({ foo: 1, bar: "test" });
+    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.getTypedSearchParams(testSearchParams)).toStrictEqual({
+        foo: 1,
+        bar: "test",
+        baz: false,
+    });
+    expect(TEST_ROUTE.$.CHILD.GRANDCHILD.getTypedSearchParams(testSearchParams)).toStrictEqual({
+        foo: 1,
+        bar: "test",
+        baz: false,
+    });
+});
+
+it("prevents path param inheritance in trimmed children", () => {
+    const GRANDCHILD = route("grand/:id", {});
+    const CHILD = route("child/:subId", { params: { subId: booleanType } }, { GRANDCHILD });
+    const TEST_ROUTE = route("test/:id", { params: { id: numberType } }, { CHILD });
+
+    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], { id: number }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.buildPath>[0], { subId: boolean }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath>[0], { id: string }>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath>[0], { id: string; subId: boolean }>>(
+        true
+    );
+
+    expect(TEST_ROUTE.buildPath({ id: 1 })).toEqual("/test/1");
+    expect(TEST_ROUTE.$.CHILD.buildPath({ subId: true })).toEqual("/child/true");
+    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath({ id: "test" })).toEqual("/grand/test");
+    expect(TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath({ subId: true, id: "test" })).toEqual("/child/true/grand/test");
+
+    expect(TEST_ROUTE.getTypedParams({ id: "1", subId: "true" })).toEqual({ id: 1 });
+    expect(TEST_ROUTE.$.CHILD.getTypedParams({ id: "1", subId: "true" })).toEqual({ subId: true });
+    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.getTypedParams({ id: "1", subId: "true" })).toEqual({ id: "1" });
+    expect(TEST_ROUTE.$.CHILD.GRANDCHILD.getTypedParams({ id: "1", subId: "true" })).toEqual({ id: "1", subId: true });
 });

@@ -103,7 +103,7 @@ import { ROUTES } from "./path/to/routes";
     {/* user/:id */}
     <Route path={ROUTES.USER.relativePath} element={<User />}>
         {/* details/:lang? */}
-        {/* $ effectively cuts everything to the left. */}
+        {/* $ effectively defines path pattern start. */}
         <Route path={ROUTES.USER.$.DETAILS.relativePath} element={<UserDetails />} />
     </Route>
 </Routes>;
@@ -130,10 +130,12 @@ import { ROUTES } from "./path/to/routes";
 // Relative link
 <Link
     // Path params: { lang?: string } -- optionality is governed by the path pattern.
-    // $ effectively cuts everything to the left.
-    to={ROUTES.USER.$.DETAILS.buildRelativePath({ lang: "en" })}
+    // Other params remain the same.
+    // $ effectively defines path pattern start.
+    to={ROUTES.USER.$.DETAILS.buildRelativePath({ lang: "en" }, { infoVisible: false }, "comments")}
+    state={ROUTES.USER.DETAILS.buildState({ fromUserList: false })}
 >
-    details/en
+    details/en?infoVisible=false#comments
 </Link>;
 ```
 
@@ -199,22 +201,22 @@ console.log(USER.path); // "/user/:id"
 console.log(USER.DETAILS.path); // "/user/:id/details"
 ```
 
-They can also be uninlined beforehand or after the fact:
+They can also be uninlined, most likely for usage in multiple places:
 
 ```tsx
 import { route } from "react-router-typesafe-routes/dom"; // Or /native
 
 const DETAILS = route("details");
-const USER = route("user/:id", {}, { DETAILS });
 
-console.log(USER.$.DETAILS === DETAILS); // true
+const USER = route("user/:id", {}, { DETAILS });
+const POST = route("post/:id", {}, { DETAILS });
+
 console.log(USER.DETAILS.path); // "/user/:id/details"
+console.log(POST.DETAILS.path); // "/post/:id/details"
 console.log(DETAILS.path); // "/details"
 ```
 
-That is, the `$` property of every route contains original routes, specified as children of that route. The mental model here is that `$` cuts everything to the left. The entire API works as if there is nothing there.
-
-Again, `DETAILS` (or `USER.$.DETAILS`) and `USER.DETAILS` are separate routes, which will usually behave differently. `DETAILS` doesn't know anything about `USER`, but `USER.DETAILS` does. `DETAILS` is a standalone route, but `USER.DETAILS` is a child of `USER`.
+To reiterate, `DETAILS` and `USER.DETAILS` are separate routes, which will usually behave differently. `DETAILS` doesn't know anything about `USER`, but `USER.DETAILS` does. `DETAILS` is a standalone route, but `USER.DETAILS` is a child of `USER`.
 
 > ❗Child routes have to start with an uppercase letter to prevent overlapping with route API.
 
@@ -256,7 +258,9 @@ import { Route, Routes } from "react-router-dom"; // Or -native
 </Routes>;
 ```
 
-That is, `path` contains a combined path with a leading slash (`/`), and `relativePath` contains a combined path **without intermediate stars (`*`)** and without a leading slash (`/`).
+That is, the `$` property of every route contains child routes that lack parent path pattern. The mental model here is that `$` defines the path pattern start.
+
+The `path` property contains a combined path with a leading slash (`/`), and `relativePath` contains a combined path **without intermediate stars (`*`)** and without a leading slash (`/`).
 
 #### Nested `<Routes />`
 
@@ -391,6 +395,8 @@ Child routes inherit all type objects from their parent. For parameters with the
 
 Hash values are combined. If a parent allows any `string` to be a hash value, its children can't override that.
 
+Child routes under `$` don't inherit parent type objects for path params.
+
 #### Types composition
 
 It's pretty common to have completely unrelated routes that share the same set of params. One such example is pagination params.
@@ -413,17 +419,8 @@ const [{ page }] = useTypedSearchParams(ROUTE);
 However, this approach has the following drawbacks:
 
 -   All routes will have all common params, even if they don't need them.
--   Common params are lost upon child uninlining.
 -   All common params are defined in one place, which may get cluttered.
 -   We can't share path params this way, because they require the corresponding path pattern.
-
-```tsx
-// This is allowed, but makes no sense since there is no pagination on this route.
-ROUTE.ABOUT.buildPath({}, { page: 1 });
-
-// This won't work, but we need this param.
-ROUTE.$.POST.buildPath({}, { page: 1 });
-```
 
 To mitigate these issues, we can use type composition via the [`types()`](#types) helper:
 
@@ -493,7 +490,7 @@ The `route()` helper returns a route object, which has the following fields:
 -   `getUntypedParams()`, `getUntypedSearchParams()`, and `getUntypedState()` for retrieving untyped params from React Router primitives. Typed params are omitted. Note that the hash is always typed.
 -   `getPlainParams()` and `getPlainSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `buildHash()` and `buildState()` can be used instead.
 -   `types`, which contains type objects and hash values of the route. Can be used for sharing types with other routes, though normally you should use the [`types()`](#types) helper instead.
--   `$`, which contains the original child routes. These routes are unaffected by the parent route.
+-   `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
 -   Any number of child routes starting with an uppercase letter.
 
 ### Built-in types
