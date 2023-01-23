@@ -30,7 +30,7 @@ The library is distributed as an ES module written in ES6.
 
 ## Limitations & Caveats
 
--   To make params merging possible, the state has to be an object, and the hash has to be one of the predefined strings (or any string).
+-   To make params merging possible, the state has to be an object, and the hash has to be one of the known strings (or any string).
 -   Since React Router only considers pathname on route matching, search parameters, state fields, and hash are considered optional upon URL or state building.
 -   For simplicity, the hash is always considered optional upon URL parsing.
 -   To prevent overlapping with route API, child routes have to start with an uppercase letter (this only affects code and not the resulting URL).
