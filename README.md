@@ -1,4 +1,4 @@
-# React Router Typesafe Routes
+# React Router Typesafe Routes 🍣
 
 Comprehensive and extensible type-safe routes for React Router v6 with first-class support for nested routes and param validation.
 
