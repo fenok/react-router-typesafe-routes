@@ -121,10 +121,10 @@ import { ROUTES } from "./path/to/routes";
     // Search params: { infoVisible?: boolean }.
     // State fields: { fromUserList?: boolean }.
     // Hash: "info" | "comments" | undefined
-    to={ROUTES.USER.DETAILS.buildPath({ id: 1, lang: "en" }, { infoVisible: true }, "info")}
+    to={ROUTES.USER.DETAILS.buildPath({ id: 1, lang: "en" }, { infoVisible: false }, "comments")}
     state={ROUTES.USER.DETAILS.buildState({ fromUserList: true })}
 >
-    /user/1/details/en?infoVisible=true#info
+    /user/1/details/en?infoVisible=false#comments
 </Link>;
 
 // Relative link
@@ -132,10 +132,10 @@ import { ROUTES } from "./path/to/routes";
     // Path params: { lang?: string } -- optionality is governed by the path pattern.
     // Other params remain the same.
     // $ effectively defines path pattern start.
-    to={ROUTES.USER.$.DETAILS.buildRelativePath({ lang: "en" }, { infoVisible: false }, "comments")}
+    to={ROUTES.USER.$.DETAILS.buildRelativePath({ lang: "en" }, { infoVisible: true }, "info")}
     state={ROUTES.USER.DETAILS.buildState({ fromUserList: false })}
 >
-    details/en?infoVisible=false#comments
+    details/en?infoVisible=true#info
 </Link>;
 ```
 
