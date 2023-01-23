@@ -1,6 +1,6 @@
 import { Route, InSearchParams, OutSearchParams, InStateParams } from "../common/index.js";
 import { useSearchParams, NavigateOptions, createSearchParams } from "react-router-native";
-import { useMemo, useCallback, MutableRefObject, useRef } from "react";
+import { useMemo, useCallback } from "react";
 
 interface TypedNavigateOptions<T> extends NavigateOptions {
     state?: T;
@@ -27,10 +27,6 @@ function useTypedSearchParams<TPath extends string, TPathTypes, TSearchTypes, TH
     const [searchParams, setSearchParams] = useSearchParams(defaultInit);
 
     const typedSearchParams = useMemo(() => route.getTypedSearchParams(searchParams), [route, searchParams]);
-    const untypedSearchParams = useMemo(() => route.getUntypedSearchParams(searchParams), [route, searchParams]);
-
-    const typedSearchParamsRef = useUpdatingRef(typedSearchParams);
-    const untypedSearchParamsRef = useUpdatingRef(untypedSearchParams);
 
     const setTypedSearchParams = useCallback(
         (
@@ -39,18 +35,25 @@ function useTypedSearchParams<TPath extends string, TPathTypes, TSearchTypes, TH
                 | ((prevParams: OutSearchParams<TSearchTypes>) => InSearchParams<TSearchTypes>),
             { state, preserveUntyped, ...restNavigateOptions }: TypedNavigateOptions<InStateParams<TStateTypes>> = {}
         ) => {
-            const nextParams = createSearchParams(
-                route.getPlainSearchParams(typeof params === "function" ? params(typedSearchParamsRef.current) : params)
+            setSearchParams(
+                (prevParams) => {
+                    const nextParams = createSearchParams(
+                        route.getPlainSearchParams(
+                            typeof params === "function" ? params(route.getTypedSearchParams(prevParams)) : params
+                        )
+                    );
+
+                    if (preserveUntyped) appendSearchParams(nextParams, route.getUntypedSearchParams(prevParams));
+
+                    return nextParams;
+                },
+                {
+                    ...(state ? { state: route.buildState(state) } : {}),
+                    ...restNavigateOptions,
+                }
             );
-
-            if (preserveUntyped) appendSearchParams(nextParams, untypedSearchParamsRef.current);
-
-            setSearchParams(nextParams, {
-                ...(state ? { state: route.buildState(state) } : {}),
-                ...restNavigateOptions,
-            });
         },
-        [route, setSearchParams, typedSearchParamsRef, untypedSearchParamsRef]
+        [route, setSearchParams]
     );
 
     return [typedSearchParams, setTypedSearchParams];
@@ -62,13 +65,6 @@ function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {
     }
 
     return target;
-}
-
-function useUpdatingRef<T>(value: T): MutableRefObject<T> {
-    const valueRef = useRef(value);
-    valueRef.current = value;
-
-    return valueRef;
 }
 
 export { useTypedSearchParams, TypedNavigateOptions };

@@ -1,7 +1,7 @@
 {
     "name": "react-router-typesafe-routes",
-    "version": "0.5.1",
-    "description": "Comprehensive type-safe routes for react-router v6 with first-class support for nested routes and param validation.",
+    "version": "1.0.0",
+    "description": "Comprehensive and extensible type-safe routes for React Router v6 with first-class support for nested routes and param validation.",
     "keywords": [
         "typesafe",
         "type-safe",
@@ -46,6 +46,7 @@
     },
     "devDependencies": {
         "@types/jest": "^27.5.1",
+        "@types/node": "^18.11.18",
         "@types/react": "^18.0.9",
         "@typescript-eslint/eslint-plugin": "^5.25.0",
         "@typescript-eslint/parser": "^5.25.0",
@@ -57,16 +58,16 @@
         "jest": "^28.1.0",
         "prettier": "^2.6.2",
         "react": ">=16.8",
-        "react-router-dom": "^6.3.0",
-        "react-router-native": "^6.3.0",
+        "react-router-dom": "^6.7.0",
+        "react-router-native": "^6.7.0",
         "rimraf": "^3.0.2",
         "ts-jest": "^28.0.2",
         "typescript": "^4.6.4"
     },
     "peerDependencies": {
         "react": ">=16.8",
-        "react-router-dom": "^6.3.0",
-        "react-router-native": "^6.3.0"
+        "react-router-dom": "^6.7.0",
+        "react-router-native": "^6.7.0"
     },
     "peerDependenciesMeta": {
         "react-router-dom": {
