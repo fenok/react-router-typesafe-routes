@@ -7,9 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Add support for optional path segments.
+-   Add `types()` helper for route types composition.
+-   Add `getUntypedParams()` method to route object.
+
+### Fixed
+
+-   Intermediate splat (star) segments in absolute path patterns are now properly detected. Previously, their detection didn't work properly if dynamic segments were present. It means that such star params will now correctly appear in parsed (typed) path params.
+-   Multiple intermediate stars are now properly removed from relative path pattern. This also fixes building URL paths from such patterns.
+-   Upon building URL paths from patterns with only intermediate stars, the `*` parameter is not present anymore, because it doesn't actually do anything (intermediate stars are simply removed).
+
 ### Changed
 
--   Fallbacks are now run through type functions to ensure fallbacks validity, and therefore `TRetrieved` was replaced with `TOriginal` in their type. This is technically a breaking change, but it only affects custom types where `TRetrieved` is not assignable to `TOriginal`, which should be extremely rare.
+-   **Breaking**: Fallbacks are now run through type functions to ensure fallbacks validity, and therefore `TRetrieved` was replaced with `TOriginal` in their type. This is technically a breaking change, but it only affects custom types where `TRetrieved` is not assignable to `TOriginal`, which should be extremely rare.
+-   **Breaking**: Minimal required React Router version is changed to `6.7.0` due to optional path segments support.
+-   **Breaking**: Rename `ExtractRouteParams` to `PathParam` for parity with React Router.
+-   **Breaking**: In route object, `$` no longer contains undecorated child routes. Instead, it now contains routes that lack parent path pattern and path type objects, but inherit everything else.
+-   `buildPath`/`buildRelativePath` now accept additional arguments and behave exactly like `buildUrl`/`buildRelativeUrl`.
+-   `setTypedSearchParams` is switched to React Router implementation of functional updates.
+
+### Deprecated
+
+-   `buildUrl`/`buildRelativeUrl` now behave exactly like `buildPath`/`buildRelativePath` and are therefore deprecated.
+
+### Removed
+
+-   Remove all internal fields prefixed with `__` from route objects.
 
 ## [0.5.1] - 2022-12-14
 
@@ -19,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--   Sync node version requirements with react-router.
+-   Sync node version requirements with React Router.
 
 ## [0.5.0] - 2022-09-14
 
@@ -29,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
--   Rename `CreateRouteOptions` and `RouteOptions` into `RouteOptions` and `RouteTypes` respectively.
+-   **Breaking**: Rename `CreateRouteOptions` and `RouteOptions` into `RouteOptions` and `RouteTypes` respectively.
 
 ## [0.4.3] - 2022-09-11
 
