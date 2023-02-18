@@ -38,17 +38,30 @@ The library is distributed as an ES module written in ES6.
 
 ## How is it different from existing solutions?
 
--   [typed-react-router](https://www.npmjs.com/package/typed-react-router) only handles path params. It also forces the use of [route objects](https://reactrouter.com/en/main/route/route) and doesn't allow relative links.
+| Feature                                   | react-router-typesafe-routes | [typesafe-routes](https://github.com/kruschid/typesafe-routes) | [typed-react-router](https://github.com/bram209/typed-react-router) |
+| ----------------------------------------- | ---------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Type-safe path params                     | ✅                           | ✅                                                             | ✅                                                                  |
+| Type-safe search params                   | ✅                           | ✅                                                             | 🚫                                                                  |
+| Type-safe native arrays in search params  | ✅                           | 🚫️                                                            | 🚫                                                                  |
+| Type-safe state                           | ✅                           | 🚫                                                             | 🚫                                                                  |
+| Type-safe hash                            | ✅                           | 🚫                                                             | 🚫                                                                  |
+| Customizable serialization                | ✅                           | ✅                                                             | 🚫                                                                  |
+| Customizable parsing / validation         | ✅                           | ✅                                                             | 🚫                                                                  |
+| Configurable parsing error result         | ✅                           | 🚫                                                             | 🚫                                                                  |
+| Nested routes                             | ✅                           | ✅                                                             | ✅                                                                  |
+| Relative links                            | ✅                           | ✅                                                             | 🚫                                                                  |
+| Tailored specifically for React Router v6 | ✅                           | 🚫                                                             | ✅                                                                  |
 
--   [typesafe-routes](https://www.npmjs.com/package/typesafe-routes) only handles path and search params. Though pretty good overall, it's not specifically tailored for React Router v6.
+Other libraries that I was able to find are outdated and not really suitable for React Router v6:
 
-    -   [react-typesafe-routes](https://www.npmjs.com/package/react-typesafe-routes), which is seemingly based on it, also alters React Router API way too much and relies on React Router below v6.
+-   [typesafe-react-router](https://github.com/AveroLLC/typesafe-react-router)
+-   [react-typesafe-routes](https://github.com/innFactory/react-typesafe-routes) (this one is currently being updated for React Router v6)
 
--   [typesafe-react-router](https://www.npmjs.com/package/typesafe-react-router) only handles path params and has no concept of nested routes, because it was developed for React Router below v6.
+You might also want to use some other router with built-in type safety:
 
-    -   There is a bunch of articles like [Type-Safe Usage of React Router](https://dev.to/0916dhkim/type-safe-usage-of-react-router-5c44) that propose similar solutions (i.e. only path params and no nesting). Again, they were written for React Router below v6.
-
--   There is also [type-route](https://www.npmjs.com/package/type-route), but it's a separate routing library.
+-   [TanStack Router](https://github.com/tanstack/router)
+-   [Type Route](https://github.com/zilch/type-route)
+-   [Chicane](https://github.com/swan-io/chicane)
 
 ## Quick usage example
 
