@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+-   Type objects are now fully responsible for tweaking how parsing errors are processed, as they semantically should.
+    -   Type objects that use other type objects now work as expected. For instance, `arrayOfType(numberType)` will now give `(number | undefined)[] | undefined` instead of `number[] | undefined` upon parsing.
+    -   If a custom type wasn't created via `createType()`, it will now behave as `throwable`. It shouldn't be done in the first place, so it's not considered a breaking change.
+-   For types of parsed path params, search params, and state fields, keys that correspond to type objects that return `undefined` upon a parsing error are no longer optional.
+
+### Removed
+
+-   Remove `KeysWithFallback` helper which is now obsolete. It's not considered a breaking change, because this helper is internal.
+
 ## [1.0.0] - 2023-01-23
 
 ### Added
@@ -76,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Hook dependencies are now properly listed, which is checked by ESLint. This fixes `useTypedSearchParams` for dynamic routes.
 -   Prevent access to internal `useUpdatingRef` helper.
 
+[unreleased]: https://github.com/fenok/react-router-typesafe-routes/tree/dev
 [1.0.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v1.0.0
 [0.5.1]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.5.1
 [0.5.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.5.0
