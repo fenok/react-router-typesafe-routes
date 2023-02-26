@@ -57,26 +57,13 @@ export const union = <
             },
             parser: {
                 stringify(value: T[number]): string {
-                    switch (typeof value) {
-                        case "string":
-                            return value;
-                        case "number":
-                        case "boolean":
-                            return JSON.stringify(value);
-                        default:
-                            throw new Error(`Expected ${String(value)} to be string, number or boolean`);
-                    }
+                    return typeof value === "string" ? value : JSON.stringify(value);
                 },
                 parse(value: string): unknown {
                     for (const canonicalValue of values) {
                         try {
-                            switch (typeof canonicalValue) {
-                                case "string":
-                                    if (value === canonicalValue) return canonicalValue;
-                                    break;
-                                case "number":
-                                case "boolean":
-                                    if (JSON.parse(value) === canonicalValue) return canonicalValue;
+                            if (canonicalValue === (typeof canonicalValue === "string" ? value : JSON.parse(value))) {
+                                return canonicalValue;
                             }
                         } catch {
                             // Try next value
