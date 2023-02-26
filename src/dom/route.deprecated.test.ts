@@ -1,6 +1,15 @@
 import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
-import { number, boolean, string, hashValues, throwable, date, types } from "../common/index.js";
+import {
+    numberType,
+    booleanType,
+    arrayOfType,
+    stringType,
+    hashValues,
+    throwable,
+    dateType,
+    types,
+} from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("provides absolute path", () => {
@@ -225,7 +234,7 @@ it("allows implicit path params", () => {
 
 it("allows explicit path params", () => {
     const GRANDCHILD = route("grand");
-    const CHILD = route("child/:id", { params: { id: number() } }, { GRANDCHILD });
+    const CHILD = route("child/:id", { params: { id: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
@@ -239,7 +248,7 @@ it("allows explicit path params", () => {
 
 it("allows to mix explicit and implicit path params", () => {
     const GRANDCHILD = route("grand");
-    const CHILD = route("child/:id/:value", { params: { id: number() } }, { GRANDCHILD });
+    const CHILD = route("child/:id/:value", { params: { id: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
@@ -253,7 +262,7 @@ it("allows to mix explicit and implicit path params", () => {
 
 it("allows to mix explicit and implicit path params in case of optional params", () => {
     const GRANDCHILD = route("grand/:name");
-    const CHILD = route("child/:id?/:value?", { params: { id: number() } }, { GRANDCHILD });
+    const CHILD = route("child/:id?/:value?", { params: { id: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
@@ -274,7 +283,7 @@ it("allows to mix explicit and implicit path params in case of optional params",
 
 it("allows to mix explicit and implicit path params across multiple routes", () => {
     const GRANDCHILD = route("grand/:name");
-    const CHILD = route("child/:id/:value", { params: { id: number() } }, { GRANDCHILD });
+    const CHILD = route("child/:id/:value", { params: { id: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
@@ -294,8 +303,8 @@ it("allows to mix explicit and implicit path params across multiple routes", () 
 });
 
 it("prioritizes children when mixing path params with the same name", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: boolean() } });
-    const CHILD = route("child/:id/:value", { params: { id: number() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand/:id", { params: { id: booleanType } });
+    const CHILD = route("child/:id/:value", { params: { id: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
@@ -338,7 +347,7 @@ it("allows implicit optional star path param", () => {
 });
 
 it("allows explicit star path param", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number() } });
+    const GRANDCHILD = route("grand/*", { params: { "*": numberType } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -352,7 +361,7 @@ it("allows explicit star path param", () => {
 });
 
 it("allows explicit optional star path param", () => {
-    const GRANDCHILD = route("grand/*?", { params: { "*": number() } });
+    const GRANDCHILD = route("grand/*?", { params: { "*": numberType } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -366,7 +375,7 @@ it("allows explicit optional star path param", () => {
 });
 
 it("always treats star param as optional upon building", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number() } });
+    const GRANDCHILD = route("grand/*", { params: { "*": numberType } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -394,7 +403,7 @@ it("allows star path param in the middle of combined path", () => {
 });
 
 it("allows search params", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
+    const GRANDCHILD = route("grand", { searchParams: { foo: numberType } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -408,8 +417,8 @@ it("allows search params", () => {
 });
 
 it("allows to mix search params across multiple routes", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
-    const CHILD = route("child", { searchParams: { bar: number(throwable).array() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand", { searchParams: { foo: numberType } });
+    const CHILD = route("child", { searchParams: { bar: arrayOfType(numberType) } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
@@ -429,8 +438,8 @@ it("allows to mix search params across multiple routes", () => {
 });
 
 it("prioritizes children when mixing search params with the same name", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
-    const CHILD = route("child", { searchParams: { foo: number(throwable).array() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand", { searchParams: { foo: numberType } });
+    const CHILD = route("child", { searchParams: { foo: arrayOfType(numberType) } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
@@ -501,8 +510,8 @@ it("allows mixing explicit and implicit hash params across multiple routes", () 
 });
 
 it("allows state params", () => {
-    const GRANDCHILD = route("grand", { state: { bar: number() } });
-    const CHILD = route("child", { state: { foo: string() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand", { state: { bar: numberType } });
+    const CHILD = route("child", { state: { foo: stringType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildState>[0], Record<never, never>>>(true);
@@ -511,7 +520,7 @@ it("allows state params", () => {
 
     expect(TEST_ROUTE.buildState({})).toEqual({});
     expect(TEST_ROUTE.CHILD.buildState({ foo: "test" })).toEqual({ foo: "test" });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildState({ foo: "test", bar: 1 })).toEqual({ foo: "test", bar: 1 });
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildState({ foo: "test", bar: 1 })).toEqual({ foo: "test", bar: "1" });
 });
 
 it("allows implicit path params parsing", () => {
@@ -545,13 +554,13 @@ it("allows implicit optional path params parsing", () => {
 });
 
 it("allows explicit path params parsing", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number() } });
+    const GRANDCHILD = route("grand/:id", { params: { id: numberType } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
     assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id: number | undefined }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id?: number }>>(true);
 
     expect(TEST_ROUTE.getTypedParams({ id: "1" })).toEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ id: "1" })).toEqual({});
@@ -559,18 +568,15 @@ it("allows explicit path params parsing", () => {
 });
 
 it("allows to mix path params parsing across multiple routes", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number() } });
-    const CHILD = route("child/:childId", { params: { childId: number() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand/:id", { params: { id: numberType } });
+    const CHILD = route("child/:childId", { params: { childId: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: number | undefined }>>(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>,
-            { childId: number | undefined; id: number | undefined }
-        >
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId?: number }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId?: number; id?: number }>>(
+        true
+    );
 
     expect(TEST_ROUTE.getTypedParams({ id: "1", childId: "2" })).toEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ id: "1", childId: "2" })).toEqual({ childId: 2 });
@@ -579,7 +585,7 @@ it("allows to mix path params parsing across multiple routes", () => {
 
 it("provides untyped path params", () => {
     const GRANDCHILD = route("grand/:id", {});
-    const CHILD = route("child/:childId/:opt?", { params: { childId: number() } }, { GRANDCHILD });
+    const CHILD = route("child/:childId/:opt?", { params: { childId: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getUntypedParams>, Record<string, string | undefined>>>(true);
@@ -638,18 +644,15 @@ it("doesn't throw if implicit optional path params are omitted", () => {
 });
 
 it("doesn't throw if explicit path params are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number() } });
-    const CHILD = route("child/:childId", { params: { childId: number() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand/:id", { params: { id: numberType } });
+    const CHILD = route("child/:childId", { params: { childId: numberType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: number | undefined }>>(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>,
-            { childId: number | undefined; id: number | undefined }
-        >
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId?: number }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId?: number; id?: number }>>(
+        true
+    );
 
     expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2 });
@@ -657,8 +660,8 @@ it("doesn't throw if explicit path params are invalid", () => {
 });
 
 it("doesn't throw if explicit path params with fallback are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number(-1) } });
-    const CHILD = route("child/:childId", { params: { childId: number(-1) } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand/:id", { params: { id: numberType(-1) } });
+    const CHILD = route("child/:childId", { params: { childId: numberType(-1) } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
@@ -673,8 +676,8 @@ it("doesn't throw if explicit path params with fallback are invalid", () => {
 });
 
 it("throws if explicit throwable path params are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number(throwable) } });
-    const CHILD = route("child/:childId", { params: { childId: number(throwable) } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand/:id", { params: { id: numberType(throwable) } });
+    const CHILD = route("child/:childId", { params: { childId: numberType(throwable) } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
@@ -717,13 +720,13 @@ it("allows implicit optional star path param parsing", () => {
 });
 
 it("allows explicit star path param parsing", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number() } });
+    const GRANDCHILD = route("grand/*", { params: { "*": numberType } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
     assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": number | undefined }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*"?: number }>>(true);
 
     expect(TEST_ROUTE.getTypedParams({ "*": "1" })).toEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "1" })).toEqual({});
@@ -731,7 +734,7 @@ it("allows explicit star path param parsing", () => {
 });
 
 it("allows explicit star path param parsing (with fallback)", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number(42) } });
+    const GRANDCHILD = route("grand/*", { params: { "*": numberType(42) } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -745,13 +748,13 @@ it("allows explicit star path param parsing (with fallback)", () => {
 });
 
 it("doesn't throw if explicit star param is invalid", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number() } });
+    const GRANDCHILD = route("grand/*", { params: { "*": numberType } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
     assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": number | undefined }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*"?: number }>>(true);
 
     expect(TEST_ROUTE.getTypedParams({ "*": "foo" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "foo" })).toStrictEqual({});
@@ -773,28 +776,20 @@ it("allows intermediate star param parsing", () => {
 });
 
 it("allows search params parsing", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number(0) } });
+    const GRANDCHILD = route("grand", { searchParams: { foo: numberType(0) } });
     const CHILD = route(
         "child",
         {
-            searchParams: { foo: string(), arr: number(throwable).array() },
+            searchParams: { foo: stringType, arr: arrayOfType(numberType) },
         },
         { GRANDCHILD }
     );
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedSearchParams>, Record<never, never>>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>, { foo?: string; arr?: number[] }>>(true);
     assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>,
-            { foo: string | undefined; arr: number[] | undefined }
-        >
-    >(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>,
-            { foo: number; arr: number[] | undefined }
-        >
+        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>, { foo: number; arr?: number[] }>
     >(true);
 
     const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo", untyped: "untyped" });
@@ -817,28 +812,20 @@ it("allows search params parsing", () => {
 });
 
 it("throws if throwable search params are invalid", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number(throwable) } });
+    const GRANDCHILD = route("grand", { searchParams: { foo: numberType(throwable) } });
     const CHILD = route(
         "child",
         {
-            searchParams: { foo: string(), arr: number(throwable).array() },
+            searchParams: { foo: stringType, arr: arrayOfType(numberType) },
         },
         { GRANDCHILD }
     );
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedSearchParams>, Record<never, never>>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>, { foo?: string; arr?: number[] }>>(true);
     assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>,
-            { foo: string | undefined; arr: number[] | undefined }
-        >
-    >(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>,
-            { foo: number; arr: number[] | undefined }
-        >
+        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>, { foo: number; arr?: number[] }>
     >(true);
 
     const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo", untyped: "untyped" });
@@ -889,8 +876,8 @@ it("allows any hash parsing", () => {
 });
 
 it("allows state params parsing", () => {
-    const GRANDCHILD = route("grand", { state: { bar: number() } });
-    const CHILD = route("child", { state: { foo: string() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand", { state: { bar: numberType } });
+    const CHILD = route("child", { state: { foo: stringType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildState>[0], Record<never, never>>>(true);
@@ -898,28 +885,23 @@ it("allows state params parsing", () => {
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildState>[0], { foo?: string; bar?: number }>>(true);
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedState>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedState>, { foo: string | undefined }>>(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedState>,
-            { foo: string | undefined; bar: number | undefined }
-        >
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedState>, { foo?: string }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedState>, { foo?: string; bar?: number }>>(true);
 
-    const state = { foo: "test", bar: 1, untyped: "untyped" };
+    const state = { foo: "test", bar: "1", untyped: "untyped" };
 
     expect(TEST_ROUTE.getTypedState(state)).toEqual({});
     expect(TEST_ROUTE.CHILD.getTypedState(state)).toEqual({ foo: "test" });
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedState(state)).toEqual({ foo: "test", bar: 1 });
 
-    expect(TEST_ROUTE.getUntypedState(state)).toEqual({ foo: "test", bar: 1, untyped: "untyped" });
-    expect(TEST_ROUTE.CHILD.getUntypedState(state)).toEqual({ bar: 1, untyped: "untyped" });
+    expect(TEST_ROUTE.getUntypedState(state)).toEqual({ foo: "test", bar: "1", untyped: "untyped" });
+    expect(TEST_ROUTE.CHILD.getUntypedState(state)).toEqual({ bar: "1", untyped: "untyped" });
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getUntypedState(state)).toEqual({ untyped: "untyped" });
 });
 
 it("throws if throwable state params are invalid", () => {
-    const GRANDCHILD = route("grand", { state: { bar: number(throwable) } });
-    const CHILD = route("child", { state: { foo: string() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand", { state: { bar: numberType(throwable) } });
+    const CHILD = route("child", { state: { foo: stringType } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildState>[0], Record<never, never>>>(true);
@@ -927,10 +909,8 @@ it("throws if throwable state params are invalid", () => {
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildState>[0], { foo?: string; bar?: number }>>(true);
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedState>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedState>, { foo: string | undefined }>>(true);
-    assert<
-        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedState>, { foo: string | undefined; bar: number }>
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedState>, { foo?: string }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedState>, { foo?: string; bar: number }>>(true);
 
     const state = { foo: "test", bar: "bar", untyped: "untyped" };
 
@@ -940,27 +920,27 @@ it("throws if throwable state params are invalid", () => {
 });
 
 it("throws upon specifying an invalid fallback", () => {
-    expect(() => route("", { searchParams: { id: date(new Date("foo")) } })).toThrow();
+    expect(() => route("", { searchParams: { id: dateType(new Date("foo")) } })).toThrow();
 });
 
 it("allows types composition", () => {
-    const PATH = route(":id", { params: { id: number() } });
-    const SEARCH = route("", { searchParams: { page: number() } });
-    const STATE = route("", { state: { fromList: boolean() } });
+    const PATH = route(":id", { params: { id: numberType } });
+    const SEARCH = route("", { searchParams: { page: numberType } });
+    const STATE = route("", { state: { fromList: booleanType } });
     const HASH = route("", { hash: hashValues("about", "more") });
 
     const ROUTE = route(
         ":id/:subId",
         types({
             params: {
-                subId: number(),
+                subId: numberType,
             },
             searchParams: {
-                ordered: boolean(),
-                page: boolean(), // This should be overridden
+                ordered: booleanType,
+                page: booleanType, // This should be overridden
             },
             state: {
-                hidden: boolean(),
+                hidden: booleanType,
             },
             hash: hashValues("info"),
         })(PATH)(SEARCH)(STATE)(HASH)
@@ -978,7 +958,7 @@ it("allows types composition", () => {
         "/1/2?page=1&ordered=true#info"
     );
 
-    expect(ROUTE.buildState({ fromList: true, hidden: true })).toStrictEqual({ fromList: true, hidden: true });
+    expect(ROUTE.buildState({ fromList: true, hidden: true })).toStrictEqual({ fromList: "true", hidden: "true" });
 });
 
 it("allows to trim path pattern", () => {
@@ -999,18 +979,18 @@ it("allows to trim path pattern", () => {
 
 it("allows to inherit non-path params in trimmed children", () => {
     const GRANDCHILD = route("grand", {
-        searchParams: { baz: boolean() },
-        state: { stateBaz: string() },
+        searchParams: { baz: booleanType },
+        state: { stateBaz: stringType },
         hash: hashValues("hashBaz"),
     });
     const CHILD = route(
         "child",
-        { searchParams: { bar: string() }, state: { stateBar: number() }, hash: hashValues("hashBar") },
+        { searchParams: { bar: stringType }, state: { stateBar: numberType }, hash: hashValues("hashBar") },
         { GRANDCHILD }
     );
     const TEST_ROUTE = route(
         "test",
-        { searchParams: { foo: number() }, state: { stateFoo: boolean() }, hash: hashValues("hashFoo") },
+        { searchParams: { foo: numberType }, state: { stateFoo: booleanType }, hash: hashValues("hashFoo") },
         { CHILD }
     );
 
@@ -1081,8 +1061,8 @@ it("allows to inherit non-path params in trimmed children", () => {
 
 it("prevents path param inheritance in trimmed children", () => {
     const GRANDCHILD = route("grand/:id", {});
-    const CHILD = route("child/:subId", { params: { subId: boolean() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test/:id", { params: { id: number() } }, { CHILD });
+    const CHILD = route("child/:subId", { params: { subId: booleanType } }, { GRANDCHILD });
+    const TEST_ROUTE = route("test/:id", { params: { id: numberType } }, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], { id: number }>>(true);
     assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.buildPath>[0], { subId: boolean }>>(true);
@@ -1100,47 +1080,4 @@ it("prevents path param inheritance in trimmed children", () => {
     expect(TEST_ROUTE.$.CHILD.getTypedParams({ id: "1", subId: "true" })).toEqual({ subId: true });
     expect(TEST_ROUTE.CHILD.$.GRANDCHILD.getTypedParams({ id: "1", subId: "true" })).toEqual({ id: "1" });
     expect(TEST_ROUTE.$.CHILD.GRANDCHILD.getTypedParams({ id: "1", subId: "true" })).toEqual({ id: "1", subId: true });
-});
-
-it("properly parses arrays in search params", () => {
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: number().array(),
-            b: number(throwable).array(),
-            c: number().array([]),
-            d: number(throwable).array([]),
-            e: number(-1).array([]),
-        },
-    });
-
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: (number | undefined)[] | undefined;
-                b: number[] | undefined;
-                c: (number | undefined)[];
-                d: number[];
-                e: number[];
-            }
-        >
-    >(true);
-
-    const testArray = ["1", "f"];
-
-    const testValue = createSearchParams({
-        a: testArray,
-        b: testArray,
-        c: testArray,
-        d: testArray,
-        e: testArray,
-    });
-
-    expect(TEST_ROUTE.getTypedSearchParams(testValue)).toEqual({
-        a: [1, undefined],
-        b: undefined,
-        c: [1, undefined],
-        d: [],
-        e: [1, -1],
-    });
 });

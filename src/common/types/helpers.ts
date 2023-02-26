@@ -22,8 +22,32 @@ export function assertIsArray(value: unknown, message?: string): asserts value i
     }
 }
 
-export function assertIsValidDate(value: Date, message?: string): asserts value is Date {
-    if (Number.isNaN(value.getTime())) {
+export function assertIsValidDate(value: unknown, message?: string): asserts value is Date {
+    if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
         throw new Error(message ?? `Expected ${String(value)} to be a valid date`);
     }
+}
+
+export function validateString(value: unknown): string {
+    assertIsString(value);
+
+    return value;
+}
+
+export function validateNumber(value: unknown): number {
+    assertIsNumber(value);
+
+    return value;
+}
+
+export function validateBoolean(value: unknown): boolean {
+    assertIsBoolean(value);
+
+    return value;
+}
+
+export function validateDate(value: unknown): Date {
+    assertIsValidDate(value);
+
+    return value;
 }

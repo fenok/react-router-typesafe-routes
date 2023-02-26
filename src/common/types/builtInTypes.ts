@@ -1,109 +1,92 @@
-import { Type, CallableType } from "./type.js";
-import { createType } from "./createType.js";
-import { assertIsString, assertIsArray, assertIsBoolean, assertIsValidDate, assertIsNumber } from "./helpers.js";
+import { ThrowableFallback } from "./type.js";
+import { type } from "./createType.js";
+import { validateString, validateNumber, validateBoolean, validateDate } from "./helpers.js";
 
-export const stringType = createType<string>({
-    getPlain(value) {
-        return value;
-    },
-    getTyped(value) {
-        assertIsString(value);
-
-        return value;
-    },
-});
-
-export const numberType = createType<number>({
-    getPlain(value) {
-        return JSON.stringify(value);
-    },
-    getTyped(value) {
-        assertIsString(value);
-
-        const parsedValue: unknown = JSON.parse(value);
-        assertIsNumber(parsedValue);
-
-        return parsedValue;
-    },
-});
-
-export const booleanType = createType<boolean>({
-    getPlain(value) {
-        return JSON.stringify(value);
-    },
-    getTyped(value) {
-        assertIsString(value);
-
-        const parsedValue: unknown = JSON.parse(value);
-        assertIsBoolean(parsedValue);
-
-        return parsedValue;
-    },
-});
-
-export const dateType = createType<Date>({
-    getPlain(value) {
-        return value.toISOString();
-    },
-    getTyped(value) {
-        assertIsString(value);
-
-        const parsedValue = new Date(value);
-        assertIsValidDate(parsedValue, `Couldn't transform ${value} to date`);
-
-        return parsedValue;
-    },
-});
-
-export const oneOfType = <T extends (string | number | boolean)[]>(...values: T) => {
-    return createType<T[number]>({
-        getPlain: (value) => {
-            switch (typeof value) {
-                case "string":
-                    return stringType.getPlain(value);
-                case "number":
-                    return numberType.getPlain(value);
-                case "boolean":
-                    return booleanType.getPlain(value);
-                default:
-                    throw new Error(`Expected ${String(value)} to be string, number or boolean`);
-            }
+export const string = <TFallback extends string | ThrowableFallback | undefined>(fallback?: TFallback) =>
+    type(
+        {
+            validate: validateString,
+            parser: {
+                stringify: (value: string) => value,
+                parse: (value: string) => value,
+            },
         },
-        getTyped(value) {
-            for (const canonicalValue of values) {
-                try {
-                    switch (typeof canonicalValue) {
-                        case "string":
-                            if (stringType.getTyped(value) === canonicalValue) return canonicalValue;
-                            break;
-                        case "number":
-                            if (numberType.getTyped(value) === canonicalValue) return canonicalValue;
-                            break;
-                        case "boolean":
-                            if (booleanType.getTyped(value) === canonicalValue) return canonicalValue;
-                    }
-                } catch {
-                    // Try next value
+        fallback
+    );
+
+export const number = <TFallback extends number | ThrowableFallback | undefined>(fallback?: TFallback) =>
+    type(validateNumber, fallback);
+
+export const boolean = <TFallback extends boolean | ThrowableFallback | undefined>(fallback?: TFallback) =>
+    type(validateBoolean, fallback);
+
+export const date = <TFallback extends Date | ThrowableFallback | undefined>(fallback?: TFallback) =>
+    type(
+        {
+            validate: validateDate,
+            parser: {
+                stringify(value: Date): string {
+                    return value.toISOString();
+                },
+                parse(value: string) {
+                    return new Date(value);
+                },
+            },
+        },
+        fallback
+    );
+
+export const union = <
+    T extends readonly (string | number | boolean)[],
+    TFallback extends T[number] | ThrowableFallback | undefined
+>(
+    values: T,
+    fallback?: TFallback
+) => {
+    return type(
+        {
+            validate: (value: unknown): T[number] => {
+                if (
+                    !(typeof value === "string" || typeof value === "number" || typeof value === "boolean") ||
+                    !values.includes(value)
+                ) {
+                    throw new Error(`No matching value for ${String(value)}`);
                 }
-            }
 
-            throw new Error(`No matching value for ${String(value)}`);
-        },
-    });
-};
+                return value;
+            },
+            parser: {
+                stringify(value: T[number]): string {
+                    switch (typeof value) {
+                        case "string":
+                            return value;
+                        case "number":
+                        case "boolean":
+                            return JSON.stringify(value);
+                        default:
+                            throw new Error(`Expected ${String(value)} to be string, number or boolean`);
+                    }
+                },
+                parse(value: string): unknown {
+                    for (const canonicalValue of values) {
+                        try {
+                            switch (typeof canonicalValue) {
+                                case "string":
+                                    if (value === canonicalValue) return canonicalValue;
+                                    break;
+                                case "number":
+                                case "boolean":
+                                    if (JSON.parse(value) === canonicalValue) return canonicalValue;
+                            }
+                        } catch {
+                            // Try next value
+                        }
+                    }
 
-export const arrayOfType = <TOriginal, TPlain, TRetrieved>(
-    type: Type<TOriginal, TPlain, TRetrieved>
-): CallableType<TOriginal[], TPlain[], TRetrieved[]> => {
-    return createType<TOriginal[], TPlain[], TRetrieved[]>({
-        getPlain(values: TOriginal[]) {
-            return values.map((value) => type.getPlain(value));
+                    throw new Error(`No matching value for ${String(value)}`);
+                },
+            },
         },
-        getTyped(value: unknown) {
-            assertIsArray(value);
-
-            return value.map((item) => type.getTyped(item));
-        },
-        isArray: true,
-    });
+        fallback
+    );
 };

@@ -1,32 +1,56 @@
-interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
-    getPlain: (originalValue: TOriginal) => TPlain;
-    getTyped: (plainValue: unknown) => TRetrieved;
-    isArray?: boolean;
+interface ParamType<TOut, TIn = TOut> {
+    getPlainParam: (originalValue: TIn) => string;
+    getTypedParam: (plainValue: string | undefined) => TOut;
 }
 
-interface CallableType<TOriginal, TPlain = string, TRetrieved = TOriginal> extends Type<TOriginal, TPlain, TRetrieved> {
-    (fallback: TOriginal | ThrowableFallback): Type<TOriginal, TPlain, TRetrieved> & { __brand: "withFallback" };
+interface SearchParamType<TOut, TIn = TOut> {
+    getPlainSearchParam: (originalValue: TIn) => string[];
+    getTypedSearchParam: (plainValue: string[]) => TOut;
 }
+
+interface StateParamType<TOut, TIn = TOut> {
+    getPlainStateParam: (originalValue: TIn) => unknown;
+    getTypedStateParam: (plainValue: unknown) => TOut;
+}
+
+type UniversalType<TOut, TIn = TOut> = ParamType<TOut, TIn> & SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
+
+type UniversalTypeWithArray<TOut, TIn = TOut> = UniversalType<TOut, TIn> & {
+    array: <TFallback extends Fallback<TIn[]>>(
+        fallback?: TFallback
+    ) => UniversalType<TFallback extends undefined ? TOut[] | undefined : TOut[], TIn[]>;
+};
+
+interface Parser<T> {
+    stringify: (value: T) => string;
+    parse: (value: string) => unknown;
+}
+
+interface Validator<T> {
+    (value: unknown): T;
+}
+
+interface IncompleteUniversalTypeInit<T> {
+    validate: Validator<T>;
+    parser?: Parser<T>;
+}
+
+type UniversalTypeInit<T> = Required<IncompleteUniversalTypeInit<T>>;
 
 type ThrowableFallback = { __brand: "throwable" };
 
-type OriginalParams<TTypes> = Params<TTypes, true>;
-type RetrievedParams<TTypes> = Params<TTypes>;
+type Fallback<T> = T | ThrowableFallback | undefined;
 
-type KeysWithFallback<T> = {
-    [TKey in keyof T]: KeyWithFallback<T[TKey], TKey>;
-}[keyof T];
-
-type KeyWithFallback<T, K> = T extends { __brand: "withFallback" } ? K : never;
-
-type Params<TTypes, TUseOriginal extends boolean = false> = {
-    [TKey in keyof TTypes]: TypeValue<TTypes[TKey], TUseOriginal>;
+export {
+    ParamType,
+    SearchParamType,
+    StateParamType,
+    UniversalType,
+    UniversalTypeWithArray,
+    UniversalTypeInit,
+    IncompleteUniversalTypeInit,
+    Parser,
+    Validator,
+    ThrowableFallback,
+    Fallback,
 };
-
-type TypeValue<T, TUseOriginal extends boolean> = T extends Type<infer TOriginal, unknown, infer TRetrieved>
-    ? TUseOriginal extends true
-        ? TOriginal
-        : TRetrieved
-    : never;
-
-export { Type, CallableType, OriginalParams, RetrievedParams, KeysWithFallback, ThrowableFallback };

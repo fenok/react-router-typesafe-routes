@@ -1,3 +1,5 @@
+import { Merge } from "./helpers";
+
 type Types<TPathTypes, TSearchTypes, THash extends string[], TStateTypes> = RouteTypes<
     TPathTypes,
     TSearchTypes,
@@ -11,10 +13,10 @@ type Types<TPathTypes, TSearchTypes, THash extends string[], TStateTypes> = Rout
               }
             | RouteTypes<TChildPathTypes, TChildSearchTypes, TChildHash, TChildStateTypes>
     ) => Types<
-        TPathTypes & TChildPathTypes,
-        TSearchTypes & TChildSearchTypes,
+        Merge<TPathTypes, TChildPathTypes>,
+        Merge<TSearchTypes, TChildSearchTypes>,
         THash | TChildHash,
-        TStateTypes & TChildStateTypes
+        Merge<TStateTypes, TChildStateTypes>
     >);
 
 interface RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes> {
