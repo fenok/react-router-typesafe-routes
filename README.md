@@ -519,7 +519,7 @@ All built-in types can be called to specify a fallback.
 
 ### `createType()`
 
-The `createType()` helper is used to create custom types. It accepts a type object (strictly speaking, it simply decorates the given type, adding the fallback functionality and error catching):
+The `createType()` helper is used to create custom types. It accepts a type object (strictly speaking, it simply decorates the given type, adding the fallback functionality):
 
 ```tsx
 interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
@@ -535,7 +535,7 @@ interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
 
 -   `getPlain()` transforms the given value from `TOriginal` into `TPlain`.
 
--   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlain()` (it may be absent or invalid). Note that, by default, the type object catches this error and returns `undefined` instead.
+-   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlain()` (it may be absent or invalid). Note that, by default, the library catches this error and returns `undefined` instead.
 
 -   `isArray` is a helper flag specific for `URLSearchParams`, so we know when to `.get()` and when to `.getAll()`.
 

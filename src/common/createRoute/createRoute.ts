@@ -1,4 +1,11 @@
-import { Type, OriginalParams, RetrievedParams } from "../types/index.js";
+import {
+    Type,
+    OriginalParams,
+    RetrievedParams,
+    KeysWithFallback,
+    throwable,
+    ThrowableFallback,
+} from "../types/index.js";
 import { warn } from "../warn.js";
 import { RouteTypes, types } from "./types.js";
 
@@ -104,7 +111,10 @@ type OutParams<TPath extends string, TPathTypes> = OutParamsByKey<
     TPathTypes
 >;
 
-type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes> = RetrievedParams<TPathTypes> &
+type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes> = Partial<
+    RetrievedParams<TPathTypes>
+> &
+    RetrievedParams<Pick<TPathTypes, KeysWithFallback<TPathTypes>>> &
     PartialByKey<
         Record<Exclude<TKey, keyof TPathTypes>, string>,
         EnsureExtends<Exclude<TOptionalKey, keyof TPathTypes>, Exclude<TKey, keyof TPathTypes>>
@@ -112,11 +122,13 @@ type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes
 
 type InSearchParams<TSearchTypes> = Partial<OriginalParams<TSearchTypes>>;
 
-type OutSearchParams<TSearchTypes> = RetrievedParams<TSearchTypes>;
+type OutSearchParams<TSearchTypes> = Partial<RetrievedParams<TSearchTypes>> &
+    RetrievedParams<Pick<TSearchTypes, KeysWithFallback<TSearchTypes>>>;
 
 type InStateParams<TStateTypes> = Partial<OriginalParams<TStateTypes>>;
 
-type OutStateParams<TStateTypes> = RetrievedParams<TStateTypes>;
+type OutStateParams<TStateTypes> = Partial<RetrievedParams<TStateTypes>> &
+    RetrievedParams<Pick<TStateTypes, KeysWithFallback<TStateTypes>>>;
 
 type PickWithFallback<T, K extends string, F> = { [P in K]: P extends keyof T ? T[P] : F };
 
@@ -468,7 +480,15 @@ function getTypedParamsByTypes<
         const type = types?.[key];
 
         if (type) {
-            result[key] = type.getTyped(pathParams[key]);
+            try {
+                result[key] = type.getTyped(pathParams[key]);
+            } catch (error) {
+                if (isThrowableError(error)) {
+                    throw error[0];
+                }
+
+                result[key] = undefined;
+            }
         } else {
             if (typeof pathParams[key] === "string") {
                 result[key] = pathParams[key];
@@ -496,7 +516,15 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
             const type = types[key];
 
             if (type) {
-                result[key] = type.getTyped(type.isArray ? searchParams.getAll(key) : searchParams.get(key));
+                try {
+                    result[key] = type.getTyped(type.isArray ? searchParams.getAll(key) : searchParams.get(key));
+                } catch (error) {
+                    if (isThrowableError(error)) {
+                        throw error[0];
+                    }
+
+                    result[key] = undefined;
+                }
             }
         });
     }
@@ -525,7 +553,15 @@ function getTypedStateByTypes<TStateTypes extends Partial<Record<string, Type<un
             const type = types[key];
 
             if (type) {
-                result[key] = type.getTyped(state[key]);
+                try {
+                    result[key] = type.getTyped(state[key]);
+                } catch (error) {
+                    if (isThrowableError(error)) {
+                        throw error[0];
+                    }
+
+                    result[key] = undefined;
+                }
             }
         });
     }
@@ -580,6 +616,10 @@ function isRoute(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value && typeof value === "object");
+}
+
+function isThrowableError(error: unknown): error is [unknown, ThrowableFallback] {
+    return Array.isArray(error) && error[1] === throwable;
 }
 
 export {
