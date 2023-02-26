@@ -4,7 +4,7 @@ interface ParamType<TOut, TIn = TOut> {
 }
 
 interface SearchParamType<TOut, TIn = TOut> {
-    getPlainSearchParam: (originalValue: TIn) => string[];
+    getPlainSearchParam: (originalValue: TIn) => string[] | string;
     getTypedSearchParam: (plainValue: string[]) => TOut;
 }
 

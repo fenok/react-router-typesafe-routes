@@ -26,7 +26,7 @@ function type<T, TFallback extends Fallback<T>>(
                 return parser.stringify(value);
             },
             getPlainSearchParam(value: T) {
-                return [parser.stringify(value)];
+                return parser.stringify(value);
             },
             getPlainStateParam(value: T) {
                 return value;
@@ -82,7 +82,7 @@ function universalType(
     const validSearchParamFallback =
         fallback !== undefined
             ? !isThrowable(fallback)
-                ? getTypedSearchParam(getPlainSearchParam(fallback))
+                ? getTypedSearchParam(normalizePlainSearchParam(getPlainSearchParam(fallback)))
                 : fallback
             : undefined;
     const validStateFieldFallback =
@@ -186,6 +186,10 @@ function applyFallback<TFn extends (...args: never[]) => unknown>(fn: TFn, fallb
 
 function isThrowable(fallback: unknown): fallback is ThrowableFallback {
     return fallback === throwable;
+}
+
+function normalizePlainSearchParam(param: string | string[]): string[] {
+    return typeof param === "string" ? [param] : param;
 }
 
 export { type, throwable };
