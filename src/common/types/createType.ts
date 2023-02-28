@@ -2,66 +2,70 @@ import {
     ThrowableFallback,
     UniversalType,
     Validator,
-    Parser,
-    UniversalTypeWithArray,
+    UniversalTypeWithOptions,
     UniversalTypeInit,
     Fallback,
     IncompleteUniversalTypeInit,
+    SmartType,
 } from "./type.js";
 import { assertIsString, assertIsArray } from "./helpers.js";
 
 const throwable = {} as ThrowableFallback;
 
+function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SmartType<T>;
 function type<T, TFallback extends Fallback<T>>(
     init: IncompleteUniversalTypeInit<T> | Validator<T>,
     fallback?: TFallback
-): UniversalTypeWithArray<TFallback extends undefined ? T | undefined : T, T> {
+): UniversalTypeWithOptions<TFallback extends undefined ? T | undefined : T, T> {
     const completeInit = { parser: JSON, ...(typeof init === "function" ? { validate: init } : init) };
 
     const { parser, validate } = completeInit;
 
-    return universalType<T, T>(
+    const validFallback = getValidFallback(fallback, validate);
+
+    return Object.assign(
+        universalType(
+            {
+                getPlainParam(value: T) {
+                    return parser.stringify(value);
+                },
+                getPlainSearchParam(value: T) {
+                    return parser.stringify(value);
+                },
+                getPlainStateParam(value: T) {
+                    return value;
+                },
+                getTypedParam(value: string | undefined) {
+                    assertIsString(value);
+
+                    return validate(parser.parse(value));
+                },
+                getTypedSearchParam(value: string[]) {
+                    const item = value[0];
+
+                    assertIsString(item);
+
+                    return validate(parser.parse(item));
+                },
+                getTypedStateParam(value: unknown) {
+                    return validate(value);
+                },
+            },
+            validFallback
+        ),
         {
-            getPlainParam(value: T) {
-                return parser.stringify(value);
-            },
-            getPlainSearchParam(value: T) {
-                return parser.stringify(value);
-            },
-            getPlainStateParam(value: T) {
-                return value;
-            },
-            getTypedParam(value: string | undefined) {
-                assertIsString(value);
-
-                return validate(parser.parse(value));
-            },
-            getTypedSearchParam(value: string[]) {
-                const item = value[0];
-
-                assertIsString(item);
-
-                return validate(parser.parse(item));
-            },
-            getTypedStateParam(value: unknown) {
-                return validate(value);
-            },
-        },
-        fallback,
-        { parser, validate }
-    );
+            array: getUniversalArrayType({
+                parser: {
+                    stringify: parser.stringify,
+                    parse: applyFallback(parser.parse, validFallback),
+                },
+                validate: applyFallback(validate, validFallback),
+            }),
+        }
+    ) as UniversalTypeWithOptions<TFallback extends undefined ? T | undefined : T, T>;
 }
 
-function universalType<TOut, TIn = TOut>(
-    type: UniversalType<TOut, TIn>,
-    fallback: Fallback<TIn>
-): UniversalType<TOut, TIn>;
-function universalType<TOut, TIn = TOut>(
-    type: UniversalType<TOut, TIn>,
-    fallback: Fallback<TOut>,
-    options: UniversalTypeInit<TOut>
-): UniversalTypeWithArray<TOut, TOut>;
-function universalType(
+function universalType<TOut, TIn, TFallback extends Fallback<TOut>>(
     {
         getPlainParam,
         getPlainSearchParam,
@@ -69,69 +73,25 @@ function universalType(
         getTypedParam,
         getTypedSearchParam,
         getTypedStateParam,
-    }: UniversalType<unknown, unknown>,
-    fallback: unknown | ThrowableFallback | undefined,
-    options?: UniversalTypeInit<unknown>
-) {
-    const validParamFallback =
-        fallback !== undefined
-            ? !isThrowable(fallback)
-                ? getTypedParam(getPlainParam(fallback))
-                : fallback
-            : undefined;
-    const validSearchParamFallback =
-        fallback !== undefined
-            ? !isThrowable(fallback)
-                ? getTypedSearchParam(normalizePlainSearchParam(getPlainSearchParam(fallback)))
-                : fallback
-            : undefined;
-    const validStateFieldFallback =
-        fallback !== undefined
-            ? !isThrowable(fallback)
-                ? getTypedStateParam(getPlainStateParam(fallback))
-                : fallback
-            : undefined;
-
-    const validInitFallback = options
-        ? fallback !== undefined
-            ? !isThrowable(fallback)
-                ? options.validate(options.parser.parse(options.parser.stringify(fallback)))
-                : fallback
-            : undefined
-        : undefined;
-
-    return Object.assign(
-        {
-            getPlainParam,
-            getPlainSearchParam,
-            getPlainStateParam,
-            getTypedParam: applyFallback(getTypedParam, validParamFallback),
-            getTypedSearchParam: applyFallback(getTypedSearchParam, validSearchParamFallback),
-            getTypedStateParam: applyFallback(getTypedStateParam, validStateFieldFallback),
-        },
-        options
-            ? {
-                  array: getUniversalArrayType({
-                      parser: {
-                          stringify: options.parser.stringify,
-                          parse: applyFallback(options.parser.parse, validInitFallback),
-                      },
-                      validator: applyFallback(options.validate, validInitFallback),
-                  }),
-              }
-            : undefined
-    );
+    }: UniversalType<TOut, TIn>,
+    fallback: NoInfer<TFallback>
+): UniversalType<TFallback extends undefined ? TOut | undefined : TOut, TIn> {
+    return {
+        getPlainParam,
+        getPlainSearchParam,
+        getPlainStateParam,
+        getTypedParam: applyFallback(getTypedParam, fallback),
+        getTypedSearchParam: applyFallback(getTypedSearchParam, fallback),
+        getTypedStateParam: applyFallback(getTypedStateParam, fallback),
+    };
 }
 
-const getUniversalArrayType = <TOut, TIn>({
-    parser,
-    validator,
-}: {
-    parser: Parser<TIn>;
-    validator: Validator<TOut>;
-}): ((fallback?: Fallback<TIn[]>) => UniversalType<TOut[], TIn[]>) => {
-    return (fallback: Fallback<TIn[]>) =>
-        universalType<TOut[], TIn[]>(
+const getUniversalArrayType =
+    <TOut, TIn>({ parser, validate }: UniversalTypeInit<TOut, TIn>) =>
+    <TFallback extends Fallback<TOut[]>>(
+        fallback: NoInfer<TFallback>
+    ): UniversalType<TFallback extends undefined ? TOut[] | undefined : TOut[], TIn[]> => {
+        return universalType(
             {
                 getPlainParam(values: TIn[]) {
                     return JSON.stringify(values.map((value) => parser.stringify(value)));
@@ -150,29 +110,33 @@ const getUniversalArrayType = <TOut, TIn>({
 
                     return values.map((item) => {
                         assertIsString(item);
-                        return validator(parser.parse(item));
+                        return validate(parser.parse(item));
                     });
                 },
                 getTypedSearchParam(values: string[]) {
                     return values.map((item) => {
-                        return validator(parser.parse(item));
+                        return validate(parser.parse(item));
                     });
                 },
                 getTypedStateParam(values: unknown) {
                     assertIsArray(values);
 
                     return values.map((item) => {
-                        return validator(item);
+                        return validate(item);
                     });
                 },
             },
             fallback
         );
-};
+    };
 
-function applyFallback<TFn extends (...args: never[]) => unknown>(fn: TFn, fallback: Fallback<ReturnType<TFn>>) {
+function applyFallback<TFn extends (...args: never[]) => any, TFallback extends Fallback<ReturnType<TFn>>>(
+    fn: TFn,
+    fallback: TFallback
+): (...args: Parameters<TFn>) => TFallback extends undefined ? ReturnType<TFn> | undefined : ReturnType<TFn> {
     return (...args: Parameters<TFn>) => {
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return fn(...args);
         } catch (error) {
             if (!isThrowable(fallback)) {
@@ -188,8 +152,17 @@ function isThrowable(fallback: unknown): fallback is ThrowableFallback {
     return fallback === throwable;
 }
 
-function normalizePlainSearchParam(param: string | string[]): string[] {
-    return typeof param === "string" ? [param] : param;
+export type NoInfer<T> = [T][T extends any ? 0 : never];
+
+function getValidFallback<T, TFallback extends Fallback<T>>(
+    fallback: NoInfer<TFallback> | undefined,
+    validate: Validator<T>
+): TFallback {
+    if (fallback !== undefined && !isThrowable(fallback)) {
+        return validate(fallback) as TFallback;
+    }
+
+    return fallback as TFallback;
 }
 
 export { type, throwable };

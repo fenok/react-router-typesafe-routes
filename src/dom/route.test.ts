@@ -1,6 +1,6 @@
 import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
-import { number, boolean, string, hashValues, throwable, date, types } from "../common/index.js";
+import { number, boolean, string, hashValues, throwable, date, types, type, validateString } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("provides absolute path", () => {
@@ -1110,6 +1110,8 @@ it("properly parses arrays in search params", () => {
             c: number().array([]),
             d: number(throwable).array([]),
             e: number(-1).array([]),
+            f: type(validateString).array().required([]),
+            f: number().required(1),
         },
     });
 
