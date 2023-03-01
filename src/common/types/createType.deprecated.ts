@@ -1,6 +1,7 @@
-import { Type, CallableType } from "./type.deprecated.js";
-import { ThrowableFallback } from "./type.js";
-import { throwable } from "./createType.js";
+import { Type, CallableType, ThrowableFallback } from "./type.deprecated.js";
+
+/** @deprecated */
+export const throwable = {} as ThrowableFallback;
 
 /** @deprecated */
 export function createType<TOriginal, TPlain = string, TRetrieved = TOriginal>({

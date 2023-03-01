@@ -1,11 +1,12 @@
-import { ThrowableFallback } from "./type.js";
-
 /** @deprecated */
 interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
     getPlain: (originalValue: TOriginal) => TPlain;
     getTyped: (plainValue: unknown) => TRetrieved;
     isArray?: boolean;
 }
+
+/** @deprecated */
+type ThrowableFallback = { __brand: "throwable" };
 
 /** @deprecated */
 interface CallableType<TOriginal, TPlain = string, TRetrieved = TOriginal> extends Type<TOriginal, TPlain, TRetrieved> {
@@ -37,4 +38,4 @@ type TypeValue<T, TUseOriginal extends boolean> = T extends Type<infer TOriginal
         : TRetrieved
     : never;
 
-export { Type, CallableType, OriginalParams, RetrievedParams, KeysWithFallback };
+export { Type, CallableType, OriginalParams, RetrievedParams, KeysWithFallback, ThrowableFallback };

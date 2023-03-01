@@ -15,15 +15,16 @@ interface StateParamType<TOut, TIn = TOut> {
 
 type UniversalType<TOut, TIn = TOut> = ParamType<TOut, TIn> & SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
 
-type SmartType<TOut> = UniversalType<TOut | undefined, TOut> & {
+type SimpleType<TOut> = UniversalType<TOut | undefined, TOut> & {
+    array: () => SimpleArrayType<TOut | undefined, TOut>;
+} & {
     required: (fallback?: TOut) => UniversalType<TOut, TOut> & {
-        array: () => UniversalType<TOut[] | undefined, TOut[]> & {
-            required: (fallback?: TOut[]) => UniversalType<TOut[], TOut[]>;
-        };
+        array: () => SimpleArrayType<TOut, TOut>;
     };
-    array: () => UniversalType<(TOut | undefined)[] | undefined, TOut[]> & {
-        required: (fallback?: (TOut | undefined)[]) => UniversalType<(TOut | undefined)[], TOut[]>;
-    };
+};
+
+type SimpleArrayType<TOut, TIn = TOut> = UniversalType<TOut[] | undefined, TIn[]> & {
+    required: (fallback?: TOut[]) => UniversalType<TOut[], TIn[]>;
 };
 
 interface Parser<T> {
@@ -42,20 +43,15 @@ interface IncompleteUniversalTypeInit<TOut, TIn = TOut> {
 
 type UniversalTypeInit<TOut, TIn = TOut> = Required<IncompleteUniversalTypeInit<TOut, TIn>>;
 
-type ThrowableFallback = { __brand: "throwable" };
-
-type Fallback<T> = T | ThrowableFallback | undefined;
-
 export {
     ParamType,
     SearchParamType,
     StateParamType,
     UniversalType,
-    SmartType,
+    SimpleType,
+    SimpleArrayType,
     UniversalTypeInit,
     IncompleteUniversalTypeInit,
     Parser,
     Validator,
-    ThrowableFallback,
-    Fallback,
 };

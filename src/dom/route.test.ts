@@ -1,6 +1,6 @@
 import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
-import { number, boolean, string, hashValues, throwable, date, types, type, validateString } from "../common/index.js";
+import { number, boolean, string, hashValues, date, types } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 
 it("provides absolute path", () => {
@@ -409,7 +409,7 @@ it("allows search params", () => {
 
 it("allows to mix search params across multiple routes", () => {
     const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
-    const CHILD = route("child", { searchParams: { bar: number(throwable).array() } }, { GRANDCHILD });
+    const CHILD = route("child", { searchParams: { bar: number().required().array() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
@@ -430,7 +430,7 @@ it("allows to mix search params across multiple routes", () => {
 
 it("prioritizes children when mixing search params with the same name", () => {
     const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
-    const CHILD = route("child", { searchParams: { foo: number(throwable).array() } }, { GRANDCHILD });
+    const CHILD = route("child", { searchParams: { foo: number().required().array() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
@@ -657,8 +657,8 @@ it("doesn't throw if explicit path params are invalid", () => {
 });
 
 it("doesn't throw if explicit path params with fallback are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number(-1) } });
-    const CHILD = route("child/:childId", { params: { childId: number(-1) } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand/:id", { params: { id: number().required(-1) } });
+    const CHILD = route("child/:childId", { params: { childId: number().required(-1) } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
@@ -673,8 +673,8 @@ it("doesn't throw if explicit path params with fallback are invalid", () => {
 });
 
 it("throws if explicit throwable path params are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number(throwable) } });
-    const CHILD = route("child/:childId", { params: { childId: number(throwable) } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand/:id", { params: { id: number().required() } });
+    const CHILD = route("child/:childId", { params: { childId: number().required() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
@@ -731,7 +731,7 @@ it("allows explicit star path param parsing", () => {
 });
 
 it("allows explicit star path param parsing (with fallback)", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number(42) } });
+    const GRANDCHILD = route("grand/*", { params: { "*": number().required(42) } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -773,11 +773,11 @@ it("allows intermediate star param parsing", () => {
 });
 
 it("allows search params parsing", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number(0) } });
+    const GRANDCHILD = route("grand", { searchParams: { foo: number().required(0) } });
     const CHILD = route(
         "child",
         {
-            searchParams: { foo: string(), arr: number(throwable).array() },
+            searchParams: { foo: string(), arr: number().required().array() },
         },
         { GRANDCHILD }
     );
@@ -817,11 +817,11 @@ it("allows search params parsing", () => {
 });
 
 it("throws if throwable search params are invalid", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number(throwable) } });
+    const GRANDCHILD = route("grand", { searchParams: { foo: number().required() } });
     const CHILD = route(
         "child",
         {
-            searchParams: { foo: string(), arr: number(throwable).array() },
+            searchParams: { foo: string(), arr: number().required().array() },
         },
         { GRANDCHILD }
     );
@@ -918,7 +918,7 @@ it("allows state params parsing", () => {
 });
 
 it("throws if throwable state params are invalid", () => {
-    const GRANDCHILD = route("grand", { state: { bar: number(throwable) } });
+    const GRANDCHILD = route("grand", { state: { bar: number().required() } });
     const CHILD = route("child", { state: { foo: string() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -940,7 +940,7 @@ it("throws if throwable state params are invalid", () => {
 });
 
 it("throws upon specifying an invalid fallback", () => {
-    expect(() => route("", { searchParams: { id: date(new Date("foo")) } })).toThrow();
+    expect(() => route("", { searchParams: { id: date().required(new Date("foo")) } })).toThrow();
 });
 
 it("allows types composition", () => {
@@ -1106,12 +1106,10 @@ it("properly parses arrays in search params", () => {
     const TEST_ROUTE = route("", {
         searchParams: {
             a: number().array(),
-            b: number(throwable).array(),
-            c: number().array([]),
-            d: number(throwable).array([]),
-            e: number(-1).array([]),
-            f: type(validateString).array().required([]),
-            f: number().required(1),
+            b: number().required().array(),
+            c: number().array().required([]),
+            d: number().required().array().required([]),
+            e: number().required(-1).array().required([]),
         },
     });
 

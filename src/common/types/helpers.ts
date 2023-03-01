@@ -51,3 +51,9 @@ export function validateDate(value: unknown): Date {
 
     return value;
 }
+
+export function validateArray(value: unknown): unknown[] {
+    assertIsArray(value);
+
+    return value;
+}
