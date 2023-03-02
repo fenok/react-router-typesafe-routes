@@ -4,6 +4,8 @@ import { number, boolean, string, hashValues, date, types } from "../common/inde
 import { assert, IsExact } from "conditional-type-checks";
 import { zod } from "../zod";
 import { z } from "zod";
+import { yup } from "../yup";
+import * as y from "yup";
 
 it("provides absolute path", () => {
     const GRANDCHILD = route("grand");
@@ -1156,6 +1158,7 @@ it("allows to use zod", () => {
             d: zod(z.date()),
             e: zod(z.string().nullable()),
             f: zod(z.string().nullable()),
+            g: zod(z.object({ d: z.coerce.date() })), // We have to coerce the result of JSON.parse
         },
     });
 
@@ -1169,6 +1172,7 @@ it("allows to use zod", () => {
                 d: Date | undefined;
                 e: string | null | undefined;
                 f: string | null | undefined;
+                g: { d: Date } | undefined;
             }
         >
     >(true);
@@ -1180,8 +1184,9 @@ it("allows to use zod", () => {
         b: 0,
         c: false,
         d: testDate,
-        e: "test",
+        e: "null",
         f: null,
+        g: { d: testDate },
     });
 
     expect(plainSearchParams).toEqual({
@@ -1189,8 +1194,9 @@ it("allows to use zod", () => {
         b: "0",
         c: "false",
         d: testDate.toISOString(),
-        e: '"test"',
+        e: '"null"',
         f: "null",
+        g: JSON.stringify({ d: testDate }),
     });
 
     expect(TEST_ROUTE.getTypedSearchParams(createSearchParams(plainSearchParams))).toEqual({
@@ -1198,7 +1204,69 @@ it("allows to use zod", () => {
         b: 0,
         c: false,
         d: testDate,
-        e: "test",
+        e: "null",
         f: null,
+        g: { d: testDate },
+    });
+});
+
+it("allows to use yup", () => {
+    const TEST_ROUTE = route("", {
+        searchParams: {
+            a: yup(y.string().optional()),
+            b: yup(y.number()),
+            c: yup(y.boolean()),
+            d: yup(y.date()),
+            e: yup(y.string().nullable()),
+            f: yup(y.string().nullable()),
+            g: yup(y.object({ d: y.date().required() })),
+        },
+    });
+
+    assert<
+        IsExact<
+            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
+            {
+                a: string | undefined;
+                b: number | undefined;
+                c: boolean | undefined;
+                d: Date | undefined;
+                e: string | null | undefined;
+                f: string | null | undefined;
+                g: { d: Date } | undefined;
+            }
+        >
+    >(true);
+
+    const testDate = new Date();
+
+    const plainSearchParams = TEST_ROUTE.getPlainSearchParams({
+        a: "test",
+        b: 0,
+        c: false,
+        d: testDate,
+        e: "null",
+        f: null,
+        g: { d: testDate },
+    });
+
+    expect(plainSearchParams).toEqual({
+        a: "test",
+        b: "0",
+        c: "false",
+        d: testDate.toISOString(),
+        e: '"null"',
+        f: "null",
+        g: JSON.stringify({ d: testDate }),
+    });
+
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams(plainSearchParams))).toEqual({
+        a: "test",
+        b: 0,
+        c: false,
+        d: testDate,
+        e: "null",
+        f: null,
+        g: { d: testDate },
     });
 });
