@@ -1,8 +1,9 @@
 import { Validator, UniversalTypeInit, IncompleteUniversalTypeInit, SimpleType, SimpleArrayType } from "./type.js";
 import { validateString, validateArray } from "./helpers.js";
+import { defaultParser, stringArrayParser } from "./parsers.js";
 
 function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleType<T> {
-    const completeInit = { parser: JSON, ...(typeof init === "function" ? { validate: init } : init) };
+    const completeInit = { parser: defaultParser, ...(typeof init === "function" ? { validate: init } : init) };
 
     const { parser, validate } = completeInit;
 
@@ -67,9 +68,10 @@ function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleTyp
 const getUniversalArrayType =
     <TOut, TIn>({ parser, validate }: UniversalTypeInit<TOut, TIn>) =>
     (): SimpleArrayType<TOut, TIn> => {
-        const getPlainParam = (values: TIn[]) => JSON.stringify(values.map((value) => parser.stringify(value)));
+        const getPlainParam = (values: TIn[]) =>
+            stringArrayParser.stringify(values.map((value) => parser.stringify(value)));
         const getTypedParam = (value: string | undefined) =>
-            validateArray(JSON.parse(validateString(value))).map((item) =>
+            validateArray(stringArrayParser.parse(validateString(value))).map((item) =>
                 validate(parser.parse(validateString(item)))
             );
         const getPlainSearchParam = (values: TIn[]) => values.map((value) => parser.stringify(value));

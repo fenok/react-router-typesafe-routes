@@ -1,37 +1,22 @@
 import { type } from "./createType.js";
 import { validateString, validateNumber, validateBoolean, validateDate } from "./helpers.js";
 import { Validator, SimpleType } from "./type.js";
+import { dateParser, stringParser, numberParser, booleanParser } from "./parsers.js";
 
 export function string<T extends string = string>(validator?: Validator<T>): SimpleType<T> {
-    return type({
-        validate: validator ?? (validateString as Validator<T>),
-        parser: {
-            stringify: (value: T) => value,
-            parse: (value: string) => value,
-        },
-    });
+    return type({ validate: validator ?? (validateString as Validator<T>), parser: stringParser });
 }
 
 export function number<T extends number = number>(validator?: Validator<T>): SimpleType<T> {
-    return type(validator ?? (validateNumber as Validator<T>));
+    return type({ validate: validator ?? (validateNumber as Validator<T>), parser: numberParser });
 }
 
 export function boolean<T extends boolean = boolean>(validator?: Validator<T>): SimpleType<T> {
-    return type(validator ?? (validateBoolean as Validator<T>));
+    return type({ validate: validator ?? (validateBoolean as Validator<T>), parser: booleanParser });
 }
 
 export function date<T extends Date = Date>(validator?: Validator<T>): SimpleType<T> {
-    return type({
-        validate: validator ?? (validateDate as Validator<T>),
-        parser: {
-            stringify(value: T): string {
-                return value.toISOString();
-            },
-            parse(value: string) {
-                return new Date(value);
-            },
-        },
-    });
+    return type({ validate: validator ?? (validateDate as Validator<T>), parser: dateParser });
 }
 
 export const union = <T extends readonly (string | number | boolean)[]>(values: T) => {
@@ -48,12 +33,23 @@ export const union = <T extends readonly (string | number | boolean)[]>(values: 
         },
         parser: {
             stringify(value: T[number]): string {
-                return typeof value === "string" ? value : JSON.stringify(value);
+                return typeof value === "string"
+                    ? stringParser.stringify(value)
+                    : typeof value === "number"
+                    ? numberParser.stringify(value)
+                    : booleanParser.stringify(value);
             },
             parse(value: string): unknown {
                 for (const canonicalValue of values) {
                     try {
-                        if (canonicalValue === (typeof canonicalValue === "string" ? value : JSON.parse(value))) {
+                        if (
+                            canonicalValue ===
+                            (typeof canonicalValue === "string"
+                                ? stringParser.parse(value)
+                                : typeof canonicalValue === "number"
+                                ? numberParser.parse(value)
+                                : booleanParser.parse(value))
+                        ) {
                             return canonicalValue;
                         }
                     } catch {
