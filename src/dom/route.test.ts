@@ -2,6 +2,8 @@ import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
 import { number, boolean, string, hashValues, date, types } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
+import { zod } from "../zod";
+import { z } from "zod";
 
 it("provides absolute path", () => {
     const GRANDCHILD = route("grand");
@@ -1142,5 +1144,61 @@ it("properly parses arrays in search params", () => {
         c: [1, undefined],
         d: [],
         e: [1, -1],
+    });
+});
+
+it("allows to use zod", () => {
+    const TEST_ROUTE = route("", {
+        searchParams: {
+            a: zod(z.string().optional()),
+            b: zod(z.number()),
+            c: zod(z.boolean()),
+            d: zod(z.date()),
+            e: zod(z.string().nullable()),
+            f: zod(z.string().nullable()),
+        },
+    });
+
+    assert<
+        IsExact<
+            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
+            {
+                a: string | undefined;
+                b: number | undefined;
+                c: boolean | undefined;
+                d: Date | undefined;
+                e: string | null | undefined;
+                f: string | null | undefined;
+            }
+        >
+    >(true);
+
+    const testDate = new Date();
+
+    const plainSearchParams = TEST_ROUTE.getPlainSearchParams({
+        a: "test",
+        b: 0,
+        c: false,
+        d: testDate,
+        e: "test",
+        f: null,
+    });
+
+    expect(plainSearchParams).toEqual({
+        a: "test",
+        b: "0",
+        c: "false",
+        d: testDate.toISOString(),
+        e: '"test"',
+        f: "null",
+    });
+
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams(plainSearchParams))).toEqual({
+        a: "test",
+        b: 0,
+        c: false,
+        d: testDate,
+        e: "test",
+        f: null,
     });
 });
