@@ -1,14 +1,4 @@
-import {
-    Type,
-    OriginalParams,
-    RetrievedParams,
-    KeysWithFallback,
-    throwable,
-    ThrowableFallback,
-    ParamType,
-    SearchParamType,
-    StateParamType,
-} from "../types/index.js";
+import { Type, throwable, ThrowableFallback, ParamType, SearchParamType, StateParamType } from "../types/index.js";
 import { warn } from "../warn.js";
 import { RouteTypes, types } from "./types.js";
 import { Merge, Readable } from "./helpers.js";
@@ -100,29 +90,17 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
 }
 
 type InParams<TPath extends string, TPathTypes> = Readable<
-    TPathTypes[keyof TPathTypes] extends Type<any, any>
-        ? PartialByKey<
-              PickWithFallback<
-                  OriginalParams<TPathTypes>,
-                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>,
-                  string
-              >,
-              EnsureExtends<
-                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>, "optional", "in">,
-                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
-              >
-          >
-        : PartialByKey<
-              PickWithFallback<
-                  RawParams<TPathTypes, "in">,
-                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>,
-                  string
-              >,
-              EnsureExtends<
-                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>, "optional", "in">,
-                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
-              >
-          >
+    PartialByKey<
+        PickWithFallback<
+            RawParams<TPathTypes, "in">,
+            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>,
+            string
+        >,
+        EnsureExtends<
+            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>, "optional", "in">,
+            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
+        >
+    >
 >;
 
 type EnsureExtends<TFirst, TSecond> = TFirst extends TSecond ? TFirst : never;
@@ -131,46 +109,19 @@ type OutParams<TPath extends string, TPathTypes> = Readable<
     OutParamsByKey<PathParam<SanitizedPath<TPath>>, PathParam<SanitizedPath<TPath>, "optional">, TPathTypes>
 >;
 
-type OutParamsByKey<
-    TKey extends string,
-    TOptionalKey extends string,
-    TPathTypes
-> = TPathTypes[keyof TPathTypes] extends Type<any, any>
-    ? Partial<RetrievedParams<TPathTypes>> &
-          RetrievedParams<Pick<TPathTypes, KeysWithFallback<TPathTypes>>> &
-          PartialByKey<
-              Record<Exclude<TKey, keyof TPathTypes>, string>,
-              EnsureExtends<Exclude<TOptionalKey, keyof TPathTypes>, Exclude<TKey, keyof TPathTypes>>
-          >
-    : RawParams<TPathTypes, "out"> &
-          PartialByKey<
-              Record<Exclude<TKey, keyof TPathTypes>, string>,
-              EnsureExtends<Exclude<TOptionalKey, keyof TPathTypes>, Exclude<TKey, keyof TPathTypes>>
-          >;
+type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes> = RawParams<TPathTypes, "out"> &
+    PartialByKey<
+        Record<Exclude<TKey, keyof TPathTypes>, string>,
+        EnsureExtends<Exclude<TOptionalKey, keyof TPathTypes>, Exclude<TKey, keyof TPathTypes>>
+    >;
 
-type InSearchParams<TSearchTypes> = Readable<
-    TSearchTypes[keyof TSearchTypes] extends Type<any, any>
-        ? Partial<OriginalParams<TSearchTypes>>
-        : Partial<RawSearchParams<TSearchTypes, "in">>
->;
+type InSearchParams<TSearchTypes> = Readable<Partial<RawSearchParams<TSearchTypes, "in">>>;
 
-type OutSearchParams<TSearchTypes> = Readable<
-    TSearchTypes[keyof TSearchTypes] extends Type<any, any>
-        ? Partial<RetrievedParams<TSearchTypes>> & RetrievedParams<Pick<TSearchTypes, KeysWithFallback<TSearchTypes>>>
-        : RawSearchParams<TSearchTypes, "out">
->;
+type OutSearchParams<TSearchTypes> = Readable<RawSearchParams<TSearchTypes, "out">>;
 
-type InStateParams<TStateTypes> = Readable<
-    TStateTypes[keyof TStateTypes] extends Type<any, any>
-        ? Partial<OriginalParams<TStateTypes>>
-        : Partial<RawStateParams<TStateTypes, "in">>
->;
+type InStateParams<TStateTypes> = Readable<Partial<RawStateParams<TStateTypes, "in">>>;
 
-type OutStateParams<TStateTypes> = Readable<
-    TStateTypes[keyof TStateTypes] extends Type<any, any>
-        ? Partial<RetrievedParams<TStateTypes>> & RetrievedParams<Pick<TStateTypes, KeysWithFallback<TStateTypes>>>
-        : RawStateParams<TStateTypes, "out">
->;
+type OutStateParams<TStateTypes> = Readable<RawStateParams<TStateTypes, "out">>;
 
 type RawParams<TTypes, TMode extends "in" | "out"> = {
     [TKey in keyof TTypes]: RawParam<TTypes[TKey], TMode>;
@@ -180,6 +131,12 @@ type RawParam<TType, TMode extends "in" | "out"> = TType extends ParamType<infer
     ? TMode extends "in"
         ? TIn
         : TOut
+    : TType extends Type<infer TIn, infer TPlain, infer TOut>
+    ? TMode extends "in"
+        ? TIn
+        : TType extends { __brand: "withFallback" }
+        ? TOut
+        : TOut | undefined
     : never;
 
 type RawSearchParams<TTypes, TMode extends "in" | "out"> = {
@@ -190,6 +147,12 @@ type RawSearchParam<TType, TMode extends "in" | "out"> = TType extends SearchPar
     ? TMode extends "in"
         ? TIn
         : TOut
+    : TType extends Type<infer TIn, infer TPlain, infer TOut>
+    ? TMode extends "in"
+        ? TIn
+        : TType extends { __brand: "withFallback" }
+        ? TOut
+        : TOut | undefined
     : never;
 
 type RawStateParams<TTypes, TMode extends "in" | "out"> = {
@@ -200,6 +163,12 @@ type RawStateParam<TType, TMode extends "in" | "out"> = TType extends StateParam
     ? TMode extends "in"
         ? TIn
         : TOut
+    : TType extends Type<infer TIn, infer TPlain, infer TOut>
+    ? TMode extends "in"
+        ? TIn
+        : TType extends { __brand: "withFallback" }
+        ? TOut
+        : TOut | undefined
     : never;
 
 type PickWithFallback<T, K extends string, F> = { [P in K]: P extends keyof T ? T[P] : F };
@@ -263,16 +232,10 @@ const createRoute =
         TChildren = void,
         TPath extends string = string,
         /* eslint-disable @typescript-eslint/no-explicit-any */
-        TPathTypes extends
-            | Partial<Record<PathParam<SanitizedPath<TPath>>, Type<any>>>
-            | Partial<Record<PathParam<SanitizedPath<TPath>>, ParamType<any>>> = Record<never, never>,
-        TSearchTypes extends
-            | Partial<Record<string, Type<any, string | string[]>>>
-            | Partial<Record<string, SearchParamType<any>>> = Record<never, never>,
+        TPathTypes = Record<never, never>,
+        TSearchTypes = Record<never, never>,
         THash extends string[] = never[],
-        TStateTypes extends
-            | Partial<Record<string, Type<any, any>>>
-            | Partial<Record<string, StateParamType<any>>> = Record<never, never>
+        TStateTypes = Record<never, never>
         /* eslint-enable */
     >(
         path: SanitizedPath<TPath>,

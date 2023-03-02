@@ -1,24 +1,30 @@
 import { type } from "./createType.js";
 import { validateString, validateNumber, validateBoolean, validateDate } from "./helpers.js";
+import { Validator, SimpleType } from "./type.js";
 
-export const string = () =>
-    type({
-        validate: validateString,
+export function string<T extends string = string>(validator?: Validator<T>): SimpleType<T> {
+    return type({
+        validate: validator ?? (validateString as Validator<T>),
         parser: {
-            stringify: (value: string) => value,
+            stringify: (value: T) => value,
             parse: (value: string) => value,
         },
     });
+}
 
-export const number = () => type(validateNumber);
+export function number<T extends number = number>(validator?: Validator<T>): SimpleType<T> {
+    return type(validator ?? (validateNumber as Validator<T>));
+}
 
-export const boolean = () => type(validateBoolean);
+export function boolean<T extends boolean = boolean>(validator?: Validator<T>): SimpleType<T> {
+    return type(validator ?? (validateBoolean as Validator<T>));
+}
 
-export const date = () =>
-    type({
-        validate: validateDate,
+export function date<T extends Date = Date>(validator?: Validator<T>): SimpleType<T> {
+    return type({
+        validate: validator ?? (validateDate as Validator<T>),
         parser: {
-            stringify(value: Date): string {
+            stringify(value: T): string {
                 return value.toISOString();
             },
             parse(value: string) {
@@ -26,6 +32,7 @@ export const date = () =>
             },
         },
     });
+}
 
 export const union = <T extends readonly (string | number | boolean)[]>(values: T) => {
     return type({
