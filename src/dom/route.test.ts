@@ -1,10 +1,10 @@
 import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
-import { number, boolean, string, hashValues, date, types } from "../common/index.js";
+import { number, boolean, string, hashValues, date, types, type } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
-import { zod } from "../zod";
+import { zod } from "../zod/index.js";
 import { z } from "zod";
-import { yup } from "../yup";
+import { yup } from "../yup/index.js";
 import * as y from "yup";
 
 it("provides absolute path", () => {
@@ -1147,6 +1147,29 @@ it("properly parses arrays in search params", () => {
         d: [],
         e: [1, -1],
     });
+});
+
+it("doesn't break if a custom type accepts undefined as an input", () => {
+    const validateOptionalString = (value: unknown) => {
+        if (value === undefined) return undefined;
+        if (typeof value === "string") return value;
+        throw new Error("Not a string");
+    };
+
+    const TEST_ROUTE = route(":id", {
+        params: {
+            id: type(validateOptionalString),
+        },
+    });
+
+    assert<
+        IsExact<
+            Parameters<typeof TEST_ROUTE.getPlainParams>[0],
+            {
+                id: string;
+            }
+        >
+    >(true);
 });
 
 it("allows to use zod", () => {

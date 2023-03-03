@@ -129,11 +129,11 @@ type RawParams<TTypes, TMode extends "in" | "out"> = {
 
 type RawParam<TType, TMode extends "in" | "out"> = TType extends ParamType<infer TOut, infer TIn>
     ? TMode extends "in"
-        ? TIn
+        ? Exclude<TIn, undefined>
         : TOut
     : TType extends Type<infer TIn, infer TPlain, infer TOut>
     ? TMode extends "in"
-        ? TIn
+        ? Exclude<TIn, undefined>
         : TType extends { __brand: "withFallback" }
         ? TOut
         : TOut | undefined
@@ -145,11 +145,11 @@ type RawSearchParams<TTypes, TMode extends "in" | "out"> = {
 
 type RawSearchParam<TType, TMode extends "in" | "out"> = TType extends SearchParamType<infer TOut, infer TIn>
     ? TMode extends "in"
-        ? TIn
+        ? Exclude<TIn, undefined>
         : TOut
     : TType extends Type<infer TIn, infer TPlain, infer TOut>
     ? TMode extends "in"
-        ? TIn
+        ? Exclude<TIn, undefined>
         : TType extends { __brand: "withFallback" }
         ? TOut
         : TOut | undefined
@@ -161,11 +161,11 @@ type RawStateParams<TTypes, TMode extends "in" | "out"> = {
 
 type RawStateParam<TType, TMode extends "in" | "out"> = TType extends StateParamType<infer TOut, infer TIn>
     ? TMode extends "in"
-        ? TIn
+        ? Exclude<TIn, undefined>
         : TOut
     : TType extends Type<infer TIn, infer TPlain, infer TOut>
     ? TMode extends "in"
-        ? TIn
+        ? Exclude<TIn, undefined>
         : TType extends { __brand: "withFallback" }
         ? TOut
         : TOut | undefined
