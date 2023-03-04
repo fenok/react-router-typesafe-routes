@@ -15,11 +15,11 @@ interface StateParamType<TOut, TIn = TOut> {
 
 type UniversalType<TOut, TIn = TOut> = ParamType<TOut, TIn> & SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
 
-type SimpleType<TOut> = UniversalType<TOut | undefined, TOut> & {
-    array: () => SimpleArrayType<TOut | undefined, TOut>;
+type SimpleType<TOut> = UniversalType<TOut | undefined, Exclude<TOut, undefined>> & {
+    array: () => SimpleArrayType<TOut | undefined, Exclude<TOut, undefined>>;
 } & {
-    required: (fallback?: TOut) => UniversalType<Exclude<TOut, undefined>, TOut> & {
-        array: () => SimpleArrayType<Exclude<TOut, undefined>, TOut>;
+    required: (fallback?: TOut) => UniversalType<Exclude<TOut, undefined>, Exclude<TOut, undefined>> & {
+        array: () => SimpleArrayType<Exclude<TOut, undefined>, Exclude<TOut, undefined>>;
     };
 };
 

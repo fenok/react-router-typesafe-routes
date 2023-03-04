@@ -1130,6 +1130,19 @@ it("properly parses arrays in search params", () => {
         >
     >(true);
 
+    assert<
+        IsExact<
+            Parameters<typeof TEST_ROUTE.getPlainSearchParams>[0],
+            {
+                a?: number[];
+                b?: number[];
+                c?: number[];
+                d?: number[];
+                e?: number[];
+            }
+        >
+    >(true);
+
     const testArray = ["1", "f"];
 
     const testValue = createSearchParams({
@@ -1215,6 +1228,47 @@ it("ensures that required modifier is applied if a custom type allows undefined 
     });
 
     expect(() => TEST_ROUTE.getTypedSearchParams(createSearchParams({}))).toThrow();
+});
+
+it("ensures that arrays don't accept undefined items if a custom type allows undefined as an input", () => {
+    const validateOptionalNumber = (value: unknown) => {
+        if (value === undefined) return undefined;
+        if (typeof value === "number") return value;
+        throw new Error("Not a number");
+    };
+
+    const TEST_ROUTE = route("", {
+        searchParams: {
+            a: type(validateOptionalNumber).array(),
+            b: type(validateOptionalNumber).array().required([]),
+            c: type(validateOptionalNumber).required().array(),
+            d: type(validateOptionalNumber).required().array().required([]),
+        },
+    });
+
+    assert<
+        IsExact<
+            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
+            {
+                a: (number | undefined)[] | undefined;
+                b: (number | undefined)[];
+                c: number[] | undefined;
+                d: number[];
+            }
+        >
+    >(true);
+
+    assert<
+        IsExact<
+            Parameters<typeof TEST_ROUTE.getPlainSearchParams>[0],
+            {
+                a?: number[];
+                b?: number[];
+                c?: number[];
+                d?: number[];
+            }
+        >
+    >(true);
 });
 
 it("allows to use zod", () => {
