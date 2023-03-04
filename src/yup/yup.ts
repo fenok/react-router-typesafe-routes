@@ -56,7 +56,7 @@ export function yup<T>(schema: Schema<T>): SimpleType<T> {
                 return defaultParser.parse(value);
             },
         },
-        validate(value: unknown) {
+        validator(value: unknown) {
             return schema.validateSync(value);
         },
     });

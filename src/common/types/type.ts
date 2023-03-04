@@ -37,7 +37,7 @@ interface Validator<T> {
 }
 
 interface IncompleteUniversalTypeInit<TOut, TIn = TOut> {
-    validate: Validator<TOut>;
+    validator: Validator<TOut>;
     parser?: Parser<TIn>;
 }
 

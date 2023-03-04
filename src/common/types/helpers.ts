@@ -28,31 +28,31 @@ export function assertIsValidDate(value: unknown, message?: string): asserts val
     }
 }
 
-export function validateString(value: unknown): string {
+export function stringValidator(value: unknown): string {
     assertIsString(value);
 
     return value;
 }
 
-export function validateNumber(value: unknown): number {
+export function numberValidator(value: unknown): number {
     assertIsNumber(value);
 
     return value;
 }
 
-export function validateBoolean(value: unknown): boolean {
+export function booleanValidator(value: unknown): boolean {
     assertIsBoolean(value);
 
     return value;
 }
 
-export function validateDate(value: unknown): Date {
+export function dateValidator(value: unknown): Date {
     assertIsValidDate(value);
 
     return value;
 }
 
-export function validateArray(value: unknown): unknown[] {
+export function arrayValidator(value: unknown): unknown[] {
     assertIsArray(value);
 
     return value;

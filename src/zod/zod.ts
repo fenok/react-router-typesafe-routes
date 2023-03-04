@@ -58,7 +58,7 @@ export function zod<T>(zodType: ZodType<T>): SimpleType<T> {
                 return defaultParser.parse(value);
             },
         },
-        validate(value: unknown) {
+        validator(value: unknown) {
             return zodType.parse(value);
         },
     });
