@@ -18,8 +18,8 @@ type UniversalType<TOut, TIn = TOut> = ParamType<TOut, TIn> & SearchParamType<TO
 type SimpleType<TOut> = UniversalType<TOut | undefined, TOut> & {
     array: () => SimpleArrayType<TOut | undefined, TOut>;
 } & {
-    required: (fallback?: TOut) => UniversalType<TOut, TOut> & {
-        array: () => SimpleArrayType<TOut, TOut>;
+    required: (fallback?: TOut) => UniversalType<Exclude<TOut, undefined>, TOut> & {
+        array: () => SimpleArrayType<Exclude<TOut, undefined>, TOut>;
     };
 };
 

@@ -17,16 +17,16 @@ function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleTyp
     return Object.assign(
         {
             getPlainParam,
-            getTypedParam: applyFallback(getTypedParam, undefined),
+            getTypedParam: ensureNoError(getTypedParam, undefined),
             getPlainSearchParam,
-            getTypedSearchParam: applyFallback(getTypedSearchParam, undefined),
+            getTypedSearchParam: ensureNoError(getTypedSearchParam, undefined),
             getPlainStateParam,
-            getTypedStateParam: applyFallback(getTypedStateParam, undefined),
+            getTypedStateParam: ensureNoError(getTypedStateParam, undefined),
         },
         {
             array: getUniversalArrayType({
-                parser: { stringify: parser.stringify, parse: applyFallback(parser.parse, undefined) },
-                validate: applyFallback(validate, undefined),
+                parser: { stringify: parser.stringify, parse: ensureNoError(parser.parse, undefined) },
+                validate: ensureNoError(validate, undefined),
             }),
         },
         {
@@ -36,27 +36,20 @@ function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleTyp
                 return Object.assign(
                     {
                         getPlainParam,
-                        getTypedParam: isDefined(validFallback)
-                            ? applyFallback(getTypedParam, validFallback)
-                            : getTypedParam,
+                        getTypedParam: ensureNoUndefined(getTypedParam, validFallback),
                         getPlainSearchParam,
-                        getTypedSearchParam: isDefined(validFallback)
-                            ? applyFallback(getTypedSearchParam, validFallback)
-                            : getTypedSearchParam,
+                        getTypedSearchParam: ensureNoUndefined(getTypedSearchParam, validFallback),
+
                         getPlainStateParam,
-                        getTypedStateParam: isDefined(validFallback)
-                            ? applyFallback(getTypedStateParam, validFallback)
-                            : getTypedStateParam,
+                        getTypedStateParam: ensureNoUndefined(getTypedStateParam, validFallback),
                     },
                     {
                         array: getUniversalArrayType({
                             parser: {
                                 stringify: parser.stringify,
-                                parse: isDefined(validFallback)
-                                    ? applyFallback(parser.parse, validFallback)
-                                    : parser.parse,
+                                parse: ensureNoUndefined(parser.parse, validFallback),
                             },
-                            validate: isDefined(validFallback) ? applyFallback(validate, validFallback) : validate,
+                            validate: ensureNoUndefined(validate, validFallback),
                         }),
                     }
                 );
@@ -82,11 +75,11 @@ const getUniversalArrayType =
         return Object.assign(
             {
                 getPlainParam,
-                getTypedParam: applyFallback(getTypedParam, undefined),
+                getTypedParam: ensureNoError(getTypedParam, undefined),
                 getPlainSearchParam,
-                getTypedSearchParam: applyFallback(getTypedSearchParam, undefined),
+                getTypedSearchParam: ensureNoError(getTypedSearchParam, undefined),
                 getPlainStateParam,
-                getTypedStateParam: applyFallback(getTypedStateParam, undefined),
+                getTypedStateParam: ensureNoError(getTypedStateParam, undefined),
             },
             {
                 required: (fallback?: TOut[]) => {
@@ -95,15 +88,15 @@ const getUniversalArrayType =
                     return {
                         getPlainParam,
                         getTypedParam: isDefined(validFallback)
-                            ? applyFallback(getTypedParam, validFallback)
+                            ? ensureNoError(getTypedParam, validFallback)
                             : getTypedParam,
                         getPlainSearchParam,
                         getTypedSearchParam: isDefined(validFallback)
-                            ? applyFallback(getTypedSearchParam, validFallback)
+                            ? ensureNoError(getTypedSearchParam, validFallback)
                             : getTypedSearchParam,
                         getPlainStateParam,
                         getTypedStateParam: isDefined(validFallback)
-                            ? applyFallback(getTypedStateParam, validFallback)
+                            ? ensureNoError(getTypedStateParam, validFallback)
                             : getTypedStateParam,
                     };
                 },
@@ -111,7 +104,7 @@ const getUniversalArrayType =
         );
     };
 
-function applyFallback<TFn extends (...args: never[]) => any, TFallback>(
+function ensureNoError<TFn extends (...args: never[]) => any, TFallback>(
     fn: TFn,
     fallback: TFallback
 ): (...args: Parameters<TFn>) => ReturnType<TFn> | TFallback {
@@ -121,6 +114,31 @@ function applyFallback<TFn extends (...args: never[]) => any, TFallback>(
             return fn(...args);
         } catch (error) {
             return fallback;
+        }
+    };
+}
+
+function ensureNoUndefined<TFn extends (...args: never[]) => any>(
+    fn: TFn,
+    fallback?: ReturnType<TFn>
+): (...args: Parameters<TFn>) => Exclude<ReturnType<TFn>, undefined> {
+    return (...args: Parameters<TFn>) => {
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const result = fn(...args);
+
+            if (result === undefined) {
+                throw new Error("Unexpected undefined in required type");
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            return result;
+        } catch (error) {
+            if (fallback !== undefined) {
+                return fallback;
+            }
+
+            throw error;
         }
     };
 }

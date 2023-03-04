@@ -1149,7 +1149,7 @@ it("properly parses arrays in search params", () => {
     });
 });
 
-it("doesn't break if a custom type accepts undefined as an input", () => {
+it("ensures that required path params stay required if a custom type allows undefined as an input", () => {
     const validateOptionalString = (value: unknown) => {
         if (value === undefined) return undefined;
         if (typeof value === "string") return value;
@@ -1170,6 +1170,51 @@ it("doesn't break if a custom type accepts undefined as an input", () => {
             }
         >
     >(true);
+});
+
+it("ensures that required modifier is applied if a custom type allows undefined as an input", () => {
+    const validateOptionalNumber = (value: unknown) => {
+        if (value === undefined) return undefined;
+        if (typeof value === "number") return value;
+        throw new Error("Not a number");
+    };
+
+    const TEST_ROUTE = route("", {
+        searchParams: {
+            a: type(validateOptionalNumber),
+            b: type(validateOptionalNumber).required(),
+            c: type(validateOptionalNumber).required(-1),
+        },
+    });
+
+    assert<
+        IsExact<
+            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
+            {
+                a: number | undefined;
+                b: number;
+                c: number;
+            }
+        >
+    >(true);
+
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "1", b: "2", c: "3" }))).toEqual({
+        a: 1,
+        b: 2,
+        c: 3,
+    });
+
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ b: "2", c: "3" }))).toEqual({
+        b: 2,
+        c: 3,
+    });
+
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ b: "2" }))).toEqual({
+        b: 2,
+        c: -1,
+    });
+
+    expect(() => TEST_ROUTE.getTypedSearchParams(createSearchParams({}))).toThrow();
 });
 
 it("allows to use zod", () => {
