@@ -4,15 +4,17 @@ Comprehensive and extensible type-safe routes for React Router v6 with first-cla
 
 [![npm](https://img.shields.io/npm/v/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
 
-> ⚠ For React Router v5, see [v0.3.2](https://www.npmjs.com/package/react-router-typesafe-routes/v/0.3.2).
-
 The library provides type safety for all route params (path params, search params, state, and hash) on building and parsing URL parts and state objects. There are no unsafe type casts whatsoever.
+
+If you want, you can use a validation library. There is first-party support for [Zod](https://github.com/colinhacks/zod) and [Yup](https://github.com/jquense/yup), and other libraries are easily integratable.
 
 Param validation is done as part of the param parsing process, and failed param parsing can be fine-tuned to result in returning `undefined` or a fallback value, or throwing an error - and these adjustments reflect in types, too!
 
-Parsing, serializing, and typing are fully customizable. Native arrays in search strings are also supported.
+Parsing, serializing, and typing are fully customizable. Native arrays in search strings are also supported. By default, quotes in serialized params are omitted when it's safe to do so, which leads to cleaner URLs.
 
 The library doesn't restrict or alter React Router API in any way, including nested routes and relative links. It's also gradually adoptable.
+
+> ⚠ For React Router v5, see [v0.3.2](https://www.npmjs.com/package/react-router-typesafe-routes/v/0.3.2). It's drastically different and not supported anymore, though.
 
 ## Installation
 
@@ -20,9 +22,17 @@ The library doesn't restrict or alter React Router API in any way, including nes
 yarn add react-router-typesafe-routes
 ```
 
-Depending on the platform, either `react-router-dom` or `react-router-native` is a peer dependency, as well as `react`.
+`react` is a peer dependency.
 
-`react-router-typesafe-routes` contains core platform-independent functionality which is re-exported from platform-specific entry points: `react-router-typesafe-routes/dom` for web and `react-router-typesafe-routes/native` for React Native.
+You'll need to use one of platform-specific entry points:
+
+-   `react-router-typesafe-routes/dom` for web, `react-router-dom` is a peer dependency;
+-   `react-router-typesafe-routes/native` for React Native, `react-router-native` is a peer dependency.
+
+Additionally, there are optional entry points for types based on third-party validation libraries:
+
+-   `react-router-typesafe-routes/zod` exports `zod` type, `zod` is a peer dependency;
+-   `react-router-typesafe-routes/yup` exports `yup` type, `yup` is a peer dependency;
 
 The library is distributed as an ES module written in ES6.
 

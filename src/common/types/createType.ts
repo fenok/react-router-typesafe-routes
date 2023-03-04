@@ -1,9 +1,9 @@
 import { Validator, UniversalTypeInit, IncompleteUniversalTypeInit, SimpleType, SimpleArrayType } from "./type.js";
 import { stringValidator, arrayValidator } from "./helpers.js";
-import { defaultParser, stringArrayParser } from "./parsers.js";
+import { parser as defaultParser } from "./parsers.js";
 
 function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleType<T> {
-    const completeInit = { parser: defaultParser, ...(typeof init === "function" ? { validator: init } : init) };
+    const completeInit = { parser: defaultParser(), ...(typeof init === "function" ? { validator: init } : init) };
 
     const { parser, validator } = completeInit;
 
@@ -61,6 +61,8 @@ function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleTyp
 const getUniversalArrayType =
     <TOut, TIn>({ parser, validator }: UniversalTypeInit<TOut, TIn>) =>
     (): SimpleArrayType<TOut, TIn> => {
+        const stringArrayParser = defaultParser("string[]");
+
         const getPlainParam = (values: TIn[]) =>
             stringArrayParser.stringify(values.map((value) => parser.stringify(value)));
         const getTypedParam = (value: string | undefined) =>
