@@ -2,7 +2,7 @@ import { Type, CallableType } from "./type.deprecated.js";
 import { createType } from "./createType.deprecated.js";
 import { assertIsString, assertIsArray, assertIsBoolean, assertIsValidDate, assertIsNumber } from "./helpers.js";
 
-/** @deprecated */
+/** @deprecated Use string instead */
 export const stringType = createType<string>({
     getPlain(value) {
         return value;
@@ -14,7 +14,7 @@ export const stringType = createType<string>({
     },
 });
 
-/** @deprecated */
+/** @deprecated Use number instead */
 export const numberType = createType<number>({
     getPlain(value) {
         return JSON.stringify(value);
@@ -29,7 +29,7 @@ export const numberType = createType<number>({
     },
 });
 
-/** @deprecated */
+/** @deprecated Use boolean instead */
 export const booleanType = createType<boolean>({
     getPlain(value) {
         return JSON.stringify(value);
@@ -44,7 +44,7 @@ export const booleanType = createType<boolean>({
     },
 });
 
-/** @deprecated */
+/** @deprecated Use date instead */
 export const dateType = createType<Date>({
     getPlain(value) {
         return value.toISOString();
@@ -59,7 +59,7 @@ export const dateType = createType<Date>({
     },
 });
 
-/** @deprecated */
+/** @deprecated Use union instead */
 export const oneOfType = <T extends (string | number | boolean)[]>(...values: T) => {
     return createType<T[number]>({
         getPlain: (value) => {
@@ -97,7 +97,7 @@ export const oneOfType = <T extends (string | number | boolean)[]>(...values: T)
     });
 };
 
-/** @deprecated */
+/** @deprecated It's not needed for universal types */
 export const arrayOfType = <TOriginal, TPlain, TRetrieved>(
     type: Type<TOriginal, TPlain, TRetrieved>
 ): CallableType<TOriginal[], TPlain[], TRetrieved[]> => {

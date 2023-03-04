@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+-   Introduce helpers for creating universal types that can be used for any route param:
+    -   `type()` for creating any type;
+    -   `string()`, `number()`, `boolean()`, and `date()` for creating types based on the corresponding primitives;
+    -   `union()` for creating unions of `string`, `number`, and `boolean` values.
+    -   `zod()` for creating types based on Zod Types;
+    -   `yup()` for creating types based on Yup Schemas;
+
+### Fixed
+
+-   For types of parsed path params, search params, and state fields, keys that correspond to type objects that return undefined upon a parsing error are no longer optional.
+
+### Deprecated
+
+-   Old helpers for creating type objects: `createType()`, `stringType()`, `numberType()`, `booleanType()`, `dateType()`, `oneOfType()`, `arrayOfType()`, `throwable`, and all types that are exclusive to them.
+
 ## [1.0.0] - 2023-01-23
 
 ### Added
@@ -76,6 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Hook dependencies are now properly listed, which is checked by ESLint. This fixes `useTypedSearchParams` for dynamic routes.
 -   Prevent access to internal `useUpdatingRef` helper.
 
+[unreleased]: https://github.com/fenok/react-router-typesafe-routes/tree/dev
 [1.0.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v1.0.0
 [0.5.1]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.5.1
 [0.5.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.5.0

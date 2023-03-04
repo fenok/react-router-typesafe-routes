@@ -43,6 +43,7 @@ The library is distributed as an ES module written in ES6.
 -   To make params merging possible, the state has to be an object, and the hash has to be one of the known strings (or any string).
 -   Since React Router only considers pathname on route matching, search parameters, state fields, and hash are considered optional upon URL or state building.
 -   For simplicity, the hash is always considered optional upon URL parsing.
+-   For convenience, absent and invalid params are considered virtually the same during parsing.
 -   To prevent overlapping with route API, child routes have to start with an uppercase letter (this only affects code and not the resulting URL).
 -   To emphasize that route relativity is governed by the library, leading slashes in path patterns are forbidden. Trailing slashes are also forbidden due to being purely cosmetic.
 
@@ -78,7 +79,7 @@ You might also want to use some other router with built-in type safety:
 Route definition may look like this:
 
 ```tsx
-import { route, numberType, booleanType, hashValues, throwable } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, number, boolean, hashValues } from "react-router-typesafe-routes/dom"; // Or /native
 
 const ROUTES = {
     USER: route(
@@ -88,13 +89,13 @@ const ROUTES = {
         {
             // We can override some or all path params.
             // We override id and specify that a parsing error will be thrown.
-            params: { id: numberType(throwable) },
+            params: { id: number().required() },
             // These are search params.
             // We specify a fallback to use in case of a parsing error.
-            searchParams: { infoVisible: booleanType(false) },
+            searchParams: { infoVisible: boolean().required(false) },
             // These are state fields, which are similar to search params.
             // We use default parsing behavior, so a parsing error will result in undefined.
-            state: { fromUserList: booleanType },
+            state: { fromUserList: boolean() },
             // These are allowed hash values.
             // We could also use hashValues() to indicate that any hash is allowed.
             hash: hashValues("info", "comments"),
