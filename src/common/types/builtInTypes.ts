@@ -1,22 +1,40 @@
 import { type } from "./createType.js";
-import { stringValidator, numberValidator, booleanValidator, dateValidator } from "./helpers.js";
+import { stringValidator, numberValidator, booleanValidator, dateValidator } from "./validators.js";
 import { Validator, SimpleType } from "./type.js";
 import { parser } from "./parsers.js";
 
-export function string<T extends string = string>(validator?: Validator<T>): SimpleType<T> {
-    return type({ validator: validator ?? (stringValidator as Validator<T>), parser: parser("string") });
+export function string<T extends string = string>(validator?: Validator<T, string>): SimpleType<T> {
+    return type({
+        validator: validator
+            ? (value: unknown) => validator(stringValidator(value))
+            : (stringValidator as Validator<T>),
+        parser: parser("string"),
+    });
 }
 
-export function number<T extends number = number>(validator?: Validator<T>): SimpleType<T> {
-    return type({ validator: validator ?? (numberValidator as Validator<T>), parser: parser("number") });
+export function number<T extends number = number>(validator?: Validator<T, number>): SimpleType<T> {
+    return type({
+        validator: validator
+            ? (value: unknown) => validator(numberValidator(value))
+            : (numberValidator as Validator<T>),
+        parser: parser("number"),
+    });
 }
 
-export function boolean<T extends boolean = boolean>(validator?: Validator<T>): SimpleType<T> {
-    return type({ validator: validator ?? (booleanValidator as Validator<T>), parser: parser("boolean") });
+export function boolean<T extends boolean = boolean>(validator?: Validator<T, boolean>): SimpleType<T> {
+    return type({
+        validator: validator
+            ? (value: unknown) => validator(booleanValidator(value))
+            : (booleanValidator as Validator<T>),
+        parser: parser("boolean"),
+    });
 }
 
-export function date<T extends Date = Date>(validator?: Validator<T>): SimpleType<T> {
-    return type({ validator: validator ?? (dateValidator as Validator<T>), parser: parser("date") });
+export function date<T extends Date = Date>(validator?: Validator<T, Date>): SimpleType<T> {
+    return type({
+        validator: validator ? (value: unknown) => validator(dateValidator(value)) : (dateValidator as Validator<T>),
+        parser: parser("date"),
+    });
 }
 
 export const union = <T extends readonly (string | number | boolean)[]>(values: T) => {

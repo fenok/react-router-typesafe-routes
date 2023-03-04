@@ -1,5 +1,5 @@
 import { Validator, UniversalTypeInit, IncompleteUniversalTypeInit, SimpleType, SimpleArrayType } from "./type.js";
-import { stringValidator, arrayValidator } from "./helpers.js";
+import { stringValidator, arrayValidator } from "./validators.js";
 import { parser as defaultParser } from "./parsers.js";
 
 function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleType<T> {
