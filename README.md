@@ -698,157 +698,81 @@ The `useTypedHash()` hook is a thin wrapper around React Router `useLocation()`.
 
 ### Custom types
 
-Here are some types that you might find useful. You can simply copy them to your project or base your custom types upon them.
+#### Integer
+
+```tsx
+import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
+
+const integer = (value: number) => {
+    if (!Number.isInteger(value)) {
+        throw new Error(`Expected ${value} to be integer.`);
+    }
+
+    return value;
+};
+
+const TEST_ROUTE = route(":id", { params: { id: number(integer) } });
+```
+
+#### RegExp
+
+```tsx
+import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
+
+const regExp = (regExp: RegExp) => (value: string) => {
+    if (value.match(regExp)?.[0] !== value) {
+        throw new Error(`"${value}" does not match ${String(regExp)}`);
+    }
+
+    return value;
+};
+
+const TEST_ROUTE = route(":id", { params: { id: string(regExp(/\d+/)) } });
+```
+
+#### Integrating third-party validation library
+
+```tsx
+import { type, parser, SimpleType, ParserHint } from "../common/index.js";
+// Validator is a library-specific interface.
+import { Validator } from "third-party-library";
+
+function getTypeHint(validator: Validator): ParserHint | undefined {
+    // This is the most tricky part.
+    // We determine if the validator type is strictly string, number, boolean, or date.
+    // If so, we return the corresponding hint, and undefined otherwise.
+    return validator.type;
+}
+
+export function valid<T>(validator: Validator<T>): SimpleType<T> {
+    return type({
+        parser: parser(getTypeHint(validator)),
+        validator(value: unknown) {
+            // We use library-specific validation logic.
+            return validator.validate(value);
+        },
+    });
+}
+```
 
 #### Loose string type
 
-This is a type similar to `stringType`, but it also allows passing `number` or `boolean` upon URL parts or state building.
-
 ```tsx
-import { createType, assertIsString } from "react-router-typesafe-routes/dom"; // Or /native
+import { ParamType } from "react-router-typesafe-routes/dom"; // Or /native
 
-// We use createType helper, which adds the fallback functionality.
-// It's a generic, and we specify the necessary types there.
-export const looseStringType = createType<string | number | boolean, string, string>({
-    // Here, the value is string | number | boolean, and we need to return a string.
-    // This function shouldn't throw.
-    getPlain(value) {
+// We can only achieve this by constructing the type object ourselves.
+// This type object can only be used for path params.
+// It will throw upon a parsing error.
+const looseStringParam: ParamType<string, string | number | boolean> = {
+    getPlainParam(value) {
         return String(value);
     },
-    // Here, the value is unknown, and we check if it's a string.
-    // If it's not, we should throw.
-    getTyped(value) {
-        // We expect the result from getPlain here, which is string.
-        // We use a built-in helper that throws if the value is not a string.
-        assertIsString(value);
-
-        return parsedValue;
-    },
-});
-```
-
-#### Integer type
-
-This is a type similar to `numberType`, but it also validates that the number is an integer.
-
-```tsx
-import { createType, assertIsString, assertIsNumber } from "react-router-typesafe-routes/dom"; // Or /native
-
-export const integerType = createType<number, string, number>({
-    getPlain(value) {
-        // We have to convert number to string.
-        return JSON.stringify(value);
-    },
-    getTyped(value) {
-        // We expect the result from getPlain here, which is string.
-        // We use a built-in helper.
-        assertIsString(value);
-
-        // Then we try to parse it.
-        const parsedValue: unknown = JSON.parse(value);
-
-        // And we assert that it's a number.
-        // We use a built-in helper.
-        assertIsNumber(parsedValue);
-
-        // Finally, we check if the number is an integer.
-        if (!Number.isInteger(parsedValue)) {
-            throw new Error(`Expected ${parsedValue} to be integer.`);
+    getTypedParam(value) {
+        if (typeof value !== "string") {
+            throw new Error("Expected string");
         }
 
         return value;
     },
-});
-```
-
-#### RegExp type
-
-This is a type similar to `stringType`, but it also validates that the string matches the RegExp.
-
-```tsx
-import { createType, assertIsString } from "react-router-typesafe-routes/dom"; // Or /native
-
-// This is a type creator, which accepts a RegExp and returns the usual type object.
-export const regExpType = (regExp: RegExp) =>
-    createType<string>({
-        getPlain(value) {
-            return value;
-        },
-        getTyped(value) {
-            // We expect the result from getPlain here, which is string.
-            // We use a built-in helper.
-            assertIsString(value);
-
-            // We expect the whole string to match the given RegExp.
-            if (value.match(regExp)?.[0] !== value) {
-                throw new Error(`"${value}" does not match ${String(regExp)}`);
-            }
-
-            return value;
-        },
-    });
-```
-
-#### Yup types
-
-This is a set of types that use [Yup](https://github.com/jquense/yup) for validation.
-
--   `yupStateType` stores values as-is, which is useful for state fields.
--   `yupType` stores values as `string` and can be used anywhere.
--   `yupStringType` is similar to `yupType`, but it can only work with strings, and it doesn't add quotes upon serializing.
-
-> ❗ We assume the use of Yup v1.0.0
-
-```tsx
-import { Schema, InferType } from "yup";
-import { createType, assertIsString } from "react-router-typesafe-routes/dom"; // Or /native
-
-// This is a type creator, which accepts a Yup schema and returns the usual type object.
-export const yupStateType = <TSchema extends Schema>(schema: TSchema) => {
-    // Note that the value is stored as-is, which is only possible for state fields.
-    return createType<InferType<TSchema>, InferType<TSchema>>({
-        getPlain(value) {
-            return value;
-        },
-        getTyped(value) {
-            // We have to use sync validation.
-            return schema.validateSync(value);
-        },
-    });
-};
-
-// This is almost the same, but the value is stored as string, so it can be used anywhere!
-// The only downside is that string values will be serialized like this: 'foo' => '"foo"'.
-export const yupType = <TSchema extends Schema>(schema: TSchema) => {
-    return createType<InferType<TSchema>>({
-        getPlain(value) {
-            return JSON.stringify(value);
-        },
-        getTyped(value) {
-            // We expect the result from getPlain here, which is string.
-            // We use a built-in helper.
-            assertIsString(value);
-
-            // We have to use sync validation.
-            return schema.validateSync(JSON.parse(value));
-        },
-    });
-};
-
-// To mitigate this, we can accept only string schemas and remove value serialization.
-export const yupStringType = <TSchema extends Schema<string>>(schema: TSchema) => {
-    return createType<InferType<TSchema>>({
-        getPlain(value) {
-            return value;
-        },
-        getTyped(value) {
-            // We expect the result from getPlain here, which is string.
-            // We use a built-in helper.
-            assertIsString(value);
-
-            // We have to use sync validation.
-            return schema.validateSync(value);
-        },
-    });
 };
 ```
