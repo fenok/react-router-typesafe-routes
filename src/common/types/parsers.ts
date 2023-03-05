@@ -1,8 +1,8 @@
 import { Parser } from "./type.js";
 
-type ParserHint = "string" | "number" | "boolean" | "date" | "string[]" | undefined;
+type ParserHint = "string" | "number" | "boolean" | "date" | "string[]" | "unknown";
 
-type ParserType<T extends ParserHint | undefined> = undefined extends T
+type ParserType<T extends ParserHint | undefined> = T extends "unknown"
     ? unknown
     : T extends "string"
     ? string
@@ -16,9 +16,7 @@ type ParserType<T extends ParserHint | undefined> = undefined extends T
     ? string[]
     : never;
 
-function parser(): Parser<unknown>;
-function parser<T extends ParserHint>(hint: T): Parser<ParserType<T>>;
-function parser<T extends ParserHint>(hint?: T): Parser<ParserType<T>> {
+function parser<T extends ParserHint = "unknown">(hint: T = "unknown" as T): Parser<ParserType<T>> {
     return {
         stringify(value) {
             if (hint === "string" && typeof value === "string") {

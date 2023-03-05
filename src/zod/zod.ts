@@ -4,7 +4,7 @@ import { ZodType, ZodOptional, ZodString, ZodNumber, ZodBoolean, ZodDate, ZodTyp
 export function zod<T>(zodType: ZodType<T>): SimpleType<T> {
     const unwrappedZodType = zodType instanceof ZodOptional ? (zodType.unwrap() as ZodTypeAny) : zodType;
 
-    let typeHint: ParserHint | undefined = undefined;
+    let typeHint: ParserHint = "unknown";
 
     if (unwrappedZodType instanceof ZodString) {
         typeHint = "string";

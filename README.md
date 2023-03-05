@@ -737,10 +737,10 @@ import { type, parser, SimpleType, ParserHint } from "../common/index.js";
 // Validator is a library-specific interface.
 import { Validator } from "third-party-library";
 
-function getTypeHint(validator: Validator): ParserHint | undefined {
+function getTypeHint(validator: Validator): ParserHint {
     // This is the most tricky part.
     // We determine if the validator type is strictly string, number, boolean, or date.
-    // If so, we return the corresponding hint, and undefined otherwise.
+    // If so, we return the corresponding hint, and 'unknown' otherwise.
     return validator.type;
 }
 
