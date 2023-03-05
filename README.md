@@ -314,33 +314,152 @@ const USER = route("user/:id/*", {}, { DETAILS: route("details") });
 
 ### Typing
 
-#### Type objects and hash values
+#### Type objects
 
-Path params, search params, and state fields serializing, parsing, validation, and typing are done via type objects. Validation is done during parsing. There are several [built-in types](#built-in-types), and there is the [`createType()`](#createtype) helper for creating custom type objects.
+Path params, search params, and state fields serializing, parsing, validation, and typing are done via type objects. Validation is done during parsing.
 
-> ❗ You are encouraged to create custom type objects as needed.
+```typescript
+// Can be used for path params
+interface ParamType<TOut, TIn = TOut> {
+    getPlainParam: (originalValue: TIn) => string;
+    getTypedParam: (plainValue: string | undefined) => TOut;
+}
 
-Hash is typed via the [`hashValues()`](#hashvalues) helper.
+// Can be used for search params
+interface SearchParamType<TOut, TIn = TOut> {
+    getPlainSearchParam: (originalValue: TIn) => string[] | string;
+    getTypedSearchParam: (plainValue: string[]) => TOut;
+}
 
-If parsing fails (including the case when the corresponding parameter is absent), `undefined` is returned instead. In the case of type objects, you can specify a fallback to use instead of `undefined` (which will be reflected in types):
-
-```tsx
-import { route, numberType } from "react-router-typesafe-routes/dom"; // Or /native
-
-const ROUTE = route("my/route", { searchParams: { param: numberType(100) } });
+// Can be used for state params
+interface StateParamType<TOut, TIn = TOut> {
+    getPlainStateParam: (originalValue: TIn) => unknown;
+    getTypedStateParam: (plainValue: unknown) => TOut;
+}
 ```
 
-This fallback is not returned directly. Instead, it is run through the type object to ensure its validity, so the resulting type object is guaranteed to have a valid fallback. If the fallback is invalid, the corresponding error will be thrown.
+> ❗ It's guaranteed that `undefined` will never be passed as `TIn`.
 
-You can also specify `throwable` as a fallback, in which case, instead of returning `undefined`, the original error will be thrown (this is most suitable for path params):
+These objects allow to express pretty much anything:
 
-```tsx
-import { route, numberType, throwable } from "react-router-typesafe-routes/dom"; // Or /native
+-   We can make type objects that implement some of these interfaces or all of them.
+-   We can specify different types for `TIn` and `TOut`, and even different types for different params.
+-   We can return `undefined` as `TOut` instead of throwing an error.
+-   We can work with multiple keys with the same name in search string.
 
-const ROUTE = route("route/:id", { params: { id: numberType(throwable) } });
+These objects can be constructed manually, but the recommended approach is to use one of the built-in helpers. You should only construct them manually if you're hitting some limitations of type helpers.
+
+#### Type helpers
+
+To make type objects constructing and usage easier, we impose a set of reasonbale restrictions / design choices:
+
+-   `TIn` and `TOut` are the same, for all params (excluding cases when `undefined` is returned as a result of a failed parsing).
+-   Type objects for arrays are constructed based on helpers for individual values.
+-   By default, parsing errors result in `undefined`, and throwing or returning a fallback value is an opt-in.
+-   State params are only validated and not transformed in any way.
+-   We construct objects that can be used for every param.
+-   Path params are encoded via `encodeURIcomponent`.
+
+With this in mind, we can think about type objects in terms of parsers and validators.
+
+##### `Parser`
+
+Parser is simply a group of functions for transforming a value to `string` and back:
+
+```typescript
+interface Parser<T> {
+    stringify: (value: T) => string;
+    // There are edge cases when this value can be different from T.
+    // We always validate this value anyway.
+    parse: (value: string) => unknown;
+}
 ```
 
-There are no fallbacks for the hash, though.
+The library provides `parser()` helper for accessing built-in parsers. By default, it simply uses `JSON`. If you know that a parser will only be used for values of a specific type, you can hint this type to parser to get nicer stringification. For instance, `parser('string')` returns a parser that omits wrapping quotes in stringified values, which makes URLs cleaner.
+
+##### `Validator`
+
+Validator is simply a function for validating values:
+
+```typescript
+interface Validator<T, TPrev = unknown> {
+    (value: TPrev): T;
+}
+```
+
+It returns a valid value or throws if that's impossible.
+
+The important thing is that it has to handle both the original value and whatever the corresponding parser `parse()` returns.
+
+##### `type()`
+
+`type()` is a helper for creating all kinds of type objects. The resulting param type is inferred from the given validator.
+
+```typescript
+const positiveNumber: Validator<number> = (value: unknown): number => {
+    if (typeof value !== "number" || value <= 0) {
+        throw new Error("Expected positive number");
+    }
+
+    return value;
+};
+
+type({ validator: positiveNumber, parser: parser("number") });
+
+// We can also omit parser. The default parser is simply JSON.
+type(positiveNumber);
+```
+
+The resulting type object will return undefined upon a parsing (or validation) error. We can throw the error or return a fallback instead:
+
+```typescript
+// This will throw a parsing error.
+type(positiveNumber).required();
+// This will return the given fallback upon a parsing error.
+type(positiveNumber).required(1);
+```
+
+> ❗ Fallbacks are validated, and invalid fallbacks cause an error upon type object construction.
+
+We can also construct type objects for arrays:
+
+```typescript
+// Upon parsing:
+
+// This will give (number | undefined)[] | undefined
+type(positiveNumber).array();
+
+// This will give number[] | undefined
+type(positiveNumber).required().array();
+
+// This will give (number | undefined)[]
+type(positiveNumber).array().required();
+
+// This will give number[]
+type(positiveNumber).required().array().required();
+```
+
+##### Type-specific helpers
+
+Most of the time, you should use type-specific helpers: `string()`, `number()`, `boolean()`, or `date()`. They are built on top of `type()`, but they have the corresponding parsers and `typeof` checks built-in.
+
+For instance:
+
+```typescript
+const positive: Validator<number, number> = (value: number): number => {
+    if (value <= 0) {
+        throw new Error("Expected positive number");
+    }
+
+    return value;
+};
+
+number(positive);
+```
+
+#### Hash values
+
+Hash is typed via the [`hashValues()`](#hashvalues) helper. You simply specify the allowed values. If none specified, anything is allowed.
 
 #### Path params
 
@@ -349,10 +468,10 @@ Path params are inferred from the provided path pattern and can be overridden (p
 Just as usual segments, dynamic segments (path params) can be made optional by adding a `?` to the end. This also applies to star (`*`) segments.
 
 ```tsx
-import { route, numberType } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
 
 // Here, id is overridden to be a number, and subId and optionalId are strings
-const ROUTE = route("route/:id/:subId/:optionalId?", { params: { id: numberType } });
+const ROUTE = route("route/:id/:subId/:optionalId?", { params: { id: number() } });
 ```
 
 Upon building, all path params except the optional ones are required. Star parameter (`*`) is always optional upon building.
@@ -368,10 +487,10 @@ Explicitly typed params behave as usual.
 Search params are determined by the provided search type objects.
 
 ```tsx
-import { route, stringType } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
 
 // Here, we define a search parameter 'filter' of 'string' type
-const ROUTE = route("route", { searchParams: { filter: stringType } });
+const ROUTE = route("route", { searchParams: { filter: string() } });
 ```
 
 All search parameters are optional.
@@ -381,17 +500,13 @@ All search parameters are optional.
 State fields are determined by the provided state type objects. To make state merging possible, the state is assumed to always be an object.
 
 ```tsx
-import { route, booleanType } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, boolean } from "react-router-typesafe-routes/dom"; // Or /native
 
 // Here, we define a state parameter 'fromList' of 'boolean' type
-const ROUTE = route("route", { state: { fromList: booleanType } });
+const ROUTE = route("route", { state: { fromList: boolean() } });
 ```
 
 All state fields are optional.
-
-Since the state can contain any serializable value, we will likely need much more powerful types for it. The easiest way to create them is to use some third-party validation library. See [Yup types](#yup-types) for a Yup-based example.
-
-> ❗ Note that built-in types convert the given values to `string` (or `string[]`), which is not required in the case of the state. If that's something you care about, you'll need to create custom types.
 
 #### Hash
 
@@ -428,11 +543,11 @@ It's pretty common to have completely unrelated routes that share the same set o
 We can use nesting and put common types to a single common route:
 
 ```tsx
-import { route, numberType, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, number, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
 
 const ROUTE = route(
     "",
-    { searchParams: { page: numberType } },
+    { searchParams: { page: number() } },
     { USER: route("user"), POST: route("post"), ABOUT: route("about") }
 );
 
@@ -449,13 +564,13 @@ However, this approach has the following drawbacks:
 To mitigate these issues, we can use type composition via the [`types()`](#types) helper:
 
 ```tsx
-import { route, types, numberType, stringType, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, types, number, string, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
 
-const PAGINATION_FRAGMENT = route("", { searchParams: { page: numberType } });
+const PAGINATION_FRAGMENT = route("", { searchParams: { page: number() } });
 
 const ROUTES = {
     // This route uses pagination params and also has its own search params.
-    USER: route("user", types({ searchParams: { q: stringType } })(PAGINATION_FRAGMENT)),
+    USER: route("user", types({ searchParams: { q: string() } })(PAGINATION_FRAGMENT)),
     // This route only uses pagination params.
     POST: route("post", types(PAGINATION_FRAGMENT)),
     // This route doesn't use pagination params
@@ -477,14 +592,14 @@ The `types()` helper accepts either a set of types (including hash values), or a
 A route is defined via the `route()` helper. It accepts required `path` and optional `types` and `children`. All `types` fields are optional.
 
 ```tsx
-import { route, stringType, numberType, booleanType, hashValues } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, string, number, boolean, hashValues } from "react-router-typesafe-routes/dom"; // Or /native
 
 const ROUTE = route(
     "my/path",
     {
-        params: { pathParam: stringType },
-        searchParams: { searchParam: numberType },
-        state: { stateParam: booleanType },
+        params: { pathParam: string() },
+        searchParams: { searchParam: number() },
+        state: { stateParam: boolean() },
         hash: hashValues("value"),
     },
     { CHILD_ROUTE: route("child") }
@@ -517,50 +632,33 @@ The `route()` helper returns a route object, which has the following fields:
 -   `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
 -   Any number of child routes starting with an uppercase letter.
 
-### Built-in types
+### Type helpers
 
--   `stringType` - `string`, stringified as-is.
--   `numberType` - `number`, stringified by `JSON.stringify`.
--   `booleanType` - `boolean`, stringified by `JSON.stringify`.
--   `dateType` - `Date`, stringified as an ISO string.
--   `oneOfType` - one of the given `string`, `number`, or `boolean` values, internally uses the respective built-in type objects. E.g. `oneOfType('foo', 1, true)` means `'foo' | 1 | true`.
--   `arrayOfType` - array of any given type, e.g. `arrayOfType(oneOfType(1, 2))` means `(1 | 2)[]`. Stringified as `string[]`, so it can only be used for search params or state.
+-   `parser()` - returns built-in parser. Should only be used for creating custom wrappers around `type()`. Can accept a type hint for nicer serialization, e.g. `parser('string')`.
+-   `type()` - a low-level helper for creating any kind of type objects. Accepts a validator and an optional parser.
+-   `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and `typeof` checks. Can accept validators that expect the corresponding types as an input.
+-   `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values.
+-   `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
+-   `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
 
-All built-in types can be called to specify a fallback.
+All helpers allow to specify the behavior in case of a parsing/validation error:
 
-### `createType()`
-
-The `createType()` helper is used to create custom types. It accepts a type object (strictly speaking, it simply decorates the given type, adding the fallback functionality):
-
-```tsx
-interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
-    getPlain: (originalValue: TOriginal) => TPlain;
-    getTyped: (plainValue: unknown) => TRetrieved;
-    isArray?: boolean;
-}
+```typescript
+// Parsing result in case of an error:
+string(); // undefined
+string().required(); // the error is thrown
+string().required("fallback"); // 'fallback'
 ```
 
--   `TOriginal` is what you want to store (in a URL or state) and `TRetrieved` is what you will get back. They are different to support cases such as "number in - string out".
+All helpers allow to construct type objects for arrays:
 
--   `TPlain` is how your value is stored. It's typically `string`, but can also be `string[]` for arrays in the search string. You can also store anything that can be serialized in the state.
-
--   `getPlain()` transforms the given value from `TOriginal` into `TPlain`.
-
--   `getTyped()` tries to get `TRetrieved` from the given value and throws if that's impossible. The given `plainValue` is typed as `unknown` to emphasize that it may differ from what was returned by `getPlain()` (it may be absent or invalid). Note that, by default, the library catches this error and returns `undefined` instead.
-
--   `isArray` is a helper flag specific for `URLSearchParams`, so we know when to `.get()` and when to `.getAll()`.
-
-All built-in types are created via this helper.
-
-#### `createType()` helpers
-
-There are several built-in helpers which can be used for creating custom types. They are pretty self-explanatory:
-
--   `assertIsString`
--   `assertIsNumber`
--   `assertIsBoolean`
--   `assertIsArray`
--   `assertIsValidDate`
+```typescript
+// Parsing result:
+string().array(); // (string | undefined)[] | undefined
+string().array().required(); // (string | undefined)[]
+string().required().array(); // string[] | undefined
+string().required().array().required(); // string[]
+```
 
 ### `hashValues()`
 

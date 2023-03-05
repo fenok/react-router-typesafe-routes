@@ -32,8 +32,8 @@ interface Parser<T> {
     parse: (value: string) => unknown;
 }
 
-interface Validator<T, TRaw = unknown> {
-    (value: TRaw): T;
+interface Validator<T, TPrev = unknown> {
+    (value: TPrev): T;
 }
 
 interface IncompleteUniversalTypeInit<TOut, TIn = TOut> {
