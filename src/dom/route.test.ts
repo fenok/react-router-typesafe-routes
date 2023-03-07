@@ -1,6 +1,6 @@
 import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
-import { number, boolean, string, hashValues, date, types, type } from "../common/index.js";
+import { number, boolean, string, hashValues, date, types, type, union } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 import { zod } from "../zod/index.js";
 import { z } from "zod";
@@ -1390,5 +1390,44 @@ it("allows to use yup", () => {
         e: "null",
         f: null,
         g: { d: testDate },
+    });
+});
+
+it("allows to use unions", () => {
+    const TEST_ROUTE = route("", {
+        searchParams: {
+            a: union(1, true, "test"),
+            b: union([1, true, "test"] as const),
+            c: union([1, true, "test"] as const).required(),
+        },
+    });
+
+    assert<
+        IsExact<
+            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
+            {
+                a: 1 | true | "test" | undefined;
+                b: 1 | true | "test" | undefined;
+                c: 1 | true | "test";
+            }
+        >
+    >(true);
+
+    const plainSearchParams = TEST_ROUTE.getPlainSearchParams({
+        a: "test",
+        b: 1,
+        c: true,
+    });
+
+    expect(plainSearchParams).toEqual({
+        a: "test",
+        b: "1",
+        c: "true",
+    });
+
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams(plainSearchParams))).toEqual({
+        a: "test",
+        b: 1,
+        c: true,
     });
 });

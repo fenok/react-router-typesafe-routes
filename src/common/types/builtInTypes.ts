@@ -45,7 +45,11 @@ function date<T extends Date = Date>(validator?: Validator<T, Date>): SimpleType
     });
 }
 
-const union = <T extends readonly (string | number | boolean)[]>(values: T) => {
+function union<T extends readonly (string | number | boolean)[]>(values: T): SimpleType<T[number]>;
+function union<T extends readonly (string | number | boolean)[]>(...values: T): SimpleType<T[number]>;
+function union<T extends readonly (string | number | boolean)[]>(value: T | T[number], ...restValues: T) {
+    const values = Array.isArray(value) ? value : [value, ...restValues];
+
     const stringParser = parser("string");
     const numberParser = parser("number");
     const booleanParser = parser("boolean");
@@ -91,6 +95,6 @@ const union = <T extends readonly (string | number | boolean)[]>(values: T) => {
             },
         },
     });
-};
+}
 
 export { string, number, boolean, date, union };
