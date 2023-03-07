@@ -3,7 +3,10 @@ import { stringValidator, arrayValidator } from "./validators.js";
 import { parser as defaultParser } from "./parsers.js";
 
 function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleType<T> {
-    const completeInit = { parser: defaultParser(), ...(typeof init === "function" ? { validator: init } : init) };
+    const completeInit = {
+        parser: defaultParser("unknown"),
+        ...(typeof init === "function" ? { validator: init } : init),
+    };
 
     const { parser, validator } = completeInit;
 
