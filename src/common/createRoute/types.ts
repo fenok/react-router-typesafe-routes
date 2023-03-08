@@ -1,4 +1,4 @@
-import { Merge } from "./helpers";
+import { Merge } from "./helpers.js";
 
 type Types<TPathTypes, TSearchTypes, THash extends string[], TStateTypes> = RouteTypes<
     TPathTypes,

@@ -8,6 +8,8 @@
       <excludeFolder url="file://$MODULE_DIR$/common" />
       <excludeFolder url="file://$MODULE_DIR$/dom" />
       <excludeFolder url="file://$MODULE_DIR$/native" />
+      <excludeFolder url="file://$MODULE_DIR$/yup" />
+      <excludeFolder url="file://$MODULE_DIR$/zod" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

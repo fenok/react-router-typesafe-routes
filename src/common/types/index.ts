@@ -6,4 +6,4 @@ export * from "./hashValues.js";
 export * from "./parsers.js";
 export * from "./type.deprecated.js";
 export * from "./createType.deprecated.js";
-export * from "./builtInTypes.deprecated";
+export * from "./builtInTypes.deprecated.js";

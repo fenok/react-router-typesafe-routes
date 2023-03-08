@@ -22,10 +22,10 @@
     "types": "common/index.d.ts",
     "exports": {
         ".": "./common/index.js",
-        "./yup": "./yup/index.js",
-        "./zod": "./zod/index.js",
         "./dom": "./dom/index.js",
         "./native": "./native/index.js",
+        "./zod": "./zod/index.js",
+        "./yup": "./yup/index.js",
         "./package.json": "./package.json"
     },
     "sideEffects": false,
@@ -39,7 +39,7 @@
     },
     "scripts": {
         "format": "prettier --write --ignore-unknown .",
-        "build": "rimraf common dom native src/yup zod && tsc --project tsconfig.build.json --outDir .",
+        "build": "rimraf common dom native zod yup && tsc --project tsconfig.build.json --outDir .",
         "format:check": "prettier --check .",
         "lint": "eslint --max-warnings=0 --report-unused-disable-directives .",
         "test": "jest",

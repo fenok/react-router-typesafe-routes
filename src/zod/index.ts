@@ -1,1 +1,1 @@
-export { zod } from "./zod";
+export { zod } from "./zod.js";

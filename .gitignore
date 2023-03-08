@@ -11,8 +11,8 @@
 common/
 dom/
 native/
-src/yup/
-src/zod/
+zod/
+yup/
 !src/*
 
 # Created by https://www.toptal.com/developers/gitignore/api/linux,macos,windows

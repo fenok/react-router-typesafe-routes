@@ -10,9 +10,8 @@ function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleTyp
 
     const { parser, validator } = completeInit;
 
-    const getPlainParam = (value: T) => encodeURIComponent(parser.stringify(value));
-    const getTypedParam = (value: string | undefined) =>
-        validator(parser.parse(decodeURIComponent(stringValidator(value))));
+    const getPlainParam = (value: T) => parser.stringify(value);
+    const getTypedParam = (value: string | undefined) => validator(parser.parse(stringValidator(value)));
     const getPlainSearchParam = (value: T) => parser.stringify(value);
     const getTypedSearchParam = (value: string[]) => validator(parser.parse(stringValidator(value[0])));
     const getPlainStateParam = (value: T) => value;
@@ -68,9 +67,9 @@ const getUniversalArrayType =
         const stringArrayParser = defaultParser("string[]");
 
         const getPlainParam = (values: TIn[]) =>
-            encodeURIComponent(stringArrayParser.stringify(values.map((value) => parser.stringify(value))));
+            stringArrayParser.stringify(values.map((value) => parser.stringify(value)));
         const getTypedParam = (value: string | undefined) =>
-            arrayValidator(stringArrayParser.parse(decodeURIComponent(stringValidator(value)))).map((item) =>
+            arrayValidator(stringArrayParser.parse(stringValidator(value))).map((item) =>
                 validator(parser.parse(stringValidator(item)))
             );
         const getPlainSearchParam = (values: TIn[]) => values.map((value) => parser.stringify(value));
