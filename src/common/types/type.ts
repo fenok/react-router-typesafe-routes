@@ -13,18 +13,20 @@ interface StateParamType<TOut, TIn = TOut> {
     getTypedStateParam: (plainValue: unknown) => TOut;
 }
 
-type UniversalType<TOut, TIn = TOut> = ParamType<TOut, TIn> & SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
+type AnyParamType<TOut, TIn = TOut> = ParamType<TOut, TIn> & SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
 
-type SimpleType<TOut> = UniversalType<TOut | undefined, Exclude<TOut, undefined>> & {
-    array: () => SimpleArrayType<TOut | undefined, Exclude<TOut, undefined>>;
+type ArrayParamType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
+
+type UniversalType<TOut> = AnyParamType<TOut | undefined, Exclude<TOut, undefined>> & {
+    array: () => UniversalArrayType<TOut | undefined, Exclude<TOut, undefined>>;
 } & {
-    required: (fallback?: TOut) => UniversalType<Exclude<TOut, undefined>, Exclude<TOut, undefined>> & {
-        array: () => SimpleArrayType<Exclude<TOut, undefined>, Exclude<TOut, undefined>>;
+    required: (fallback?: TOut) => AnyParamType<Exclude<TOut, undefined>, Exclude<TOut, undefined>> & {
+        array: () => UniversalArrayType<Exclude<TOut, undefined>, Exclude<TOut, undefined>>;
     };
 };
 
-type SimpleArrayType<TOut, TIn = TOut> = UniversalType<TOut[] | undefined, TIn[]> & {
-    required: (fallback?: TOut[]) => UniversalType<TOut[], TIn[]>;
+type UniversalArrayType<TOut, TIn = TOut> = ArrayParamType<TOut[] | undefined, TIn[]> & {
+    required: (fallback?: TOut[]) => ArrayParamType<TOut[], TIn[]>;
 };
 
 interface Parser<T> {
@@ -47,9 +49,9 @@ export {
     ParamType,
     SearchParamType,
     StateParamType,
+    AnyParamType,
     UniversalType,
-    SimpleType,
-    SimpleArrayType,
+    UniversalArrayType,
     UniversalTypeInit,
     IncompleteUniversalTypeInit,
     Parser,

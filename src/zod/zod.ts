@@ -1,7 +1,7 @@
-import { type, SimpleType, ParserHint, parser } from "../common/index.js";
+import { type, UniversalType, ParserHint, parser } from "../common/index.js";
 import { ZodType, ZodOptional, ZodString, ZodNumber, ZodBoolean, ZodDate, ZodTypeAny } from "zod";
 
-export function zod<T>(zodType: ZodType<T>): SimpleType<T> {
+export function zod<T>(zodType: ZodType<T>): UniversalType<T> {
     const unwrappedZodType = zodType instanceof ZodOptional ? (zodType.unwrap() as ZodTypeAny) : zodType;
 
     let typeHint: ParserHint = "unknown";

@@ -1,6 +1,6 @@
 import { Parser } from "./type.js";
 
-type ParserHint = "string" | "number" | "boolean" | "date" | "string[]" | "unknown";
+type ParserHint = "string" | "number" | "boolean" | "date" | "unknown";
 
 type ParserType<T extends ParserHint | undefined> = T extends "unknown"
     ? unknown
@@ -35,10 +35,6 @@ function parser<T extends ParserHint>(hint: T): Parser<ParserType<T>> {
                 return dateParser.stringify(value);
             }
 
-            if (hint === "string[]" && Array.isArray(value) && value.every((item) => typeof item === "string")) {
-                return stringArrayParser.stringify(value);
-            }
-
             return defaultParser.stringify(value);
         },
         parse(value: string) {
@@ -58,10 +54,6 @@ function parser<T extends ParserHint>(hint: T): Parser<ParserType<T>> {
                 return dateParser.parse(value);
             }
 
-            if (hint === "string[]") {
-                return stringArrayParser.parse(value);
-            }
-
             return defaultParser.parse(value);
         },
     };
@@ -79,7 +71,5 @@ const dateParser: Parser<Date> = {
         return new Date(value);
     },
 };
-
-const stringArrayParser: Parser<string[]> = JSON;
 
 export { parser, ParserHint, ParserType };

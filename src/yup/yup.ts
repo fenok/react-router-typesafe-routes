@@ -1,7 +1,7 @@
-import { SimpleType, parser, ParserHint, type } from "../common/index.js";
+import { UniversalType, parser, ParserHint, type } from "../common/index.js";
 import { Schema, StringSchema, NumberSchema, BooleanSchema, DateSchema } from "yup";
 
-export function yup<T>(schema: Schema<T>): SimpleType<T> {
+export function yup<T>(schema: Schema<T>): UniversalType<T> {
     let typeHint: ParserHint = "unknown";
 
     if (!schema.spec.nullable) {

@@ -1,8 +1,14 @@
-import { Validator, UniversalTypeInit, IncompleteUniversalTypeInit, SimpleType, SimpleArrayType } from "./type.js";
+import {
+    Validator,
+    UniversalTypeInit,
+    IncompleteUniversalTypeInit,
+    UniversalType,
+    UniversalArrayType,
+} from "./type.js";
 import { stringValidator, arrayValidator } from "./validators.js";
 import { parser as defaultParser } from "./parsers.js";
 
-function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleType<T> {
+function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): UniversalType<T> {
     const completeInit = {
         parser: defaultParser("unknown"),
         ...(typeof init === "function" ? { validator: init } : init),
@@ -63,15 +69,7 @@ function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): SimpleTyp
 
 const getUniversalArrayType =
     <TOut, TIn>({ parser, validator }: UniversalTypeInit<TOut, TIn>) =>
-    (): SimpleArrayType<TOut, TIn> => {
-        const stringArrayParser = defaultParser("string[]");
-
-        const getPlainParam = (values: TIn[]) =>
-            stringArrayParser.stringify(values.map((value) => parser.stringify(value)));
-        const getTypedParam = (value: string | undefined) =>
-            arrayValidator(stringArrayParser.parse(stringValidator(value))).map((item) =>
-                validator(parser.parse(stringValidator(item)))
-            );
+    (): UniversalArrayType<TOut, TIn> => {
         const getPlainSearchParam = (values: TIn[]) => values.map((value) => parser.stringify(value));
         const getTypedSearchParam = (values: string[]) => values.map((item) => validator(parser.parse(item)));
         const getPlainStateParam = (values: TIn[]) => values;
@@ -79,8 +77,6 @@ const getUniversalArrayType =
 
         return Object.assign(
             {
-                getPlainParam,
-                getTypedParam: ensureNoError(getTypedParam, undefined),
                 getPlainSearchParam,
                 getTypedSearchParam: ensureNoError(getTypedSearchParam, undefined),
                 getPlainStateParam,
@@ -91,10 +87,6 @@ const getUniversalArrayType =
                     const validFallback = !isDefined(fallback) ? undefined : fallback.map(validator);
 
                     return {
-                        getPlainParam,
-                        getTypedParam: isDefined(validFallback)
-                            ? ensureNoError(getTypedParam, validFallback)
-                            : getTypedParam,
                         getPlainSearchParam,
                         getTypedSearchParam: isDefined(validFallback)
                             ? ensureNoError(getTypedSearchParam, validFallback)
