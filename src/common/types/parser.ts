@@ -15,8 +15,6 @@ type ParserType<T extends ParserHint | undefined> = T extends "unknown"
     ? boolean
     : T extends "date"
     ? Date
-    : T extends "string[]"
-    ? string[]
     : never;
 
 function parser(): Parser<unknown>;
