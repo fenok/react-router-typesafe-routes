@@ -10,7 +10,7 @@ If you want, you can use a validation library. There is first-party support for 
 
 Param validation is done as part of the param parsing process, and failed param parsing can be fine-tuned to result in returning `undefined` or a fallback value, or throwing an error - and these adjustments reflect in types, too!
 
-Parsing, serializing, and typing are fully customizable. Native arrays in search strings are also supported. By default, quotes in serialized params are omitted when it's safe to do so, which leads to cleaner URLs.
+Parsing, serializing, and typing are fully customizable. Multiple identical keys in search strings are also supported. By default, quotes in serialized params are omitted when it's safe to do so, which leads to cleaner URLs.
 
 The library doesn't restrict or alter React Router API in any way, including nested routes and relative links. It's also gradually adoptable.
 
@@ -22,9 +22,7 @@ The library doesn't restrict or alter React Router API in any way, including nes
 yarn add react-router-typesafe-routes
 ```
 
-`react` is a peer dependency.
-
-You'll need to use one of platform-specific entry points:
+You'll need to use one of platform-specific entry points, each of which requires `react` as a peer dependency:
 
 -   `react-router-typesafe-routes/dom` for web, `react-router-dom` is a peer dependency;
 -   `react-router-typesafe-routes/native` for React Native, `react-router-native` is a peer dependency.
@@ -53,7 +51,7 @@ The library is distributed as an ES module written in ES6.
 | ----------------------------------------- | ---------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
 | Type-safe path params                     | ✅                           | ✅                                                             | ✅                                                                  |
 | Type-safe search params                   | ✅                           | ✅                                                             | 🚫                                                                  |
-| Type-safe native arrays in search params  | ✅                           | 🚫️                                                            | 🚫                                                                  |
+| Multiple identical keys in search params  | ✅                           | 🚫️                                                            | 🚫                                                                  |
 | Type-safe state                           | ✅                           | 🚫                                                             | 🚫                                                                  |
 | Type-safe hash                            | ✅                           | 🚫                                                             | 🚫                                                                  |
 | Customizable serialization                | ✅                           | ✅                                                             | 🚫                                                                  |
@@ -76,7 +74,7 @@ You might also want to use some other router with built-in type safety:
 
 ## Quick usage example
 
-Route definition may look like this:
+Define routes:
 
 ```tsx
 import { route, number, boolean, hashValues } from "react-router-typesafe-routes/dom"; // Or /native
@@ -204,6 +202,114 @@ import { ROUTES } from "./path/to/routes";
 
 // The type here is "info" | "comments" | undefined.
 const hash = useTypedHash(ROUTES.USER.DETAILS);
+```
+
+## Advanced examples
+
+Use helpers to create custom types:
+
+```tsx
+import { route, string, number } from "react-router-typesafe-routes/dom"; // Or /native
+
+const integer = (value: number) => {
+    if (!Number.isInteger(value)) {
+        throw new Error(`Expected ${value} to be integer.`);
+    }
+
+    return value;
+};
+
+const regExp = (regExp: RegExp) => (value: string) => {
+    if (value.match(regExp)?.[0] !== value) {
+        throw new Error(`"${value}" does not match ${String(regExp)}`);
+    }
+
+    return value;
+};
+
+const TEST_ROUTE = route(":id", {
+    params: { id: string(regExp(/\d+/)) },
+    searchParams: { page: number(integer) },
+});
+```
+
+Use Zod:
+
+```tsx
+import { route } from "react-router-typesafe-routes/dom"; // Or /native
+import { zod } from "react-router-typesafe-routes/zod";
+import { z } from "zod";
+
+const TEST_ROUTE = route(":id", {
+    params: { id: zod(z.string().uuid()) },
+});
+```
+
+Use Yup:
+
+```tsx
+import { route } from "react-router-typesafe-routes/dom"; // Or /native
+import { yup } from "react-router-typesafe-routes/yup";
+import * as y from "yup";
+
+const TEST_ROUTE = route(":id", {
+    params: { id: yup(y.string().uuid()) },
+});
+```
+
+Integrate third-party validation library:
+
+```tsx
+import { type, parser, SimpleType, ParserHint } from "../common/index.js";
+// Validator is a library-specific interface.
+import { v, Validator } from "third-party-library";
+
+function getTypeHint(validator: Validator): ParserHint {
+    // This is the most tricky part.
+    // We determine if the validator type is strictly string, number, boolean, or date.
+    // If so, we return the corresponding hint, and 'unknown' otherwise.
+    return validator.type;
+}
+
+function valid<T>(validator: Validator<T>): SimpleType<T> {
+    return type({
+        parser: parser(getTypeHint(validator)),
+        validator(value: unknown) {
+            // We use library-specific validation logic.
+            return validator.validate(value);
+        },
+    });
+}
+
+const TEST_ROUTE = route(":id", {
+    params: { id: valid(v.string().uuid()) },
+});
+```
+
+Construct type objects manually to cover obscure use cases:
+
+```tsx
+import { ParamType } from "react-router-typesafe-routes/dom"; // Or /native
+
+// We can only achieve this by constructing the type object ourselves.
+// This type object can only be used for path params.
+// It will throw upon a parsing error.
+const looseString: ParamType<string, string | number | boolean> = {
+    getPlainParam(value) {
+        return String(value);
+    },
+    getTypedParam(value) {
+        if (typeof value !== "string") {
+            throw new Error("Expected string");
+        }
+
+        return value;
+    },
+};
+
+const TEST_ROUTE = route(":id", {
+    params: { id: looseString },
+});
 ```
 
 ## Concepts
@@ -340,7 +446,7 @@ interface StateParamType<TOut, TIn = TOut> {
 
 > ❗ It's guaranteed that `undefined` will never be passed as `TIn`.
 
-These objects allow to express pretty much anything:
+These interfaces allow to express pretty much anything:
 
 -   We can make type objects that implement some of these interfaces or all of them.
 -   We can specify different types for `TIn` and `TOut`, and even different types for different params.
@@ -357,8 +463,7 @@ To make type objects constructing and usage easier, we impose a set of reasonbal
 -   Type objects for arrays are constructed based on helpers for individual values.
 -   By default, parsing errors result in `undefined`, and throwing or returning a fallback value is an opt-in.
 -   State params are only validated and not transformed in any way.
--   We construct objects that can be used for every param.
--   Path params are encoded via `encodeURIcomponent`.
+-   Type objects for individual values can be used for any param. Type objects for arrays can only be used for search params and state fields.
 
 With this in mind, we can think about type objects in terms of parsers and validators.
 
@@ -693,86 +798,3 @@ The `useTypedState()` hook is a thin wrapper around React Router `useLocation()`
 #### `useTypedHash()`
 
 The `useTypedHash()` hook is a thin wrapper around React Router `useLocation()`. It accepts a route object as the first parameter and returns a typed hash.
-
-## Examples
-
-### Custom types
-
-#### Integer
-
-```tsx
-import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
-
-const integer = (value: number) => {
-    if (!Number.isInteger(value)) {
-        throw new Error(`Expected ${value} to be integer.`);
-    }
-
-    return value;
-};
-
-const TEST_ROUTE = route(":id", { params: { id: number(integer) } });
-```
-
-#### RegExp
-
-```tsx
-import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
-
-const regExp = (regExp: RegExp) => (value: string) => {
-    if (value.match(regExp)?.[0] !== value) {
-        throw new Error(`"${value}" does not match ${String(regExp)}`);
-    }
-
-    return value;
-};
-
-const TEST_ROUTE = route(":id", { params: { id: string(regExp(/\d+/)) } });
-```
-
-#### Integrating third-party validation library
-
-```tsx
-import { type, parser, SimpleType, ParserHint } from "../common/index.js";
-// Validator is a library-specific interface.
-import { Validator } from "third-party-library";
-
-function getTypeHint(validator: Validator): ParserHint {
-    // This is the most tricky part.
-    // We determine if the validator type is strictly string, number, boolean, or date.
-    // If so, we return the corresponding hint, and 'unknown' otherwise.
-    return validator.type;
-}
-
-export function valid<T>(validator: Validator<T>): SimpleType<T> {
-    return type({
-        parser: parser(getTypeHint(validator)),
-        validator(value: unknown) {
-            // We use library-specific validation logic.
-            return validator.validate(value);
-        },
-    });
-}
-```
-
-#### Loose string type
-
-```tsx
-import { ParamType } from "react-router-typesafe-routes/dom"; // Or /native
-
-// We can only achieve this by constructing the type object ourselves.
-// This type object can only be used for path params.
-// It will throw upon a parsing error.
-const looseStringParam: ParamType<string, string | number | boolean> = {
-    getPlainParam(value) {
-        return String(value);
-    },
-    getTypedParam(value) {
-        if (typeof value !== "string") {
-            throw new Error("Expected string");
-        }
-
-        return value;
-    },
-};
-```
