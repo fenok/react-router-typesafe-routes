@@ -1,4 +1,4 @@
-import { stringValidator, arrayValidator, Validator } from "./validators.js";
+import { stringValidator, arrayValidator } from "./validators.js";
 import { parser as defaultParser, Parser } from "./parser.js";
 
 interface ParamType<TOut, TIn = TOut> {
@@ -37,6 +37,10 @@ type UniversalTypeInit<TOut, TIn = TOut> = Required<IncompleteUniversalTypeInit<
 interface IncompleteUniversalTypeInit<TOut, TIn = TOut> {
     validator: Validator<TOut>;
     parser?: Parser<TIn>;
+}
+
+interface Validator<T, TPrev = unknown> {
+    (value: TPrev): T;
 }
 
 function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): UniversalType<T> {
@@ -175,4 +179,4 @@ function isDefined<T>(value: T | undefined): value is T {
     return value !== undefined;
 }
 
-export { type, UniversalType, ParamType, SearchParamType, StateParamType };
+export { type, UniversalType, Validator, ParamType, SearchParamType, StateParamType };

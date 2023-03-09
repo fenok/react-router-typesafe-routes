@@ -1,5 +1,5 @@
-import { type, UniversalType } from "./type.js";
-import { stringValidator, numberValidator, booleanValidator, dateValidator, Validator } from "./validators.js";
+import { type, UniversalType, Validator } from "./type.js";
+import { stringValidator, numberValidator, booleanValidator, dateValidator } from "./validators.js";
 import { parser } from "./parser.js";
 
 function string(): UniversalType<string>;
