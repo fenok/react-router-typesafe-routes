@@ -1,6 +1,12 @@
 import { Type, CallableType } from "./type.deprecated.js";
 import { createType } from "./createType.deprecated.js";
-import { assertIsString, assertIsArray, assertIsBoolean, assertIsValidDate, assertIsNumber } from "./helpers.js";
+import {
+    assertIsString,
+    assertIsArray,
+    assertIsBoolean,
+    assertIsValidDate,
+    assertIsNumber,
+} from "./helpers.deprecated";
 
 /** @deprecated Use string instead */
 export const stringType = createType<string>({

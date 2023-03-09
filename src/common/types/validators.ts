@@ -1,4 +1,10 @@
-import { assertIsString, assertIsNumber, assertIsBoolean, assertIsValidDate, assertIsArray } from "./helpers.js";
+import {
+    assertIsString,
+    assertIsNumber,
+    assertIsBoolean,
+    assertIsValidDate,
+    assertIsArray,
+} from "./helpers.deprecated";
 
 export function stringValidator(value: unknown): string {
     assertIsString(value);
