@@ -248,10 +248,11 @@ import { z } from "zod";
 const TEST_ROUTE = route(":id", {
     // You should only describe a string, number, boolean, or date.
     // Otherwise, the value is stringified and parsed by JSON.
-    // Note that zod doesn't coerce values by default, which is bad for e.g. a date wrapped in an object.
     params: { id: zod(z.string().uuid()).required() },
 });
 ```
+
+> ❗Zod doesn't do coercion by default, but you may need it for complex values returned from `JSON.parse` (for instance, a date wrapped in an object).
 
 Use Yup:
 
@@ -263,11 +264,11 @@ import { string } from "yup";
 const TEST_ROUTE = route(":id", {
     // You should only describe a string, number, boolean, or date.
     // Otherwise, the value is stringified and parsed by JSON.
-    // Note that .required() ensures that parsing result is not undefined.
-    // It means that you don't need to additionally call .required() on a yup schema.
     params: { id: yup(string().uuid()).required() },
 });
 ```
+
+> ❗Yup Schemas are optional by default, but `type()` helper (upon which `yup()` is based on) ensures that `.required()` guarantees that `undefined` won't be returned as a parsing result. It means that there is no need to explicitly call `.required()` on a Yup Schema.
 
 Integrate third-party validation library:
 
