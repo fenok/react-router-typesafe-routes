@@ -45,7 +45,7 @@ interface Validator<T, TPrev = unknown> {
 
 function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): UniversalType<T> {
     const completeInit = {
-        parser: defaultParser("unknown"),
+        parser: defaultParser(),
         ...(typeof init === "function" ? { validator: init } : init),
     };
 
