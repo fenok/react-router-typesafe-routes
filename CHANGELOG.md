@@ -12,9 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Introduce helpers for creating universal types that can be used for any route param:
     -   `type()` for creating any type;
     -   `string()`, `number()`, `boolean()`, and `date()` for creating types based on the corresponding primitives;
-    -   `union()` for creating unions of `string`, `number`, and `boolean` values.
+    -   `union()` for creating unions of `string`, `number`, and `boolean` values;
     -   `zod()` for creating types based on Zod Types;
     -   `yup()` for creating types based on Yup Schemas;
+-   Route params input and output types are now much more readable in IDE hints.
 
 ### Fixed
 
@@ -22,8 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
--   Old helpers for creating type objects: `createType()`, `stringType()`, `numberType()`, `booleanType()`, `dateType()`, `oneOfType()`, `arrayOfType()`, `throwable`, and all types that are exclusive to them.
--   `assertIsString()`, `assertIsNumber()`, `assertIsBoolean()`, `assertIsArray()`, and `assertIsValidDate()` are also deprecated, because they are embedded in new helpers, which allow to run additional checks after these assertions.
+-   Deprecate old helpers for creating type objects: `createType()`, `stringType()`, `numberType()`, `booleanType()`, `dateType()`, `oneOfType()`, `arrayOfType()`, `throwable`, and all types that are exclusive to them.
+-   Deprecate `assertIsString()`, `assertIsNumber()`, `assertIsBoolean()`, `assertIsArray()`, and `assertIsValidDate()` because they are embedded in new helpers, which allow to run additional checks after these assertions.
 
 ## [1.0.0] - 2023-01-23
 
