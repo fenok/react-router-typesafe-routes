@@ -304,8 +304,8 @@ Construct type objects manually to cover obscure use cases:
 import { ParamType } from "react-router-typesafe-routes/dom"; // Or /native
 
 // This type accepts 'string | number | boolean' and returns 'string'.
+// We restrict this type to path params only.
 const looseString: ParamType<string, string | number | boolean> = {
-    // We restrict this type to path params only.
     getPlainParam(value) {
         return String(value);
     },
