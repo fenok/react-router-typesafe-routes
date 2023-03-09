@@ -6,6 +6,10 @@ import {
     assertIsArray,
 } from "./helpers.deprecated";
 
+export interface Validator<T, TPrev = unknown> {
+    (value: TPrev): T;
+}
+
 export function stringValidator(value: unknown): string {
     assertIsString(value);
 

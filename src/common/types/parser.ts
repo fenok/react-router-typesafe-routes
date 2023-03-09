@@ -1,4 +1,7 @@
-import { Parser } from "./type.js";
+interface Parser<T> {
+    stringify: (value: T) => string;
+    parse: (value: string) => unknown;
+}
 
 type ParserHint = "string" | "number" | "boolean" | "date" | "unknown";
 
@@ -72,4 +75,4 @@ const dateParser: Parser<Date> = {
     },
 };
 
-export { parser, ParserHint, ParserType };
+export { parser, Parser, ParserHint, ParserType };

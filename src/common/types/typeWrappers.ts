@@ -1,7 +1,6 @@
-import { type } from "./createType.js";
-import { stringValidator, numberValidator, booleanValidator, dateValidator } from "./validators.js";
-import { Validator, UniversalType } from "./type.js";
-import { parser } from "./parsers.js";
+import { type, UniversalType } from "./type.js";
+import { stringValidator, numberValidator, booleanValidator, dateValidator, Validator } from "./validators.js";
+import { parser } from "./parser.js";
 
 function string(): UniversalType<string>;
 function string<T extends string>(validator: Validator<T, string>): UniversalType<T>;
