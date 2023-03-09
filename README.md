@@ -206,11 +206,13 @@ const hash = useTypedHash(ROUTES.USER.DETAILS);
 
 ## Advanced examples
 
-Use helpers to create custom types:
+Add custom validation:
 
 ```tsx
 import { route, string, number } from "react-router-typesafe-routes/dom"; // Or /native
 
+// Note that we don't need to check that value is a number.
+// This is possible because number() helper has this check built-it.
 const integer = (value: number) => {
     if (!Number.isInteger(value)) {
         throw new Error(`Expected ${value} to be integer.`);
@@ -219,6 +221,7 @@ const integer = (value: number) => {
     return value;
 };
 
+// We can construct validators however we want.
 const regExp = (regExp: RegExp) => (value: string) => {
     if (value.match(regExp)?.[0] !== value) {
         throw new Error(`"${value}" does not match ${String(regExp)}`);
@@ -228,7 +231,9 @@ const regExp = (regExp: RegExp) => (value: string) => {
 };
 
 const TEST_ROUTE = route(":id", {
+    // string() only accepts validators that return strings.
     params: { id: string(regExp(/\d+/)) },
+    // number() only accepts validators that return numbers.
     searchParams: { page: number(integer) },
 });
 ```
@@ -241,7 +246,10 @@ import { zod } from "react-router-typesafe-routes/zod";
 import { z } from "zod";
 
 const TEST_ROUTE = route(":id", {
-    params: { id: zod(z.string().uuid()) },
+    // You should only describe a string, number, boolean, or date.
+    // Otherwise, the value is stringified and parsed by JSON.
+    // Note that zod doesn't coerce values by default, which is bad for e.g. a date wrapped in an object.
+    params: { id: zod(z.string().uuid()).required() },
 });
 ```
 
@@ -250,33 +258,37 @@ Use Yup:
 ```tsx
 import { route } from "react-router-typesafe-routes/dom"; // Or /native
 import { yup } from "react-router-typesafe-routes/yup";
-import * as y from "yup";
+import { string } from "yup";
 
 const TEST_ROUTE = route(":id", {
-    params: { id: yup(y.string().uuid()) },
+    // You should only describe a string, number, boolean, or date.
+    // Otherwise, the value is stringified and parsed by JSON.
+    // Note that .required() ensures that parsing result is not undefined.
+    // It means that you don't need to additionally call .required() on a yup schema.
+    params: { id: yup(string().uuid()).required() },
 });
 ```
 
 Integrate third-party validation library:
 
 ```tsx
-import { type, parser, SimpleType, ParserHint } from "../common/index.js";
-// Validator is a library-specific interface.
-import { v, Validator } from "third-party-library";
+import { type, parser, UniversalType, ParserHint } from "react-router-typesafe-routes/dom"; // Or /native
+// Schema is a library-specific interface.
+import { v, Schema } from "third-party-library";
 
-function getTypeHint(validator: Validator): ParserHint {
+function getTypeHint(schema: Schema): ParserHint {
     // This is the most tricky part.
-    // We determine if the validator type is strictly string, number, boolean, or date.
+    // We determine if the schema type is strictly string, number, boolean, or date.
     // If so, we return the corresponding hint, and 'unknown' otherwise.
-    return validator.type;
+    return schema.type;
 }
 
-function valid<T>(validator: Validator<T>): SimpleType<T> {
+function valid<T>(schema: Schema<T>): UniversalType<T> {
     return type({
-        parser: parser(getTypeHint(validator)),
+        parser: parser(getTypeHint(schema)),
         validator(value: unknown) {
             // We use library-specific validation logic.
-            return validator.validate(value);
+            return schema.validate(value);
         },
     });
 }
@@ -291,14 +303,15 @@ Construct type objects manually to cover obscure use cases:
 ```tsx
 import { ParamType } from "react-router-typesafe-routes/dom"; // Or /native
 
-// We can only achieve this by constructing the type object ourselves.
-// This type object can only be used for path params.
-// It will throw upon a parsing error.
+// This type accepts 'string | number | boolean' and returns 'string'.
 const looseString: ParamType<string, string | number | boolean> = {
+    // We restrict this type to path params only.
     getPlainParam(value) {
         return String(value);
     },
     getTypedParam(value) {
+        // We don't have helpers for configuring parsing error result.
+        // We throw the error here, but we could also return undefined or something else.
         if (typeof value !== "string") {
             throw new Error("Expected string");
         }
