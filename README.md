@@ -484,7 +484,7 @@ interface SearchParamType<TOut, TIn = TOut> {
     getTypedSearchParam: (plainValue: string[]) => TOut;
 }
 
-// Can be used for state params
+// Can be used for state fields
 interface StateParamType<TOut, TIn = TOut> {
     getPlainStateParam: (originalValue: TIn) => unknown;
     getTypedStateParam: (plainValue: unknown) => TOut;
@@ -500,7 +500,7 @@ These interfaces allow to express pretty much anything:
 -   We can return `undefined` as `TOut` instead of throwing an error.
 -   We can work with multiple keys with the same name in search string.
 
-These objects can be constructed manually, but the recommended approach is to use one of the built-in helpers. You should only construct them manually if you're hitting some limitations of type helpers.
+Normally, you should use the built-in helpers for constructing these objects. Manual construction should only be used if you're hitting some limitations.
 
 #### Type helpers
 
@@ -784,33 +784,58 @@ The `route()` helper returns a route object, which has the following fields:
 -   `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
 -   Any number of child routes starting with an uppercase letter.
 
-### Type helpers
+### `parser()`
 
--   `parser()` - returns built-in parser. Should only be used for creating custom wrappers around `type()`. Can accept a type hint for nicer serialization, e.g. `parser('string')`.
--   `type()` - a low-level helper for creating any kind of type objects. Accepts a validator and an optional parser.
--   `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and `typeof` checks. Can accept validators that expect the corresponding types as an input.
--   `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values.
--   `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
--   `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
+The built-in parser is exposed as `parser()`. It should only be used for creating custom wrappers around `type()`.
+
+It accepts the following type hints:
+
+-   `'string'` - the given value is not modified.
+-   `'number'` - processed by `JSON`, may be extended in the future.
+-   `'boolean'` - processed by `JSON`, may be extended in the future.
+-   `'date'` - stringified as an ISO string, without wrapping quotes.
+-   `'unknown'` - processed by `JSON`.
+
+When called without a hint, `'unknown'` is used.
+
+### `type()`
+
+All type helpers are wrappers around `type()`. It's primarily exposed for integrating third-party validation libraries, but it can also be used directly, if needed. It accepts a validator and an optional parser.
 
 All helpers allow to specify the behavior in case of a parsing/validation error:
 
 ```typescript
 // Parsing result in case of an error:
-string(); // undefined
-string().defined(); // the error is thrown
-string().defined("fallback"); // 'fallback'
+type(validate); // undefined
+type(validate).defined(); // the error is thrown
+type(validate).defined("fallback"); // 'fallback'
 ```
+
+The `.defined()` modifier guarantees that the parsing error result is not `undefined`, even if the given validator can return it.
 
 All helpers allow to construct type objects for arrays:
 
 ```typescript
 // Parsing result:
-string().array(); // (string | undefined)[] | undefined
-string().array().defined(); // (string | undefined)[]
-string().defined().array(); // string[] | undefined
-string().defined().array().defined(); // string[]
+type(validate).array(); // (string | undefined)[] | undefined
+type(validate).array().defined(); // (string | undefined)[]
+type(validate).defined().array(); // string[] | undefined
+type(validate).defined().array().defined(); // string[]
 ```
+
+Arrays can only be used in search params and state fields, because there is no standard way to store arrays in path params.
+
+### Type helpers
+
+-   `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and `typeof` checks. Can accept validators that expect the corresponding types as an input.
+-   `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values. Can accept a readonly array or individual values.
+
+### Type helpers for third-party validation libraries
+
+-   `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
+-   `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
+
+For types that are assignable to `string`, `number`, `boolean`, or `date`, the corresponding parser hint is used.
 
 ### `hashValues()`
 
