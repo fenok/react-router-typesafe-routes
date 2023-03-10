@@ -206,6 +206,19 @@ const hash = useTypedHash(ROUTES.USER.DETAILS);
 
 ## Advanced examples
 
+Use arrays:
+
+```tsx
+import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
+
+const TEST_ROUTE = route("", {
+    // Every built-in type can be used to create an array type.
+    // Arrays can only be used for search params and state fields.
+    // As expected, we can make items and/or the whole array .required().
+    searchParams: { selectedIds: number().required().array().required() },
+});
+```
+
 Reuse types across routes:
 
 ```tsx
