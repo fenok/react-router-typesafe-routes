@@ -318,13 +318,8 @@ function getTypeHint(schema: Schema): ParserHint {
 }
 
 function valid<T>(schema: Schema<T>): UniversalType<T> {
-    return type({
-        parser: parser(getTypeHint(schema)),
-        validator(value: unknown) {
-            // We use library-specific validation logic.
-            return schema.validate(value);
-        },
-    });
+    // We use library-specific validation logic.
+    return type((value: unknown) => schema.validate(value), parser(getTypeHint(schema)));
 }
 
 const TEST_ROUTE = route(":id", {
@@ -556,7 +551,7 @@ const positiveNumber: Validator<number> = (value: unknown): number => {
     return value;
 };
 
-type({ validator: positiveNumber, parser: parser("number") });
+type(positiveNumber, parser("number"));
 
 // We can also omit parser. The default parser is simply JSON.
 type(positiveNumber);

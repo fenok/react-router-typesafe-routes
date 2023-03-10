@@ -43,14 +43,7 @@ interface Validator<T, TPrev = unknown> {
     (value: TPrev): T;
 }
 
-function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): UniversalType<T> {
-    const completeInit = {
-        parser: defaultParser(),
-        ...(typeof init === "function" ? { validator: init } : init),
-    };
-
-    const { parser, validator } = completeInit;
-
+function type<T>(validator: Validator<T>, parser: Parser<T> = defaultParser()): UniversalType<T> {
     const getPlainParam = (value: T) => parser.stringify(value);
     const getTypedParam = (value: string | undefined) => validator(parser.parse(stringValidator(value)));
     const getPlainSearchParam = (value: T) => parser.stringify(value);

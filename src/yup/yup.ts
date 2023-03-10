@@ -16,10 +16,5 @@ export function yup<T>(schema: Schema<T>): UniversalType<T> {
         }
     }
 
-    return type({
-        parser: parser(typeHint),
-        validator(value: unknown) {
-            return schema.validateSync(value);
-        },
-    });
+    return type((value: unknown) => schema.validateSync(value), parser(typeHint));
 }

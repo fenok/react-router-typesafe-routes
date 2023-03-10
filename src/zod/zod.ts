@@ -16,10 +16,5 @@ export function zod<T>(zodType: ZodType<T>): UniversalType<T> {
         typeHint = "date";
     }
 
-    return type({
-        parser: parser(typeHint),
-        validator(value: unknown) {
-            return zodType.parse(value);
-        },
-    });
+    return type((value: unknown) => zodType.parse(value), parser(typeHint));
 }
