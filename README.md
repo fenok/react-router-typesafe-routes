@@ -10,7 +10,7 @@ If you want, you can use a validation library. There is first-party support for 
 
 Param validation is done as part of the param parsing process, and failed param parsing can be fine-tuned to result in returning `undefined` or a fallback value, or throwing an error - and these adjustments reflect in types, too!
 
-Parsing, serializing, and typing are fully customizable. Multiple identical keys in search strings are also supported. By default, quotes in serialized params are omitted when it's safe to do so, which leads to cleaner URLs.
+Parsing, serializing, and typing are fully customizable. Multiple identical keys in search strings are also supported. By default, wrapping quotes in serialized params are omitted when it's safe to do so, which leads to cleaner URLs.
 
 The library doesn't restrict or alter React Router API in any way, including nested routes and relative links. It's also gradually adoptable.
 
@@ -47,19 +47,19 @@ The library is distributed as an ES module written in ES6.
 
 ## How is it different from existing solutions?
 
-| Feature                                   | react-router-typesafe-routes | [typesafe-routes](https://github.com/kruschid/typesafe-routes) | [typed-react-router](https://github.com/bram209/typed-react-router) |
-| ----------------------------------------- | ---------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Type-safe path params                     | ✅                           | ✅                                                             | ✅                                                                  |
-| Type-safe search params                   | ✅                           | ✅                                                             | 🚫                                                                  |
-| Multiple identical keys in search params  | ✅                           | 🚫️                                                            | 🚫                                                                  |
-| Type-safe state                           | ✅                           | 🚫                                                             | 🚫                                                                  |
-| Type-safe hash                            | ✅                           | 🚫                                                             | 🚫                                                                  |
-| Customizable serialization                | ✅                           | ✅                                                             | 🚫                                                                  |
-| Customizable parsing / validation         | ✅                           | ✅                                                             | 🚫                                                                  |
-| Configurable parsing error result         | ✅                           | 🚫                                                             | 🚫                                                                  |
-| Nested routes                             | ✅                           | ✅                                                             | ✅                                                                  |
-| Relative links                            | ✅                           | ✅                                                             | 🚫                                                                  |
-| Tailored specifically for React Router v6 | ✅                           | 🚫                                                             | ✅                                                                  |
+| Feature                                                               | react-router-typesafe-routes | [typesafe-routes](https://github.com/kruschid/typesafe-routes) | [typed-react-router](https://github.com/bram209/typed-react-router) |
+| --------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Type-safe path params                                                 | ✅                           | ✅                                                             | ✅                                                                  |
+| Type-safe search params                                               | ✅                           | ✅                                                             | 🚫                                                                  |
+| Multiple identical keys in search params                              | ✅                           | 🚫️                                                            | 🚫                                                                  |
+| Type-safe state                                                       | ✅                           | 🚫                                                             | 🚫                                                                  |
+| Type-safe hash                                                        | ✅                           | 🚫                                                             | 🚫                                                                  |
+| Customizable serialization                                            | ✅                           | ✅                                                             | 🚫                                                                  |
+| Customizable parsing / validation                                     | ✅                           | ✅                                                             | 🚫                                                                  |
+| Built-in types allow to customize validation and parsing error result | ✅                           | 🚫                                                             | 🚫                                                                  |
+| Nested routes                                                         | ✅                           | ✅                                                             | ✅                                                                  |
+| Relative links                                                        | ✅                           | ✅                                                             | 🚫                                                                  |
+| Tailored specifically for React Router v6                             | ✅                           | 🚫                                                             | ✅                                                                  |
 
 Other libraries that I was able to find are outdated and not really suitable for React Router v6:
 
