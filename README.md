@@ -206,6 +206,26 @@ const hash = useTypedHash(ROUTES.USER.DETAILS);
 
 ## Advanced examples
 
+Reuse types across routes:
+
+```tsx
+import { route, types, number, string, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
+
+const PAGINATION_FRAGMENT = route("", { searchParams: { page: number() } });
+
+const ROUTES = {
+    // This route uses pagination params and also has its own search params.
+    USER: route("user", types({ searchParams: { q: string() } })(PAGINATION_FRAGMENT)),
+    // This route only uses pagination params.
+    POST: route("post", types(PAGINATION_FRAGMENT)),
+    // This route doesn't use pagination params
+    ABOUT: route("about"),
+};
+
+// We can use PAGINATION_FRAGMENT to get the page param anywhere:
+const [{ page }] = useTypedSearchParams(PAGINATION_FRAGMENT);
+```
+
 Add custom validation:
 
 ```tsx
