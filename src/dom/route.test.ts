@@ -413,7 +413,7 @@ it("allows search params", () => {
 
 it("allows to mix search params across multiple routes", () => {
     const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
-    const CHILD = route("child", { searchParams: { bar: number().required().array() } }, { GRANDCHILD });
+    const CHILD = route("child", { searchParams: { bar: number().defined().array() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
@@ -434,7 +434,7 @@ it("allows to mix search params across multiple routes", () => {
 
 it("prioritizes children when mixing search params with the same name", () => {
     const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
-    const CHILD = route("child", { searchParams: { foo: number().required().array() } }, { GRANDCHILD });
+    const CHILD = route("child", { searchParams: { foo: number().defined().array() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
@@ -661,8 +661,8 @@ it("doesn't throw if explicit path params are invalid", () => {
 });
 
 it("doesn't throw if explicit path params with fallback are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number().required(-1) } });
-    const CHILD = route("child/:childId", { params: { childId: number().required(-1) } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand/:id", { params: { id: number().defined(-1) } });
+    const CHILD = route("child/:childId", { params: { childId: number().defined(-1) } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
@@ -677,8 +677,8 @@ it("doesn't throw if explicit path params with fallback are invalid", () => {
 });
 
 it("throws if explicit throwable path params are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number().required() } });
-    const CHILD = route("child/:childId", { params: { childId: number().required() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand/:id", { params: { id: number().defined() } });
+    const CHILD = route("child/:childId", { params: { childId: number().defined() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
@@ -735,7 +735,7 @@ it("allows explicit star path param parsing", () => {
 });
 
 it("allows explicit star path param parsing (with fallback)", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number().required(42) } });
+    const GRANDCHILD = route("grand/*", { params: { "*": number().defined(42) } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -777,11 +777,11 @@ it("allows intermediate star param parsing", () => {
 });
 
 it("allows search params parsing", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number().required(0) } });
+    const GRANDCHILD = route("grand", { searchParams: { foo: number().defined(0) } });
     const CHILD = route(
         "child",
         {
-            searchParams: { foo: string(), arr: number().required().array() },
+            searchParams: { foo: string(), arr: number().defined().array() },
         },
         { GRANDCHILD }
     );
@@ -821,11 +821,11 @@ it("allows search params parsing", () => {
 });
 
 it("throws if throwable search params are invalid", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number().required() } });
+    const GRANDCHILD = route("grand", { searchParams: { foo: number().defined() } });
     const CHILD = route(
         "child",
         {
-            searchParams: { foo: string(), arr: number().required().array() },
+            searchParams: { foo: string(), arr: number().defined().array() },
         },
         { GRANDCHILD }
     );
@@ -922,7 +922,7 @@ it("allows state params parsing", () => {
 });
 
 it("throws if throwable state params are invalid", () => {
-    const GRANDCHILD = route("grand", { state: { bar: number().required() } });
+    const GRANDCHILD = route("grand", { state: { bar: number().defined() } });
     const CHILD = route("child", { state: { foo: string() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -944,7 +944,7 @@ it("throws if throwable state params are invalid", () => {
 });
 
 it("throws upon specifying an invalid fallback", () => {
-    expect(() => route("", { searchParams: { id: date().required(new Date("foo")) } })).toThrow();
+    expect(() => route("", { searchParams: { id: date().defined(new Date("foo")) } })).toThrow();
 });
 
 it("allows types composition", () => {
@@ -1110,10 +1110,10 @@ it("properly parses arrays in search params", () => {
     const TEST_ROUTE = route("", {
         searchParams: {
             a: number().array(),
-            b: number().required().array(),
-            c: number().array().required([]),
-            d: number().required().array().required([]),
-            e: number().required(-1).array().required([]),
+            b: number().defined().array(),
+            c: number().array().defined([]),
+            d: number().defined().array().defined([]),
+            e: number().defined(-1).array().defined([]),
         },
     });
 
@@ -1185,7 +1185,7 @@ it("ensures that required path params stay required if a custom type allows unde
     >(true);
 });
 
-it("ensures that required modifier is applied if a custom type allows undefined as an input", () => {
+it("ensures that defined modifier is applied if a custom type allows undefined as an input", () => {
     const validateOptionalNumber = (value: unknown) => {
         if (value === undefined) return undefined;
         if (typeof value === "number") return value;
@@ -1195,8 +1195,8 @@ it("ensures that required modifier is applied if a custom type allows undefined 
     const TEST_ROUTE = route("", {
         searchParams: {
             a: type(validateOptionalNumber),
-            b: type(validateOptionalNumber).required(),
-            c: type(validateOptionalNumber).required(-1),
+            b: type(validateOptionalNumber).defined(),
+            c: type(validateOptionalNumber).defined(-1),
         },
     });
 
@@ -1240,9 +1240,9 @@ it("ensures that arrays don't accept undefined items if a custom type allows und
     const TEST_ROUTE = route("", {
         searchParams: {
             a: type(validateOptionalNumber).array(),
-            b: type(validateOptionalNumber).array().required([]),
-            c: type(validateOptionalNumber).required().array(),
-            d: type(validateOptionalNumber).required().array().required([]),
+            b: type(validateOptionalNumber).array().defined([]),
+            c: type(validateOptionalNumber).defined().array(),
+            d: type(validateOptionalNumber).defined().array().defined([]),
         },
     });
 
@@ -1341,7 +1341,7 @@ it("allows to use yup", () => {
             d: yup(y.date()),
             e: yup(y.string().nullable()),
             f: yup(y.string().nullable()),
-            g: yup(y.object({ d: y.date().required() })),
+            g: yup(y.object({ d: y.date().defined() })),
         },
     });
 
@@ -1398,7 +1398,7 @@ it("allows to use unions", () => {
         searchParams: {
             a: union(1, true, "test"),
             b: union([1, true, "test"] as const),
-            c: union([1, true, "test"] as const).required(),
+            c: union([1, true, "test"] as const).defined(),
         },
     });
 

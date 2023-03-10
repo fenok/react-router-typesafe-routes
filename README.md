@@ -87,10 +87,10 @@ const ROUTES = {
         {
             // We can override some or all path params.
             // We override id and specify that a parsing error will be thrown.
-            params: { id: number().required() },
+            params: { id: number().defined() },
             // These are search params.
             // We specify a fallback to use in case of a parsing error.
-            searchParams: { infoVisible: boolean().required(false) },
+            searchParams: { infoVisible: boolean().defined(false) },
             // These are state fields, which are similar to search params.
             // We use default parsing behavior, so a parsing error will result in undefined.
             state: { fromUserList: boolean() },
@@ -214,8 +214,8 @@ import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
 const TEST_ROUTE = route("", {
     // Every built-in type can be used to create an array type.
     // Arrays can only be used for search params and state fields.
-    // As expected, we can make items and/or the whole array .required().
-    searchParams: { selectedIds: number().required().array().required() },
+    // As expected, we can make items and/or the whole array .defined().
+    searchParams: { selectedIds: number().defined().array().defined() },
 });
 ```
 
@@ -281,7 +281,7 @@ import { z } from "zod";
 const TEST_ROUTE = route(":id", {
     // You should only describe a string, number, boolean, or date.
     // Otherwise, the value is stringified and parsed by JSON.
-    params: { id: zod(z.string().uuid()).required() },
+    params: { id: zod(z.string().uuid()).defined() },
 });
 ```
 
@@ -297,11 +297,11 @@ import { string } from "yup";
 const TEST_ROUTE = route(":id", {
     // You should only describe a string, number, boolean, or date.
     // Otherwise, the value is stringified and parsed by JSON.
-    params: { id: yup(string().uuid()).required() },
+    params: { id: yup(string().uuid()).defined() },
 });
 ```
 
-> ❗Yup Schemas are optional by default, but `type()` helper (upon which `yup()` is based on) ensures that a `.required()` type won't return `undefined` as a parsing result. It means that there is no need to explicitly call `.required()` on a Yup Schema.
+> ❗Yup Schemas are optional by default, but `type()` helper (upon which `yup()` is based on) ensures that a `.defined()` type won't return `undefined` as a parsing result. It means that there is no need to explicitly call `.defined()` on a Yup Schema.
 
 Integrate third-party validation library:
 
@@ -566,9 +566,9 @@ The resulting type object will return undefined upon a parsing (or validation) e
 
 ```typescript
 // This will throw a parsing error.
-type(positiveNumber).required();
+type(positiveNumber).defined();
 // This will return the given fallback upon a parsing error.
-type(positiveNumber).required(1);
+type(positiveNumber).defined(1);
 ```
 
 > ❗ Fallbacks are validated, and invalid fallbacks cause an error upon type object construction.
@@ -582,13 +582,13 @@ We can also construct type objects for arrays:
 type(positiveNumber).array();
 
 // This will give number[] | undefined
-type(positiveNumber).required().array();
+type(positiveNumber).defined().array();
 
 // This will give (number | undefined)[]
-type(positiveNumber).array().required();
+type(positiveNumber).array().defined();
 
 // This will give number[]
-type(positiveNumber).required().array().required();
+type(positiveNumber).defined().array().defined();
 ```
 
 ##### Type-specific helpers
@@ -798,8 +798,8 @@ All helpers allow to specify the behavior in case of a parsing/validation error:
 ```typescript
 // Parsing result in case of an error:
 string(); // undefined
-string().required(); // the error is thrown
-string().required("fallback"); // 'fallback'
+string().defined(); // the error is thrown
+string().defined("fallback"); // 'fallback'
 ```
 
 All helpers allow to construct type objects for arrays:
@@ -807,9 +807,9 @@ All helpers allow to construct type objects for arrays:
 ```typescript
 // Parsing result:
 string().array(); // (string | undefined)[] | undefined
-string().array().required(); // (string | undefined)[]
-string().required().array(); // string[] | undefined
-string().required().array().required(); // string[]
+string().array().defined(); // (string | undefined)[]
+string().defined().array(); // string[] | undefined
+string().defined().array().defined(); // string[]
 ```
 
 ### `hashValues()`

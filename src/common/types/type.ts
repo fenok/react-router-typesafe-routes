@@ -23,13 +23,13 @@ type ArrayParamType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamT
 type UniversalType<TOut> = AnyParamType<TOut | undefined, Exclude<TOut, undefined>> & {
     array: () => UniversalArrayType<TOut | undefined, Exclude<TOut, undefined>>;
 } & {
-    required: (fallback?: TOut) => AnyParamType<Exclude<TOut, undefined>, Exclude<TOut, undefined>> & {
+    defined: (fallback?: TOut) => AnyParamType<Exclude<TOut, undefined>, Exclude<TOut, undefined>> & {
         array: () => UniversalArrayType<Exclude<TOut, undefined>, Exclude<TOut, undefined>>;
     };
 };
 
 type UniversalArrayType<TOut, TIn = TOut> = ArrayParamType<TOut[] | undefined, TIn[]> & {
-    required: (fallback?: TOut[]) => ArrayParamType<TOut[], TIn[]>;
+    defined: (fallback?: TOut[]) => ArrayParamType<TOut[], TIn[]>;
 };
 
 type UniversalTypeInit<TOut, TIn = TOut> = Required<IncompleteUniversalTypeInit<TOut, TIn>>;
@@ -74,7 +74,7 @@ function type<T>(init: IncompleteUniversalTypeInit<T> | Validator<T>): Universal
             }),
         },
         {
-            required: (fallback?: T) => {
+            defined: (fallback?: T) => {
                 const validFallback = !isDefined(fallback) ? undefined : validator(fallback);
 
                 return Object.assign(
@@ -118,7 +118,7 @@ const getUniversalArrayType =
                 getTypedStateParam: ensureNoError(getTypedStateParam, undefined),
             },
             {
-                required: (fallback?: TOut[]) => {
+                defined: (fallback?: TOut[]) => {
                     const validFallback = !isDefined(fallback) ? undefined : fallback.map(validator);
 
                     return {
@@ -160,7 +160,7 @@ function ensureNoUndefined<TFn extends (...args: never[]) => any>(
             const result = fn(...args);
 
             if (result === undefined) {
-                throw new Error("Unexpected undefined in required type");
+                throw new Error("Unexpected undefined in defined type");
             }
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
