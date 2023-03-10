@@ -301,7 +301,7 @@ const TEST_ROUTE = route(":id", {
 });
 ```
 
-> ❗Yup Schemas are optional by default, but `type()` helper (upon which `yup()` is based on) ensures that a `.defined()` type won't return `undefined` as a parsing result. It means that there is no need to explicitly call `.defined()` on a Yup Schema.
+> ❗Yup Schemas are optional by default, but `type()` helper (upon which `yup()` is based on) ensures that a `.defined()` type won't return `undefined` as a parsing result. It means that there is no need to explicitly call `.required()` on a Yup Schema.
 
 Integrate third-party validation library:
 
