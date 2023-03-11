@@ -54,16 +54,16 @@ function type<T>(validator: Validator<T>, parser: Parser<T> = defaultParser()): 
     return Object.assign(
         {
             getPlainParam,
-            getTypedParam: ensureNoError(getTypedParam, undefined),
+            getTypedParam: ensureNoError(getTypedParam),
             getPlainSearchParam,
-            getTypedSearchParam: ensureNoError(getTypedSearchParam, undefined),
+            getTypedSearchParam: ensureNoError(getTypedSearchParam),
             getPlainStateParam,
-            getTypedStateParam: ensureNoError(getTypedStateParam, undefined),
+            getTypedStateParam: ensureNoError(getTypedStateParam),
         },
         {
             array: getUniversalArrayType({
-                parser: { stringify: parser.stringify, parse: ensureNoError(parser.parse, undefined) },
-                validator: ensureNoError(validator, undefined),
+                parser: { stringify: parser.stringify, parse: ensureNoError(parser.parse) },
+                validator: ensureNoError(validator),
             }),
         },
         {
@@ -106,9 +106,9 @@ const getUniversalArrayType =
         return Object.assign(
             {
                 getPlainSearchParam,
-                getTypedSearchParam: ensureNoError(getTypedSearchParam, undefined),
+                getTypedSearchParam: ensureNoError(getTypedSearchParam),
                 getPlainStateParam,
-                getTypedStateParam: ensureNoError(getTypedStateParam, undefined),
+                getTypedStateParam: ensureNoError(getTypedStateParam),
             },
             {
                 defined: (fallback?: TOut[]) => {
@@ -116,36 +116,31 @@ const getUniversalArrayType =
 
                     return {
                         getPlainSearchParam,
-                        getTypedSearchParam: isDefined(validFallback)
-                            ? ensureNoError(getTypedSearchParam, validFallback)
-                            : getTypedSearchParam,
+                        getTypedSearchParam: ensureNoUndefined(getTypedSearchParam, validFallback),
                         getPlainStateParam,
-                        getTypedStateParam: isDefined(validFallback)
-                            ? ensureNoError(getTypedStateParam, validFallback)
-                            : getTypedStateParam,
+                        getTypedStateParam: ensureNoUndefined(getTypedStateParam, validFallback),
                     };
                 },
             }
         );
     };
 
-function ensureNoError<TFn extends (...args: never[]) => any, TFallback>(
-    fn: TFn,
-    fallback: TFallback
-): (...args: Parameters<TFn>) => ReturnType<TFn> | TFallback {
+function ensureNoError<TFn extends (...args: never[]) => unknown, TFallback>(
+    fn: TFn
+): (...args: Parameters<TFn>) => ReturnType<TFn> | undefined {
     return (...args: Parameters<TFn>) => {
         try {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            return fn(...args);
+            return fn(...args) as ReturnType<TFn>;
         } catch (error) {
-            return fallback;
+            return undefined;
         }
     };
 }
 
-function ensureNoUndefined<TFn extends (...args: never[]) => any>(
+function ensureNoUndefined<TFn extends (...args: never[]) => unknown>(
     fn: TFn,
-    fallback?: ReturnType<TFn>
+    fallback: ReturnType<TFn> | undefined
 ): (...args: Parameters<TFn>) => Exclude<ReturnType<TFn>, undefined> {
     return (...args: Parameters<TFn>) => {
         try {
@@ -157,10 +152,11 @@ function ensureNoUndefined<TFn extends (...args: never[]) => any>(
             }
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            return result;
+            return result as Exclude<ReturnType<TFn>, undefined>;
         } catch (error) {
             if (fallback !== undefined) {
-                return fallback;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return fallback as Exclude<ReturnType<TFn>, undefined>;
             }
 
             throw error;
