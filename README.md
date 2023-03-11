@@ -206,16 +206,20 @@ const hash = useTypedHash(ROUTES.USER.DETAILS);
 
 ## Advanced examples
 
-Use arrays:
+Define unions and arrays:
 
 ```tsx
 import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
 
 const TEST_ROUTE = route("", {
-    // Every built-in type can be used to create an array type.
-    // Arrays can only be used for search params and state fields.
-    // As expected, we can make items and/or the whole array .defined().
-    searchParams: { selectedIds: number().defined().array().defined() },
+    searchParams: {
+        // Unions can contain any string, number, and boolean values.
+        tab: union("info", "comments").defined("info"),
+        // Every built-in type can be used to create an array type.
+        // Arrays can only be used for search params and state fields.
+        // As expected, we can make items and/or the whole array .defined().
+        selectedIds: number().defined().array().defined(),
+    },
 });
 ```
 
