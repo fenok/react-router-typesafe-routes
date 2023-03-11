@@ -312,7 +312,7 @@ import { v, Schema } from "third-party-library";
 
 function getTypeHint(schema: Schema): ParserHint {
     // This is the most tricky part.
-    // We determine if the schema type is strictly string, number, boolean, or date.
+    // We determine if the schema type is assignable to string, number, boolean, or date.
     // If so, we return the corresponding hint, and 'unknown' otherwise.
     return schema.type;
 }
@@ -534,13 +534,13 @@ interface Validator<T, TPrev = unknown> {
 }
 ```
 
-It returns a valid value or throws if that's impossible.
+It returns a valid value or throws if that's impossible. It can transform values to make them valid.
 
 The important thing is that it has to handle both the original value and whatever the corresponding parser `parse()` returns.
 
-##### `type()`
+##### Generic helper
 
-`type()` is a helper for creating all kinds of type objects. The resulting param type is inferred from the given validator.
+The `type()` helper is used for creating all kinds of type objects. The resulting param type is inferred from the given validator.
 
 ```typescript
 const positiveNumber: Validator<number> = (value: unknown): number => {
@@ -566,7 +566,7 @@ type(positiveNumber).defined();
 type(positiveNumber).defined(1);
 ```
 
-> ❗ Fallbacks are validated, and invalid fallbacks cause an error upon type object construction.
+The `.defined()` modifier guarantees that the parsing error result is not `undefined`, even if the given validator can return it. Fallbacks passed to `.defined()` are validated.
 
 We can also construct type objects for arrays:
 
@@ -585,6 +585,8 @@ type(positiveNumber).array().defined();
 // This will give number[]
 type(positiveNumber).defined().array().defined();
 ```
+
+Arrays can only be used in search params and state fields, because there is no standard way to store arrays in path params.
 
 ##### Type-specific helpers
 
@@ -795,37 +797,16 @@ When called without a hint, `'unknown'` is used.
 
 ### `type()`
 
-All type helpers are wrappers around `type()`. It's primarily exposed for integrating third-party validation libraries, but it can also be used directly, if needed. It accepts a validator and an optional parser.
+All type helpers are wrappers around `type()`. It's primarily exposed for integrating third-party validation libraries, but it can also be used directly, if needed.
 
-All helpers allow to specify the behavior in case of a parsing/validation error:
+See [Typing - Type helpers](#type-helpers).
 
-```typescript
-// Parsing result in case of an error:
-type(validate); // undefined
-type(validate).defined(); // the error is thrown
-type(validate).defined("fallback"); // 'fallback'
-```
-
-The `.defined()` modifier guarantees that the parsing error result is not `undefined`, even if the given validator can return it.
-
-All helpers allow to construct type objects for arrays:
-
-```typescript
-// Parsing result:
-type(validate).array(); // (string | undefined)[] | undefined
-type(validate).array().defined(); // (string | undefined)[]
-type(validate).defined().array(); // string[] | undefined
-type(validate).defined().array().defined(); // string[]
-```
-
-Arrays can only be used in search params and state fields, because there is no standard way to store arrays in path params.
-
-### Type helpers
+There are built-in helpers for common types:
 
 -   `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and `typeof` checks. Can accept validators that expect the corresponding types as an input.
 -   `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values. Can accept a readonly array or individual values.
 
-### Type helpers for third-party validation libraries
+There are also built-in helpers for third-party validation libraries:
 
 -   `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
 -   `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
