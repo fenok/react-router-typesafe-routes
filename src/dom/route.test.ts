@@ -1,6 +1,18 @@
 import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
-import { number, boolean, string, hashValues, date, types, type, union } from "../common/index.js";
+import {
+    number,
+    boolean,
+    string,
+    hashValues,
+    date,
+    types,
+    type,
+    union,
+    ParamType,
+    SearchParamType,
+    StateParamType,
+} from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 import { zod } from "../zod/index.js";
 import { z } from "zod";
@@ -1430,4 +1442,82 @@ it("allows to use unions", () => {
         b: 1,
         c: true,
     });
+});
+
+it("allows to define different types for different route parts", () => {
+    const testType: ParamType<string, number> & SearchParamType<number, string> & StateParamType<boolean, Date> = {
+        getPlainParam: (value) => "path plain",
+        getTypedParam: (value) => "path typed",
+        getPlainSearchParam: (value) => "search plain",
+        getTypedSearchParam: (value) => -1,
+        getPlainStateParam: (value) => "state",
+        getTypedStateParam: (value) => false,
+    };
+
+    const TEST_ROUTE = route(":id", {
+        params: { id: testType },
+        searchParams: { id: testType },
+        state: { id: testType },
+    });
+
+    assert<
+        IsExact<
+            Parameters<typeof TEST_ROUTE.getPlainParams>[0],
+            {
+                id: number;
+            }
+        >
+    >(true);
+
+    assert<
+        IsExact<
+            Parameters<typeof TEST_ROUTE.getPlainSearchParams>[0],
+            {
+                id?: string;
+            }
+        >
+    >(true);
+
+    assert<
+        IsExact<
+            Parameters<typeof TEST_ROUTE.buildState>[0],
+            {
+                id?: Date;
+            }
+        >
+    >(true);
+
+    assert<
+        IsExact<
+            ReturnType<typeof TEST_ROUTE.getTypedParams>,
+            {
+                id: string;
+            }
+        >
+    >(true);
+
+    assert<
+        IsExact<
+            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
+            {
+                id: number;
+            }
+        >
+    >(true);
+
+    assert<
+        IsExact<
+            ReturnType<typeof TEST_ROUTE.getTypedState>,
+            {
+                id: boolean;
+            }
+        >
+    >(true);
+
+    expect(TEST_ROUTE.getPlainParams({ id: 1 })).toEqual({ id: "path plain" });
+    expect(TEST_ROUTE.getTypedParams({ id: "" })).toEqual({ id: "path typed" });
+    expect(TEST_ROUTE.getPlainSearchParams({ id: "" })).toEqual({ id: "search plain" });
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ id: "" }))).toEqual({ id: -1 });
+    expect(TEST_ROUTE.buildState({ id: new Date() })).toEqual({ id: "state" });
+    expect(TEST_ROUTE.getTypedState({ id: false })).toEqual({ id: false });
 });
