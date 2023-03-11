@@ -793,11 +793,11 @@ The built-in parser is exposed as `parser()`. It should only be used for creatin
 
 It accepts the following type hints:
 
--   `'string'` - the given value is not modified.
--   `'number'` - processed by `JSON`, may be extended in the future.
--   `'boolean'` - processed by `JSON`, may be extended in the future.
--   `'date'` - stringified as an ISO string, without wrapping quotes.
--   `'unknown'` - processed by `JSON`.
+-   `'string'` - the value is not transformed in any way.
+-   `'number'` - the value is processed by `JSON`.
+-   `'boolean'` - the value is processed by `JSON`.
+-   `'date'` - the value is transformed to an ISO string.
+-   `'unknown'` - the value is processed by `JSON`.
 
 When called without a hint, `'unknown'` is used.
 
