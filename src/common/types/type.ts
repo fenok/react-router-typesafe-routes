@@ -144,7 +144,6 @@ function ensureNoUndefined<TFn extends (...args: never[]) => unknown>(
 ): (...args: Parameters<TFn>) => Exclude<ReturnType<TFn>, undefined> {
     return (...args: Parameters<TFn>) => {
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const result = fn(...args);
 
             if (result === undefined) {
