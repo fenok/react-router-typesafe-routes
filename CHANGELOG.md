@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Introduce another kind of type objects, which allow to fine-tune parsing and serialization logic for every route part.
 -   Add helpers for creating these objects. They can safely be used instead of the old ones with one exception: state fields are no longer stringified, nor they are expected to be stringified. The helpers are:
-    -   `parser()` for accessing the default parser, most likely for building custom wrappers around `type()`;
+    -   `parser()` for accessing the built-in parser, most likely for building custom wrappers around `type()`;
     -   `type()` for creating any type;
     -   `string()`, `number()`, `boolean()`, and `date()` for creating types based on the corresponding primitives;
     -   `union()` for creating unions of `string`, `number`, and `boolean` values;
