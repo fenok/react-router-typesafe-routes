@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 -   Introduce another kind of type objects, which allow to fine-tune parsing and serialization logic for every route part.
--   Add helpers for creating these objects:
+-   Add helpers for creating these objects. They can safely be used instead of the old ones with one exception: state fields are no longer stringified, nor they are expected to be stringified.
     -   `type()` for creating any type;
     -   `string()`, `number()`, `boolean()`, and `date()` for creating types based on the corresponding primitives;
     -   `union()` for creating unions of `string`, `number`, and `boolean` values;
