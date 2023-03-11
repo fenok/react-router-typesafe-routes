@@ -805,7 +805,7 @@ When called without a hint, `'unknown'` is used.
 
 All type helpers are wrappers around `type()`. It's primarily exposed for integrating third-party validation libraries, but it can also be used directly, if needed.
 
-See [Typing - Type helpers](#type-helpers).
+See [Typing: Type helpers](#type-helpers).
 
 There are built-in helpers for common types:
 
