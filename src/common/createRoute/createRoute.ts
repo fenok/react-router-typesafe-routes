@@ -703,17 +703,20 @@ function isThrowableError(error: unknown): error is [unknown, ThrowableFallback]
     return Array.isArray(error) && error[1] === throwable;
 }
 
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 function isParamType<TOut, TIn>(type: ParamType<TOut, TIn> | Type<any, any>): type is ParamType<TOut, TIn> {
     return Boolean(type && typeof type === "object" && "getTypedParam" in type && "getPlainParam" in type);
 }
 
 function isSearchParamType<TOut, TIn>(
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     type: SearchParamType<TOut, TIn> | Type<any, any>
 ): type is SearchParamType<TOut, TIn> {
     return Boolean(type && typeof type === "object" && "getTypedSearchParam" in type && "getPlainSearchParam" in type);
 }
 
 function isStateParamType<TOut, TIn>(
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     type: StateParamType<TOut, TIn> | Type<any, any>
 ): type is StateParamType<TOut, TIn> {
     return Boolean(type && typeof type === "object" && "getTypedStateParam" in type && "getPlainStateParam" in type);
