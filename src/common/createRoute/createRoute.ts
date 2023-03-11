@@ -566,7 +566,7 @@ function getTypedParamsByTypes<
             } else {
                 if (keys[1].indexOf(key as unknown as TOptionalKey) === -1) {
                     throw new Error(
-                        `Expected param ${key} to exist in the given path. Most likely you're rendering the component at a wrong path. You can make it optional or explicitly specify its type as stringType('').`
+                        `Expected param ${key} to exist in the given path. Most likely you're rendering the component at a wrong path. You can make it optional or explicitly specify its type as string().`
                     );
                 }
             }
