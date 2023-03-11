@@ -408,6 +408,8 @@ import { Route, Routes } from "react-router-dom"; // Or -native
 </Routes>;
 ```
 
+> ❗As a reminder, you have to render an `<Outlet />` in the parent component.
+
 However, nothing stops you from specifying additional routes as you see fit.
 
 Note that we're using the `path` field here, which returns an absolute path pattern. React Router allows absolute child route paths if they match the parent path.
