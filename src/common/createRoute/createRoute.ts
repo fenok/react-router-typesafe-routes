@@ -232,16 +232,17 @@ const createRoute =
         TChildren = void,
         TPath extends string = string,
         /* eslint-disable @typescript-eslint/no-explicit-any */
-        TPathTypes extends
-            | Partial<Record<PathParam<SanitizedPath<TPath>>, Type<any>>>
-            | Partial<Record<PathParam<SanitizedPath<TPath>>, ParamType<unknown, never>>> = Record<never, never>,
-        TSearchTypes extends
-            | Partial<Record<string, Type<any, string | string[]>>>
-            | Partial<Record<string, SearchParamType<unknown, never>>> = Record<never, never>,
+        TPathTypes extends Partial<
+            Record<PathParam<SanitizedPath<TPath>>, ParamType<unknown, never> | Type<any>>
+        > = Record<never, never>,
+        TSearchTypes extends Partial<
+            Record<string, SearchParamType<unknown, never> | Type<any, string | string[]>>
+        > = Record<never, never>,
         THash extends string[] = never[],
-        TStateTypes extends
-            | Partial<Record<string, Type<any, any>>>
-            | Partial<Record<string, StateParamType<unknown, never>>> = Record<never, never>
+        TStateTypes extends Partial<Record<string, StateParamType<unknown, never> | Type<any, any>>> = Record<
+            never,
+            never
+        >
         /* eslint-enable */
     >(
         path: SanitizedPath<TPath>,
@@ -300,15 +301,14 @@ function decorateChildren<
 function getRoute<
     TPath extends string,
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    TPathTypes extends
-        | Partial<Record<PathParam<SanitizedPath<TPath>>, Type<any>>>
-        | Partial<Record<PathParam<SanitizedPath<TPath>>, ParamType<unknown, never>>> = Record<never, never>,
-    TSearchTypes extends
-        | Partial<Record<string, Type<any, string | string[]>>>
-        | Partial<Record<string, SearchParamType<unknown, never>>> = Record<never, never>,
-    TStateTypes extends
-        | Partial<Record<string, Type<any, any>>>
-        | Partial<Record<string, StateParamType<unknown, never>>> = Record<never, never>,
+    TPathTypes extends Partial<Record<PathParam<SanitizedPath<TPath>>, ParamType<unknown, never> | Type<any>>> = Record<
+        never,
+        never
+    >,
+    TSearchTypes extends Partial<
+        Record<string, SearchParamType<unknown, never> | Type<any, string | string[]>>
+    > = Record<never, never>,
+    TStateTypes extends Partial<Record<string, StateParamType<unknown, never> | Type<any, any>>> = Record<never, never>,
     THash extends string[] = never[]
     /* eslint-enable */
 >(
@@ -465,7 +465,7 @@ function getRoute<
 function getPlainParamsByTypes(
     keys: [string[], string[]],
     params: Record<string, unknown>,
-    types?: Partial<Record<string, Type<unknown>>> | Partial<Record<string, ParamType<unknown, never>>>
+    types?: Partial<Record<string, ParamType<unknown, never> | Type<unknown>>>
 ): Record<string, string> {
     const result: Record<string, string> = {};
 
@@ -489,9 +489,7 @@ function getPlainParamsByTypes(
 
 function getPlainSearchParamsByTypes(
     params: Record<string, unknown>,
-    types?:
-        | Partial<Record<string, Type<unknown, string | string[]>>>
-        | Partial<Record<string, SearchParamType<unknown, never>>>
+    types?: Partial<Record<string, SearchParamType<unknown, never> | Type<unknown, string | string[]>>>
 ): Record<string, string | string[]> {
     const result: Record<string, string | string[]> = {};
 
@@ -512,7 +510,7 @@ function getPlainSearchParamsByTypes(
 
 function getPlainStateParamsByTypes(
     params: Record<string, unknown>,
-    types?: Partial<Record<string, Type<unknown, unknown>>> | Partial<Record<string, StateParamType<unknown, never>>>
+    types?: Partial<Record<string, StateParamType<unknown, never> | Type<unknown, unknown>>>
 ): Record<string, unknown> {
     const result: Record<string, unknown> = {};
 
@@ -535,7 +533,7 @@ function getPlainStateParamsByTypes(
 function getTypedParamsByTypes<
     TKey extends string,
     TOptionalKey extends string,
-    TPathTypes extends Partial<Record<TKey, Type<unknown>>> | Partial<Record<TKey, ParamType<unknown, never>>>
+    TPathTypes extends Partial<Record<TKey, ParamType<unknown, never> | Type<unknown>>>
 >(
     keys: [TKey[], TOptionalKey[]],
     pathParams: Record<string, string | undefined>,
@@ -577,9 +575,7 @@ function getTypedParamsByTypes<
 }
 
 function getTypedSearchParamsByTypes<
-    TSearchTypes extends
-        | Partial<Record<string, Type<unknown, string | string[]>>>
-        | Partial<Record<string, SearchParamType<unknown, never>>>
+    TSearchTypes extends Partial<Record<string, SearchParamType<unknown, never> | Type<unknown, string | string[]>>>
 >(searchParams: URLSearchParams, types?: TSearchTypes): OutSearchParams<TSearchTypes> {
     const result: Record<string, unknown> = {};
 
@@ -619,9 +615,7 @@ function getTypedHashByValues(hash?: string, hashValues?: string[]): string | un
 }
 
 function getTypedStateByTypes<
-    TStateTypes extends
-        | Partial<Record<string, Type<unknown, unknown>>>
-        | Partial<Record<string, StateParamType<unknown, never>>>
+    TStateTypes extends Partial<Record<string, StateParamType<unknown, never> | Type<unknown, unknown>>>
 >(state: unknown, types?: TStateTypes): OutStateParams<TStateTypes> {
     const result: Record<string, unknown> = {};
 
