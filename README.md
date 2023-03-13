@@ -140,8 +140,8 @@ import { ROUTES } from "./path/to/routes";
 // Absolute link
 <Link
     // Path params: { id: number; lang?: string } -- optionality is governed by the path pattern.
-    // Search params: { infoVisible?: boolean }.
-    // State fields: { fromUserList?: boolean }.
+    // Search params: { infoVisible?: boolean } -- all params are optional.
+    // State fields: { fromUserList?: boolean } -- all fields are optional.
     // Hash: "info" | "comments" | undefined
     to={ROUTES.USER.DETAILS.buildPath({ id: 1, lang: "en" }, { infoVisible: false }, "comments")}
     state={ROUTES.USER.DETAILS.buildState({ fromUserList: true })}
@@ -211,7 +211,7 @@ Define unions and arrays:
 ```tsx
 import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
 
-const TEST_ROUTE = route("", {
+const ROUTE = route("", {
     searchParams: {
         // Unions can contain any string, number, and boolean values.
         tab: union("info", "comments").defined("info"),
@@ -267,7 +267,7 @@ const regExp = (regExp: RegExp) => (value: string) => {
     return value;
 };
 
-const TEST_ROUTE = route(":id", {
+const ROUTE = route(":id", {
     // string() only accepts validators that return strings.
     params: { id: string(regExp(/\d+/)) },
     // number() only accepts validators that return numbers.
@@ -282,7 +282,7 @@ import { route } from "react-router-typesafe-routes/dom"; // Or /native
 import { zod } from "react-router-typesafe-routes/zod";
 import { z } from "zod";
 
-const TEST_ROUTE = route(":id", {
+const ROUTE = route(":id", {
     // You should only describe a string, number, boolean, or date.
     // Otherwise, the value is stringified and parsed by JSON.
     params: { id: zod(z.string().uuid()).defined() },
@@ -298,7 +298,7 @@ import { route } from "react-router-typesafe-routes/dom"; // Or /native
 import { yup } from "react-router-typesafe-routes/yup";
 import { string } from "yup";
 
-const TEST_ROUTE = route(":id", {
+const ROUTE = route(":id", {
     // You should only describe a string, number, boolean, or date.
     // Otherwise, the value is stringified and parsed by JSON.
     params: { id: yup(string().uuid()).defined() },
@@ -326,7 +326,7 @@ function valid<T>(schema: Schema<T>): UniversalType<T> {
     return type((value: unknown) => schema.validate(value), parser(getTypeHint(schema)));
 }
 
-const TEST_ROUTE = route(":id", {
+const ROUTE = route(":id", {
     params: { id: valid(v.string().uuid()) },
 });
 ```
@@ -334,7 +334,7 @@ const TEST_ROUTE = route(":id", {
 Construct type objects manually to cover obscure use cases:
 
 ```tsx
-import { ParamType } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, ParamType } from "react-router-typesafe-routes/dom"; // Or /native
 
 // This type accepts 'string | number | boolean' and returns 'string'.
 // We only implement ParamType interface, so this type can only be used for path params.
@@ -353,7 +353,7 @@ const looseString: ParamType<string, string | number | boolean> = {
     },
 };
 
-const TEST_ROUTE = route(":id", {
+const ROUTE = route(":id", {
     params: { id: looseString },
 });
 ```
