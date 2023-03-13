@@ -18,7 +18,7 @@
     ],
     "rules": {
         "@typescript-eslint/no-unused-vars": "off",
-        "import/extensions": ["error", "always"],
+        "import/extensions": ["error", {"js": "always"}],
         "react-hooks/rules-of-hooks": "error",
         "react-hooks/exhaustive-deps": "error"
     }
