@@ -4,7 +4,7 @@ import {
     assertIsBoolean,
     assertIsValidDate,
     assertIsArray,
-} from "./helpers.deprecated";
+} from "./helpers.deprecated.js";
 
 export function stringValidator(value: unknown): string {
     assertIsString(value);

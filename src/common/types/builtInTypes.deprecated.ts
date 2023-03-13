@@ -6,7 +6,7 @@ import {
     assertIsBoolean,
     assertIsValidDate,
     assertIsNumber,
-} from "./helpers.deprecated";
+} from "./helpers.deprecated.js";
 
 /** @deprecated Use string instead */
 export const stringType = createType<string>({
