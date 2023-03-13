@@ -209,7 +209,7 @@ const hash = useTypedHash(ROUTES.USER.DETAILS);
 Define unions and arrays:
 
 ```tsx
-import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, union, number } from "react-router-typesafe-routes/dom"; // Or /native
 
 const ROUTE = route("", {
     searchParams: {
