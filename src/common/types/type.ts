@@ -52,6 +52,7 @@ function type<T>(validator: Validator<T>, parser: Parser<T> = defaultParser()): 
     const getTypedStateParam = (value: unknown) => validator(value);
 
     return Object.assign(
+        {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
         {
             getPlainParam,
             getTypedParam: ensureNoError(getTypedParam),
@@ -71,6 +72,7 @@ function type<T>(validator: Validator<T>, parser: Parser<T> = defaultParser()): 
                 const validFallback = !isDefined(fallback) ? undefined : validator(fallback);
 
                 return Object.assign(
+                    {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
                     {
                         getPlainParam,
                         getTypedParam: ensureNoUndefined(getTypedParam, validFallback),
@@ -104,6 +106,7 @@ const getUniversalArrayType =
         const getTypedStateParam = (values: unknown) => arrayValidator(values).map((item) => validator(item));
 
         return Object.assign(
+            {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
             {
                 getPlainSearchParam,
                 getTypedSearchParam: ensureNoError(getTypedSearchParam),
