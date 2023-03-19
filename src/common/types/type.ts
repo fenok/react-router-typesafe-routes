@@ -20,9 +20,9 @@ type AnyParamType<TOut, TIn = TOut> = ParamType<TOut, TIn> & SearchParamType<TOu
 type ArrayParamType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
 
 type UniversalType<TOut> = UniversalItemType<TOut | undefined> & {
-    default: (fallback: Exclude<TOut, undefined>) => UniversalItemType<Exclude<TOut, undefined>>;
+    default: (def: Exclude<TOut, undefined>) => UniversalItemType<Exclude<TOut, undefined>>;
     throw: () => UniversalItemType<TOut> & {
-        default: (fallback: Exclude<TOut, undefined>) => UniversalItemType<Exclude<TOut, undefined>>;
+        default: (def: Exclude<TOut, undefined>) => UniversalItemType<Exclude<TOut, undefined>>;
     };
 };
 
@@ -63,24 +63,24 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
             }),
         },
         {
-            default: (fallback: Exclude<T, undefined>) => {
-                const validFallback = validateFallback(validator, fallback);
+            default: (def: Exclude<T, undefined>) => {
+                const validDef = validateDef(validator, def);
 
                 return Object.assign(
                     {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
                     {
                         getPlainParam,
-                        getTypedParam: ensureNoUndefined(ensureNoError(getTypedParam), validFallback),
+                        getTypedParam: ensureNoUndefined(ensureNoError(getTypedParam), validDef),
                         getPlainSearchParam,
-                        getTypedSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validFallback),
+                        getTypedSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validDef),
 
                         getPlainStateParam,
-                        getTypedStateParam: ensureNoUndefined(ensureNoError(getTypedStateParam), validFallback),
+                        getTypedStateParam: ensureNoUndefined(ensureNoError(getTypedStateParam), validDef),
                     },
                     {
-                        array: getUniversalArrayType(ensureNoUndefined(ensureNoError(validator), validFallback), {
+                        array: getUniversalArrayType(ensureNoUndefined(ensureNoError(validator), validDef), {
                             stringify: parser.stringify,
-                            parse: ensureNoUndefined(ensureNoError(parser.parse), validFallback),
+                            parse: ensureNoUndefined(ensureNoError(parser.parse), validDef),
                         }),
                     }
                 );
@@ -104,24 +104,24 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                         }),
                     },
                     {
-                        default: (fallback: Exclude<T, undefined>) => {
-                            const validFallback = validateFallback(validator, fallback);
+                        default: (def: Exclude<T, undefined>) => {
+                            const validDef = validateDef(validator, def);
 
                             return Object.assign(
                                 {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
                                 {
                                     getPlainParam,
-                                    getTypedParam: ensureNoUndefined(getTypedParam, validFallback),
+                                    getTypedParam: ensureNoUndefined(getTypedParam, validDef),
                                     getPlainSearchParam,
-                                    getTypedSearchParam: ensureNoUndefined(getTypedSearchParam, validFallback),
+                                    getTypedSearchParam: ensureNoUndefined(getTypedSearchParam, validDef),
 
                                     getPlainStateParam,
-                                    getTypedStateParam: ensureNoUndefined(getTypedStateParam, validFallback),
+                                    getTypedStateParam: ensureNoUndefined(getTypedStateParam, validDef),
                                 },
                                 {
-                                    array: getUniversalArrayType(ensureNoUndefined(validator, validFallback), {
+                                    array: getUniversalArrayType(ensureNoUndefined(validator, validDef), {
                                         stringify: parser.stringify,
-                                        parse: ensureNoUndefined(parser.parse, validFallback),
+                                        parse: ensureNoUndefined(parser.parse, validDef),
                                     }),
                                 }
                             );
@@ -165,14 +165,14 @@ function ensureNoError<TFn extends (...args: never[]) => unknown, TFallback>(
 
 function ensureNoUndefined<TFn extends (...args: never[]) => unknown>(
     fn: TFn,
-    fallback: Exclude<ReturnType<TFn>, undefined>
+    def: Exclude<ReturnType<TFn>, undefined>
 ): (...args: Parameters<TFn>) => Exclude<ReturnType<TFn>, undefined> {
     return (...args: Parameters<TFn>) => {
         const result = fn(...args);
 
         if (result === undefined) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            return fallback;
+            return def;
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -180,8 +180,8 @@ function ensureNoUndefined<TFn extends (...args: never[]) => unknown>(
     };
 }
 
-function validateFallback<T>(validator: Validator<T>, fallback: unknown): Exclude<T, undefined> {
-    const validatedFallback = validator(fallback);
+function validateDef<T>(validator: Validator<T>, def: unknown): Exclude<T, undefined> {
+    const validatedFallback = validator(def);
 
     if (validatedFallback === undefined) {
         throw new Error("Default value validation resulted in 'undefined', which is forbidden");

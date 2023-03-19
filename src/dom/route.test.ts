@@ -675,7 +675,7 @@ it("doesn't throw if explicit path params are invalid", () => {
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2, id: undefined });
 });
 
-it("doesn't throw if explicit path params with fallback are invalid", () => {
+it("doesn't throw if explicit path params with defaults are invalid", () => {
     const GRANDCHILD = route("grand/:id", { params: { id: number().default(-1) } });
     const CHILD = route("child/:childId", { params: { childId: number().default(-1) } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
@@ -749,7 +749,7 @@ it("allows explicit star path param parsing", () => {
     expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "1" })).toEqual({ "*": 1 });
 });
 
-it("allows explicit star path param parsing (with fallback)", () => {
+it("allows explicit star path param parsing (with default value)", () => {
     const GRANDCHILD = route("grand/*", { params: { "*": number().default(42) } });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
@@ -946,7 +946,7 @@ it("throws if throwable state params are invalid", () => {
     expect(() => TEST_ROUTE.CHILD.GRANDCHILD.getTypedState(state)).toThrow();
 });
 
-it("throws upon specifying an invalid fallback", () => {
+it("throws upon specifying an invalid default value", () => {
     expect(() => route("", { searchParams: { id: date().default(new Date("foo")) } })).toThrow();
 });
 
