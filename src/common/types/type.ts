@@ -32,13 +32,6 @@ type UniversalItemType<TOut> = AnyParamType<TOut, Exclude<TOut, undefined>> & {
 
 type UniversalArrayType<TOut, TIn = TOut> = ArrayParamType<TOut[], TIn[]>;
 
-type UniversalTypeInit<TOut, TIn = TOut> = Required<IncompleteUniversalTypeInit<TOut, TIn>>;
-
-interface IncompleteUniversalTypeInit<TOut, TIn = TOut> {
-    validator: Validator<TOut>;
-    parser?: Parser<TIn>;
-}
-
 interface Validator<T, TPrev = unknown> {
     (value: TPrev): T;
 }
@@ -64,9 +57,9 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
             getTypedStateParam: ensureNoError(getTypedStateParam),
         },
         {
-            array: getUniversalArrayType({
-                parser: { stringify: parser.stringify, parse: ensureNoError(parser.parse) },
-                validator: ensureNoError(validator),
+            array: getUniversalArrayType(ensureNoError(validator), {
+                stringify: parser.stringify,
+                parse: ensureNoError(parser.parse),
             }),
         },
         {
@@ -85,12 +78,9 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                         getTypedStateParam: ensureNoUndefined(ensureNoError(getTypedStateParam), validFallback),
                     },
                     {
-                        array: getUniversalArrayType({
-                            parser: {
-                                stringify: parser.stringify,
-                                parse: ensureNoUndefined(ensureNoError(parser.parse), validFallback),
-                            },
-                            validator: ensureNoUndefined(ensureNoError(validator), validFallback),
+                        array: getUniversalArrayType(ensureNoUndefined(ensureNoError(validator), validFallback), {
+                            stringify: parser.stringify,
+                            parse: ensureNoUndefined(ensureNoError(parser.parse), validFallback),
                         }),
                     }
                 );
@@ -108,12 +98,9 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                         getTypedStateParam: getTypedStateParam,
                     },
                     {
-                        array: getUniversalArrayType({
-                            parser: {
-                                stringify: parser.stringify,
-                                parse: parser.parse,
-                            },
-                            validator: validator,
+                        array: getUniversalArrayType(validator, {
+                            stringify: parser.stringify,
+                            parse: parser.parse,
                         }),
                     },
                     {
@@ -132,12 +119,9 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                                     getTypedStateParam: ensureNoUndefined(getTypedStateParam, validFallback),
                                 },
                                 {
-                                    array: getUniversalArrayType({
-                                        parser: {
-                                            stringify: parser.stringify,
-                                            parse: ensureNoUndefined(parser.parse, validFallback),
-                                        },
-                                        validator: ensureNoUndefined(validator, validFallback),
+                                    array: getUniversalArrayType(ensureNoUndefined(validator, validFallback), {
+                                        stringify: parser.stringify,
+                                        parse: ensureNoUndefined(parser.parse, validFallback),
                                     }),
                                 }
                             );
@@ -150,7 +134,7 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
 }
 
 const getUniversalArrayType =
-    <TOut, TIn>({ parser, validator }: UniversalTypeInit<TOut, TIn>) =>
+    <TOut, TIn>(validator: Validator<TOut>, parser: Parser<TIn>) =>
     (): UniversalArrayType<TOut, TIn> => {
         const getPlainSearchParam = (values: TIn[]) => values.map((value) => parser.stringify(value));
         const getTypedSearchParam = (values: string[]) => values.map((item) => validator(parser.parse(item)));
