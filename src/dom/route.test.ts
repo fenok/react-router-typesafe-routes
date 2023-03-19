@@ -803,16 +803,10 @@ it("allows search params parsing", () => {
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedSearchParams>, Record<never, never>>>(true);
     assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>,
-            { foo: string | undefined; arr: number[] | undefined }
-        >
+        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>, { foo: string | undefined; arr: number[] }>
     >(true);
     assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>,
-            { foo: number; arr: number[] | undefined }
-        >
+        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>, { foo: number; arr: number[] }>
     >(true);
 
     const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo", untyped: "untyped" });
@@ -847,16 +841,10 @@ it("throws if throwable search params are invalid", () => {
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedSearchParams>, Record<never, never>>>(true);
     assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>,
-            { foo: string | undefined; arr: number[] | undefined }
-        >
+        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>, { foo: string | undefined; arr: number[] }>
     >(true);
     assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>,
-            { foo: number; arr: number[] | undefined }
-        >
+        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>, { foo: number; arr: number[] }>
     >(true);
 
     const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo", untyped: "untyped" });
@@ -1125,9 +1113,7 @@ it("properly parses arrays in search params", () => {
         searchParams: {
             a: number().array(),
             b: number().throw().array(),
-            c: number().array().default([]),
-            d: number().throw().array().default([]),
-            e: number().default(-1).array().default([]),
+            e: number().default(-1).array(),
         },
     });
 
@@ -1135,10 +1121,8 @@ it("properly parses arrays in search params", () => {
         IsExact<
             ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
             {
-                a: (number | undefined)[] | undefined;
-                b: number[] | undefined;
-                c: (number | undefined)[];
-                d: number[];
+                a: (number | undefined)[];
+                b: number[];
                 e: number[];
             }
         >
@@ -1150,8 +1134,6 @@ it("properly parses arrays in search params", () => {
             {
                 a?: number[];
                 b?: number[];
-                c?: number[];
-                d?: number[];
                 e?: number[];
             }
         >
@@ -1161,19 +1143,20 @@ it("properly parses arrays in search params", () => {
 
     const testValue = createSearchParams({
         a: testArray,
-        b: testArray,
-        c: testArray,
-        d: testArray,
         e: testArray,
+    });
+
+    const throwingTestValue = createSearchParams({
+        b: testArray,
     });
 
     expect(TEST_ROUTE.getTypedSearchParams(testValue)).toEqual({
         a: [1, undefined],
-        b: undefined,
-        c: [1, undefined],
-        d: [],
+        b: [],
         e: [1, -1],
     });
+
+    expect(() => TEST_ROUTE.getTypedSearchParams(throwingTestValue)).toThrow();
 });
 
 it("ensures that required path params stay required if a custom type allows undefined as an input", () => {
@@ -1209,7 +1192,7 @@ it("ensures that defined modifier is applied if a custom type allows undefined a
     const TEST_ROUTE = route("", {
         searchParams: {
             a: type(validateOptionalNumber),
-            b: type(validateOptionalNumber).throw(),
+            b: type(validateOptionalNumber).throw().default(-1),
             c: type(validateOptionalNumber).default(-1),
         },
     });
@@ -1254,9 +1237,7 @@ it("ensures that arrays don't accept undefined items if a custom type allows und
     const TEST_ROUTE = route("", {
         searchParams: {
             a: type(validateOptionalNumber).array(),
-            b: type(validateOptionalNumber).array().default([]),
-            c: type(validateOptionalNumber).throw().array(),
-            d: type(validateOptionalNumber).throw().array().default([]),
+            c: type(validateOptionalNumber).default(-1).array(),
         },
     });
 
@@ -1264,10 +1245,8 @@ it("ensures that arrays don't accept undefined items if a custom type allows und
         IsExact<
             ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
             {
-                a: (number | undefined)[] | undefined;
-                b: (number | undefined)[];
-                c: number[] | undefined;
-                d: number[];
+                a: (number | undefined)[];
+                c: number[];
             }
         >
     >(true);
@@ -1277,9 +1256,7 @@ it("ensures that arrays don't accept undefined items if a custom type allows und
             Parameters<typeof TEST_ROUTE.getPlainSearchParams>[0],
             {
                 a?: number[];
-                b?: number[];
                 c?: number[];
-                d?: number[];
             }
         >
     >(true);

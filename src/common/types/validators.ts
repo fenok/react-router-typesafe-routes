@@ -29,11 +29,3 @@ export function dateValidator(value: unknown): Date {
 
     return value;
 }
-
-export function arrayValidator(value: unknown): unknown[] {
-    if (!Array.isArray(value)) {
-        throw new Error(`Expected ${String(value)} to be an array`);
-    }
-
-    return value;
-}
