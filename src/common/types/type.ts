@@ -91,7 +91,6 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                         getTypedParam,
                         getPlainSearchParam,
                         getTypedSearchParam,
-
                         getPlainStateParam,
                         getTypedStateParam,
                     },
