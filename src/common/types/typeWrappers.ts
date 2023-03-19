@@ -97,6 +97,14 @@ function union<T extends readonly (string | number | boolean)[]>(value: T | T[nu
     );
 }
 
+function defined<T>(value: T | undefined): T {
+    if (typeof value === "undefined") {
+        throw new Error("Unexpected undefined");
+    }
+
+    return value;
+}
+
 function stringValidator(value: unknown): string | undefined {
     if (typeof value !== "undefined" && typeof value !== "string") {
         throw new Error(`${String(value)} is not assignable to 'string | undefined'`);
@@ -137,4 +145,4 @@ function dateValidator(value: unknown): Date | undefined {
     return value;
 }
 
-export { string, number, boolean, date, union };
+export { string, number, boolean, date, union, defined };
