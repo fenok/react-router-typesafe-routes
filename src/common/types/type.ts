@@ -71,7 +71,6 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                         getTypedParam: ensureNoUndefined(ensureNoError(getTypedParam), validDef),
                         getPlainSearchParam,
                         getTypedSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validDef),
-
                         getPlainStateParam,
                         getTypedStateParam: ensureNoUndefined(ensureNoError(getTypedStateParam), validDef),
                     },
@@ -108,7 +107,6 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                                     getTypedParam: ensureNoUndefined(getTypedParam, validDef),
                                     getPlainSearchParam,
                                     getTypedSearchParam: ensureNoUndefined(getTypedSearchParam, validDef),
-
                                     getPlainStateParam,
                                     getTypedStateParam: ensureNoUndefined(getTypedStateParam, validDef),
                                 },
