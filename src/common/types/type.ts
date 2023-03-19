@@ -55,7 +55,7 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
             getTypedStateParam: ensureNoError(getTypedStateParam),
         },
         {
-            array: getUniversalArrayType(ensureNoError(validator), {
+            array: getArrayParamTypeBuilder(ensureNoError(validator), {
                 stringify: parser.stringify,
                 parse: ensureNoError(parser.parse),
             }),
@@ -76,7 +76,7 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                         getTypedStateParam: ensureNoUndefined(ensureNoError(getTypedStateParam), validDef),
                     },
                     {
-                        array: getUniversalArrayType(ensureNoUndefined(ensureNoError(validator), validDef), {
+                        array: getArrayParamTypeBuilder(ensureNoUndefined(ensureNoError(validator), validDef), {
                             stringify: parser.stringify,
                             parse: ensureNoUndefined(ensureNoError(parser.parse), validDef),
                         }),
@@ -88,18 +88,15 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                     {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
                     {
                         getPlainParam,
-                        getTypedParam: getTypedParam,
+                        getTypedParam,
                         getPlainSearchParam,
-                        getTypedSearchParam: getTypedSearchParam,
+                        getTypedSearchParam,
 
                         getPlainStateParam,
-                        getTypedStateParam: getTypedStateParam,
+                        getTypedStateParam,
                     },
                     {
-                        array: getUniversalArrayType(validator, {
-                            stringify: parser.stringify,
-                            parse: parser.parse,
-                        }),
+                        array: getArrayParamTypeBuilder(validator, parser),
                     },
                     {
                         default: (def: Exclude<T, undefined>) => {
@@ -117,7 +114,7 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                                     getTypedStateParam: ensureNoUndefined(getTypedStateParam, validDef),
                                 },
                                 {
-                                    array: getUniversalArrayType(ensureNoUndefined(validator, validDef), {
+                                    array: getArrayParamTypeBuilder(ensureNoUndefined(validator, validDef), {
                                         stringify: parser.stringify,
                                         parse: ensureNoUndefined(parser.parse, validDef),
                                     }),
@@ -131,7 +128,7 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
     );
 }
 
-const getUniversalArrayType =
+const getArrayParamTypeBuilder =
     <TOut, TIn>(validator: Validator<TOut>, parser: Parser<TIn>) =>
     (): ArrayParamType<TOut[], TIn[]> => {
         const getPlainSearchParam = (values: TIn[]) => values.map((value) => parser.stringify(value));
