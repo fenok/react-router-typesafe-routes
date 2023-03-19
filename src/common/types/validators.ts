@@ -7,7 +7,7 @@ export function stringValidator(value: unknown): string | undefined {
 }
 
 export function numberValidator(value: unknown): number | undefined {
-    if (typeof value !== "undefined" && typeof value !== "number") {
+    if (typeof value !== "undefined" && (typeof value !== "number" || Number.isNaN(value))) {
         throw new Error(`Expected ${String(value)} to be a number`);
     }
 
@@ -24,7 +24,7 @@ export function booleanValidator(value: unknown): boolean | undefined {
 
 export function dateValidator(value: unknown): Date | undefined {
     if (typeof value !== "undefined" && (!(value instanceof Date) || Number.isNaN(value.getTime()))) {
-        throw new Error(`Expected ${String(value)} to be a valid date`);
+        throw new Error(`Expected ${String(value)} to be a Date`);
     }
 
     return value;
