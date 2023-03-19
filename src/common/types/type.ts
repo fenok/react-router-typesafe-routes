@@ -19,18 +19,16 @@ type AnyParamType<TOut, TIn = TOut> = ParamType<TOut, TIn> & SearchParamType<TOu
 
 type ArrayParamType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
 
-type UniversalType<TOut> = UniversalItemType<TOut | undefined> & {
-    default: (def: Exclude<TOut, undefined>) => UniversalItemType<Exclude<TOut, undefined>>;
-    throw: () => UniversalItemType<TOut> & {
-        default: (def: Exclude<TOut, undefined>) => UniversalItemType<Exclude<TOut, undefined>>;
+type UniversalType<TOut> = ConfiguredType<TOut | undefined> & {
+    default: (def: Exclude<TOut, undefined>) => ConfiguredType<Exclude<TOut, undefined>>;
+    throw: () => ConfiguredType<TOut> & {
+        default: (def: Exclude<TOut, undefined>) => ConfiguredType<Exclude<TOut, undefined>>;
     };
 };
 
-type UniversalItemType<TOut> = AnyParamType<TOut, Exclude<TOut, undefined>> & {
-    array: () => UniversalArrayType<TOut, Exclude<TOut, undefined>>;
+type ConfiguredType<TOut> = AnyParamType<TOut, Exclude<TOut, undefined>> & {
+    array: () => ArrayParamType<TOut[], Exclude<TOut, undefined>[]>;
 };
-
-type UniversalArrayType<TOut, TIn = TOut> = ArrayParamType<TOut[], TIn[]>;
 
 interface Validator<T, TPrev = unknown> {
     (value: TPrev): T;
@@ -135,7 +133,7 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
 
 const getUniversalArrayType =
     <TOut, TIn>(validator: Validator<TOut>, parser: Parser<TIn>) =>
-    (): UniversalArrayType<TOut, TIn> => {
+    (): ArrayParamType<TOut[], TIn[]> => {
         const getPlainSearchParam = (values: TIn[]) => values.map((value) => parser.stringify(value));
         const getTypedSearchParam = (values: string[]) => values.map((item) => validator(parser.parse(item)));
         const getPlainStateParam = (values: TIn[]) => values;
