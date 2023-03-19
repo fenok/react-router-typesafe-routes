@@ -142,15 +142,12 @@ const getUniversalArrayType =
         const getTypedStateParam = (values: unknown) =>
             (Array.isArray(values) ? values : []).map((item) => validator(item));
 
-        return Object.assign(
-            {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
-            {
-                getPlainSearchParam,
-                getTypedSearchParam: getTypedSearchParam,
-                getPlainStateParam,
-                getTypedStateParam: getTypedStateParam,
-            }
-        );
+        return {
+            getPlainSearchParam,
+            getTypedSearchParam,
+            getPlainStateParam,
+            getTypedStateParam,
+        };
     };
 
 function ensureNoError<TFn extends (...args: never[]) => unknown, TFallback>(
