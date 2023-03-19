@@ -203,7 +203,7 @@ function validateFallback<T>(validator: Validator<T>, fallback: unknown): Exclud
     const validatedFallback = validator(fallback);
 
     if (validatedFallback === undefined) {
-        throw new Error("Default value validation resulted in undefined, which is forbidden");
+        throw new Error("Default value validation resulted in 'undefined', which is forbidden");
     }
 
     return validatedFallback as Exclude<T, undefined>;

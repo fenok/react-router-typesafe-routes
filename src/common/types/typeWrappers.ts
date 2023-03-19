@@ -60,7 +60,9 @@ function union<T extends readonly (string | number | boolean)[]>(value: T | T[nu
                 !(typeof value === "string" || typeof value === "number" || typeof value === "boolean") ||
                 !values.includes(value)
             ) {
-                throw new Error(`No matching value for ${String(value)}`);
+                throw new Error(
+                    `${String(value)} is not assignable to '${values.map((item) => JSON.stringify(item)).join(" | ")}'`
+                );
             }
 
             return value;
@@ -91,7 +93,9 @@ function union<T extends readonly (string | number | boolean)[]>(value: T | T[nu
                     }
                 }
 
-                throw new Error(`No matching value for ${String(value)}`);
+                throw new Error(
+                    `${String(value)} is not assignable to '${values.map((item) => JSON.stringify(item)).join(" | ")}'`
+                );
             },
         }
     );
