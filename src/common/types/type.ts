@@ -1,4 +1,3 @@
-import { stringValidator } from "./validators.js";
 import { parser as defaultParser, Parser } from "./parser.js";
 
 interface ParamType<TOut, TIn = TOut> {
@@ -44,11 +43,13 @@ interface Validator<T, TPrev = unknown> {
     (value: TPrev): T;
 }
 
-function type<T>(validator: Validator<T>, parser: Parser<T> = defaultParser()): UniversalType<T> {
-    const getPlainParam = (value: T) => parser.stringify(value);
-    const getTypedParam = (value: string | undefined) => validator(parser.parse(stringValidator(value)));
-    const getPlainSearchParam = (value: T) => parser.stringify(value);
-    const getTypedSearchParam = (value: string[]) => validator(parser.parse(stringValidator(value[0])));
+function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> = defaultParser()): UniversalType<T> {
+    const getPlainParam = (value: Exclude<T, undefined>) => parser.stringify(value);
+    const getTypedParam = (value: string | undefined) =>
+        validator(typeof value === "undefined" ? value : parser.parse(value));
+    const getPlainSearchParam = (value: Exclude<T, undefined>) => parser.stringify(value);
+    const getTypedSearchParam = (value: string[]) =>
+        validator(typeof value[0] === "undefined" ? value[0] : parser.parse(value[0]));
     const getPlainStateParam = (value: T) => value;
     const getTypedStateParam = (value: unknown) => validator(value);
 

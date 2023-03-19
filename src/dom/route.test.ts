@@ -14,6 +14,7 @@ import {
     StateParamType,
     numberType,
     throwable,
+    defined,
 } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 import { zod } from "../zod/index.js";
@@ -691,8 +692,8 @@ it("doesn't throw if explicit path params with fallback are invalid", () => {
 });
 
 it("throws if explicit throwable path params are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number().throw() } });
-    const CHILD = route("child/:childId", { params: { childId: number().throw() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand/:id", { params: { id: number(defined).throw() } });
+    const CHILD = route("child/:childId", { params: { childId: number(defined).throw() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
@@ -795,7 +796,7 @@ it("allows search params parsing", () => {
     const CHILD = route(
         "child",
         {
-            searchParams: { foo: string(), arr: number().throw().array() },
+            searchParams: { foo: string(), arr: number(defined).throw().array() },
         },
         { GRANDCHILD }
     );
@@ -829,11 +830,11 @@ it("allows search params parsing", () => {
 });
 
 it("throws if throwable search params are invalid", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number().throw() } });
+    const GRANDCHILD = route("grand", { searchParams: { foo: number(defined).throw() } });
     const CHILD = route(
         "child",
         {
-            searchParams: { foo: string(), arr: number().throw().array() },
+            searchParams: { foo: string(), arr: number(defined).throw().array() },
         },
         { GRANDCHILD }
     );
@@ -924,7 +925,7 @@ it("allows state params parsing", () => {
 });
 
 it("throws if throwable state params are invalid", () => {
-    const GRANDCHILD = route("grand", { state: { bar: number().throw() } });
+    const GRANDCHILD = route("grand", { state: { bar: number(defined).throw() } });
     const CHILD = route("child", { state: { foo: string() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -1112,7 +1113,7 @@ it("properly parses arrays in search params", () => {
     const TEST_ROUTE = route("", {
         searchParams: {
             a: number().array(),
-            b: number().throw().array(),
+            b: number(defined).throw().array(),
             e: number().default(-1).array(),
         },
     });
@@ -1224,7 +1225,10 @@ it("ensures that defined modifier is applied if a custom type allows undefined a
         c: -1,
     });
 
-    expect(() => TEST_ROUTE.getTypedSearchParams(createSearchParams({}))).toThrow();
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({}))).toEqual({
+        b: -1,
+        c: -1,
+    });
 });
 
 it("ensures that arrays don't accept undefined items if a custom type allows undefined as an input", () => {
@@ -1504,7 +1508,7 @@ it("allows to define different types for different route parts", () => {
 it("allows to mix types with deprecated ones", () => {
     const TEST_ROUTE = route("", {
         searchParams: {
-            a: number().throw(),
+            a: number(defined).throw(),
             b: numberType(throwable),
         },
     });
