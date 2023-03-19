@@ -950,6 +950,12 @@ it("throws upon specifying an invalid default value", () => {
     expect(() => route("", { searchParams: { id: date().default(new Date("foo")) } })).toThrow();
 });
 
+it("throws upon specifying a default value that validates to undefined", () => {
+    expect(() =>
+        route("", { searchParams: { id: type((value: unknown): string | undefined => undefined).default("test") } })
+    ).toThrow();
+});
+
 it("allows types composition", () => {
     const PATH = route(":id", { params: { id: number() } });
     const SEARCH = route("", { searchParams: { page: number() } });
