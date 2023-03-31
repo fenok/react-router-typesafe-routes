@@ -6,11 +6,13 @@ Comprehensive and extensible type-safe routes for React Router v6 with first-cla
 
 The library provides type safety for all route params (path params, search params, state, and hash) on building and parsing URL parts and state objects. There are no unsafe type casts whatsoever.
 
-If you want, you can use a validation library. There is first-party support for [Zod](https://github.com/colinhacks/zod) and [Yup](https://github.com/jquense/yup), and other libraries are easily integratable.
+If you want, you can use a validation library. There is first-party support for [Zod](https://github.com/colinhacks/zod) and [Yup](https://github.com/jquense/yup), and other libraries are easily integratable. If not, you can use other built-in types and fine-tune their validation instead.
 
-Param validation is done as part of the param parsing process, and failed param parsing can be fine-tuned to result in returning `undefined` or a fallback value, or throwing an error - and these adjustments reflect in types, too!
+In built-in types, parsing and validation errors are caught and replaced with `undefined`. You can also return a default value or throw an error in case of an absent or invalid param. All these adjustments reflect in types, too!
 
-Parsing, serializing, and typing are fully customizable. Multiple identical keys in search strings are also supported. By default, wrapping quotes in serialized params are omitted when it's safe to do so, which leads to cleaner URLs.
+Multiple identical keys in search strings are also supported. By default, wrapping quotes in serialized params are omitted when it's safe to do so, which leads to cleaner URLs.
+
+If you need more control, you can build completely custom types, which means that parsing, serializing, and typing are fully customizable.
 
 The library doesn't restrict or alter React Router API in any way, including nested routes and relative links. It's also gradually adoptable.
 
@@ -41,25 +43,25 @@ The library is distributed as an ES module written in ES6.
 -   To make params merging possible, the state has to be an object, and the hash has to be one of the known strings (or any string).
 -   Since React Router only considers pathname on route matching, search parameters, state fields, and hash are considered optional upon URL or state building.
 -   For simplicity, the hash is always considered optional upon URL parsing.
--   For convenience, absent and invalid params are considered virtually the same during parsing.
+-   For convenience, absent and invalid params are considered virtually the same during parsing and validation in built-in types (but you have full control with custom types).
 -   To prevent overlapping with route API, child routes have to start with an uppercase letter (this only affects code and not the resulting URL).
 -   To emphasize that route relativity is governed by the library, leading slashes in path patterns are forbidden. Trailing slashes are also forbidden due to being purely cosmetic.
 
 ## How is it different from existing solutions?
 
-| Feature                                                               | react-router-typesafe-routes | [typesafe-routes](https://github.com/kruschid/typesafe-routes) | [typed-react-router](https://github.com/bram209/typed-react-router) |
-| --------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Type-safe path params                                                 | ✅                           | ✅                                                             | ✅                                                                  |
-| Type-safe search params                                               | ✅                           | ✅                                                             | 🚫                                                                  |
-| Multiple identical keys in search params                              | ✅                           | 🚫️                                                            | 🚫                                                                  |
-| Type-safe state                                                       | ✅                           | 🚫                                                             | 🚫                                                                  |
-| Type-safe hash                                                        | ✅                           | 🚫                                                             | 🚫                                                                  |
-| Customizable serialization                                            | ✅                           | ✅                                                             | 🚫                                                                  |
-| Customizable parsing / validation                                     | ✅                           | ✅                                                             | 🚫                                                                  |
-| Built-in types allow to customize validation and parsing error result | ✅                           | 🚫                                                             | 🚫                                                                  |
-| Nested routes                                                         | ✅                           | ✅                                                             | ✅                                                                  |
-| Relative links                                                        | ✅                           | ✅                                                             | 🚫                                                                  |
-| Tailored specifically for React Router v6                             | ✅                           | 🚫                                                             | ✅                                                                  |
+| Feature                                                                          | react-router-typesafe-routes | [typesafe-routes](https://github.com/kruschid/typesafe-routes) | [typed-react-router](https://github.com/bram209/typed-react-router) |
+| -------------------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Type-safe path params                                                            | ✅                           | ✅                                                             | ✅                                                                  |
+| Type-safe search params                                                          | ✅                           | ✅                                                             | 🚫                                                                  |
+| Multiple identical keys in search params                                         | ✅                           | 🚫️                                                            | 🚫                                                                  |
+| Type-safe state                                                                  | ✅                           | 🚫                                                             | 🚫                                                                  |
+| Type-safe hash                                                                   | ✅                           | 🚫                                                             | 🚫                                                                  |
+| Customizable serialization                                                       | ✅                           | ✅                                                             | 🚫                                                                  |
+| Customizable parsing / validation                                                | ✅                           | ✅                                                             | 🚫                                                                  |
+| Built-in types allow to customize validation and absent / invalid param handling | ✅                           | 🚫                                                             | 🚫                                                                  |
+| Nested routes                                                                    | ✅                           | ✅                                                             | ✅                                                                  |
+| Relative links                                                                   | ✅                           | ✅                                                             | 🚫                                                                  |
+| Tailored specifically for React Router v6                                        | ✅                           | 🚫                                                             | ✅                                                                  |
 
 Other libraries that I was able to find are outdated and not really suitable for React Router v6:
 
@@ -85,14 +87,15 @@ const ROUTES = {
         // By default, path params are inferred from the pattern.
         "user/:id",
         {
-            // We can override some or all path params.
-            // We override id and specify that a parsing error will be thrown.
+            // We can override some or all path params. Here, we override 'id'.
+            // We specify that an error will be thrown in case of an absent/invalid param.
+            // WARNING: Usually you shouldn't throw.
             params: { id: number().defined() },
             // These are search params.
-            // We specify a fallback to use in case of a parsing error.
-            searchParams: { infoVisible: boolean().defined(false) },
+            // We specify a default value to use in case of an absent/invalid param.
+            searchParams: { infoVisible: boolean().default(false) },
             // These are state fields, which are similar to search params.
-            // We use default parsing behavior, so a parsing error will result in undefined.
+            // By default, 'undefined' is returned in case of an absent/invalid param.
             state: { fromUserList: boolean() },
             // These are allowed hash values.
             // We could also use hashValues() to indicate that any hash is allowed.
@@ -100,6 +103,7 @@ const ROUTES = {
         },
         // This is a child route, which inherits all parent params.
         // Note how it has to start with an uppercase letter.
+        // As a reminder, its path params are inferred from the pattern.
         { DETAILS: route("details/:lang?") }
     ),
 };
@@ -168,7 +172,7 @@ import { useTypedParams } from "react-router-typesafe-routes/dom"; // Or /native
 import { ROUTES } from "./path/to/routes";
 
 // The type here is { id: number; lang?: string }.
-// Note how id can't be undefined because a parsing error will be thrown.
+// Note how id can't be undefined because we throw an error in case of an absent/invalid param.
 const { id, lang } = useTypedParams(ROUTES.USER.DETAILS);
 ```
 
@@ -179,7 +183,7 @@ import { useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /
 import { ROUTES } from "./path/to/routes";
 
 // The type here is { infoVisible: boolean }.
-// Note how infoVisible can't be undefined because a fallback will be used upon a parsing error.
+// Note how infoVisible can't be undefined because a default value is used in case of an absent/invalid param.
 const [{ infoVisible }, setTypedSearchParams] = useTypedSearchParams(ROUTES.USER.DETAILS);
 ```
 
@@ -214,11 +218,12 @@ import { route, union, number } from "react-router-typesafe-routes/dom"; // Or /
 const ROUTE = route("", {
     searchParams: {
         // Unions can contain any string, number, and boolean values.
-        tab: union("info", "comments").defined("info"),
+        tab: union("info", "comments").default("info"),
         // Every built-in type can be used to create an array type.
         // Arrays can only be used for search params and state fields.
-        // As expected, we can make items and/or the whole array .defined().
-        selectedIds: number().defined().array().defined(),
+        // As expected, we can use '.default' and '.defined' for items.
+        // If items are '.defined', an absent/invalid param will fail the whole array.
+        selectedIds: number().default(-1).array(),
     },
 });
 ```
@@ -285,7 +290,7 @@ import { z } from "zod";
 const ROUTE = route(":id", {
     // You should only describe a string, number, boolean, or date.
     // Otherwise, the value is stringified and parsed by JSON.
-    params: { id: zod(z.string().uuid()).defined() },
+    params: { id: zod(z.string().uuid()) },
 });
 ```
 
@@ -301,11 +306,9 @@ import { string } from "yup";
 const ROUTE = route(":id", {
     // You should only describe a string, number, boolean, or date.
     // Otherwise, the value is stringified and parsed by JSON.
-    params: { id: yup(string().uuid()).defined() },
+    params: { id: yup(string().uuid()) },
 });
 ```
-
-> ❗Yup Schemas are optional by default, but the `type()` helper, which `yup()` is based on, ensures that a `.defined()` type won't return `undefined` as a parsing result. It means that there is no need to explicitly call `.required()` on a Yup Schema.
 
 Integrate third-party validation library:
 
@@ -343,7 +346,6 @@ const looseString: ParamType<string, string | number | boolean> = {
         return String(value);
     },
     getTypedParam(value) {
-        // We don't have helpers for configuring parsing error result.
         // We throw the error here, but we could also return undefined or something else.
         if (typeof value !== "string") {
             throw new Error("Expected string");
