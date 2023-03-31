@@ -1188,7 +1188,7 @@ it("ensures that required path params stay required if a custom type allows unde
     >(true);
 });
 
-it("ensures that defined modifier is applied if a custom type allows undefined as an input", () => {
+it("ensures that default/defined modifiers are applied if a custom type allows undefined as an input", () => {
     const validateOptionalNumber = (value: unknown) => {
         if (value === undefined) return undefined;
         if (typeof value === "number") return value;
