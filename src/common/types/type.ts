@@ -21,9 +21,7 @@ type ArrayParamType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamT
 
 type UniversalType<TOut> = ConfiguredType<TOut | undefined> & {
     default: (def: Exclude<TOut, undefined>) => ConfiguredType<Exclude<TOut, undefined>>;
-    throw: () => ConfiguredType<TOut> & {
-        default: (def: Exclude<TOut, undefined>) => ConfiguredType<Exclude<TOut, undefined>>;
-    };
+    defined: () => ConfiguredType<Exclude<TOut, undefined>>;
 };
 
 type ConfiguredType<TOut> = AnyParamType<TOut, Exclude<TOut, undefined>> & {
@@ -82,42 +80,22 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                     }
                 );
             },
-            throw: () => {
+            defined: () => {
                 return Object.assign(
                     {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
                     {
                         getPlainParam,
-                        getTypedParam,
+                        getTypedParam: ensureNoUndefined(getTypedParam),
                         getPlainSearchParam,
-                        getTypedSearchParam,
+                        getTypedSearchParam: ensureNoUndefined(getTypedSearchParam),
                         getPlainStateParam,
-                        getTypedStateParam,
+                        getTypedStateParam: ensureNoUndefined(getTypedStateParam),
                     },
                     {
-                        array: getArrayParamTypeBuilder(validator, parser),
-                    },
-                    {
-                        default: (def: Exclude<T, undefined>) => {
-                            const validDef = validateDef(validator, def);
-
-                            return Object.assign(
-                                {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
-                                {
-                                    getPlainParam,
-                                    getTypedParam: ensureNoUndefined(getTypedParam, validDef),
-                                    getPlainSearchParam,
-                                    getTypedSearchParam: ensureNoUndefined(getTypedSearchParam, validDef),
-                                    getPlainStateParam,
-                                    getTypedStateParam: ensureNoUndefined(getTypedStateParam, validDef),
-                                },
-                                {
-                                    array: getArrayParamTypeBuilder(ensureNoUndefined(validator, validDef), {
-                                        stringify: parser.stringify,
-                                        parse: ensureNoUndefined(parser.parse, validDef),
-                                    }),
-                                }
-                            );
-                        },
+                        array: getArrayParamTypeBuilder(ensureNoUndefined(validator), {
+                            stringify: parser.stringify,
+                            parse: ensureNoUndefined(parser.parse),
+                        }),
                     }
                 );
             },
@@ -157,12 +135,16 @@ function ensureNoError<TFn extends (...args: never[]) => unknown, TFallback>(
 
 function ensureNoUndefined<TFn extends (...args: never[]) => unknown>(
     fn: TFn,
-    def: Exclude<ReturnType<TFn>, undefined>
+    def?: Exclude<ReturnType<TFn>, undefined>
 ): (...args: Parameters<TFn>) => Exclude<ReturnType<TFn>, undefined> {
     return (...args: Parameters<TFn>) => {
         const result = fn(...args);
 
         if (result === undefined) {
+            if (def === undefined) {
+                throw new Error("Unexpected undefined");
+            }
+
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return def;
         }

@@ -2,51 +2,42 @@ import { type, UniversalType, Validator } from "./type.js";
 import { parser } from "./parser.js";
 
 function string(): UniversalType<string | undefined>;
-function string<T extends string | undefined>(validator: Validator<T, string | undefined>): UniversalType<T>;
-function string<T extends string | undefined = string | undefined>(
-    validator?: Validator<T, string | undefined>
-): UniversalType<T> {
+function string<T extends string>(validator: Validator<T, string>): UniversalType<T | undefined>;
+function string<T extends string = string>(validator = identity as Validator<T, string>): UniversalType<T | undefined> {
     return type(
-        validator ? (value: unknown) => validator(stringValidator(value)) : (stringValidator as Validator<T>),
+        (value: unknown) => (value === undefined ? value : validator(stringValidator(value))),
         parser("string")
     );
 }
 
 function number(): UniversalType<number | undefined>;
-function number<T extends number | undefined>(validator: Validator<T, number | undefined>): UniversalType<T>;
-function number<T extends number | undefined = number | undefined>(
-    validator?: Validator<T, number | undefined>
-): UniversalType<T> {
+function number<T extends number>(validator: Validator<T, number>): UniversalType<T | undefined>;
+function number<T extends number = number>(validator = identity as Validator<T, number>): UniversalType<T | undefined> {
     return type(
-        validator ? (value: unknown) => validator(numberValidator(value)) : (numberValidator as Validator<T>),
+        (value: unknown) => (value === undefined ? value : validator(numberValidator(value))),
         parser("number")
     );
 }
 
 function boolean(): UniversalType<boolean | undefined>;
-function boolean<T extends boolean | undefined>(validator: Validator<T, boolean | undefined>): UniversalType<T>;
-function boolean<T extends boolean | undefined = boolean | undefined>(
-    validator?: Validator<T, boolean | undefined>
-): UniversalType<T> {
+function boolean<T extends boolean>(validator: Validator<T, boolean>): UniversalType<T | undefined>;
+function boolean<T extends boolean = boolean>(
+    validator = identity as Validator<T, boolean>
+): UniversalType<T | undefined> {
     return type(
-        validator ? (value: unknown) => validator(booleanValidator(value)) : (booleanValidator as Validator<T>),
+        (value: unknown) => (value === undefined ? value : validator(booleanValidator(value))),
         parser("boolean")
     );
 }
 
 function date(): UniversalType<Date | undefined>;
-function date<T extends Date | undefined>(validator: Validator<T, Date | undefined>): UniversalType<T>;
-function date<T extends Date | undefined = Date | undefined>(
-    validator?: Validator<T, Date | undefined>
-): UniversalType<T> {
-    return type(
-        validator ? (value: unknown) => validator(dateValidator(value)) : (dateValidator as Validator<T>),
-        parser("date")
-    );
+function date<T extends Date>(validator: Validator<T, Date>): UniversalType<T | undefined>;
+function date<T extends Date = Date>(validator = identity as Validator<T, Date>): UniversalType<T | undefined> {
+    return type((value: unknown) => (value === undefined ? value : validator(dateValidator(value))), parser("date"));
 }
 
-function union<T extends readonly (string | number | boolean)[]>(values: T): UniversalType<T[number]>;
-function union<T extends readonly (string | number | boolean)[]>(...values: T): UniversalType<T[number]>;
+function union<T extends readonly (string | number | boolean)[]>(values: T): UniversalType<T[number] | undefined>;
+function union<T extends readonly (string | number | boolean)[]>(...values: T): UniversalType<T[number] | undefined>;
 function union<T extends readonly (string | number | boolean)[]>(value: T | T[number], ...restValues: T) {
     const values = Array.isArray(value) ? value : [value, ...restValues];
 
@@ -55,10 +46,11 @@ function union<T extends readonly (string | number | boolean)[]>(value: T | T[nu
     const booleanParser = parser("boolean");
 
     return type(
-        (value: unknown): T[number] => {
+        (value: unknown): T[number] | undefined => {
             if (
-                !(typeof value === "string" || typeof value === "number" || typeof value === "boolean") ||
-                !values.includes(value)
+                value !== undefined &&
+                (!(typeof value === "string" || typeof value === "number" || typeof value === "boolean") ||
+                    !values.includes(value))
             ) {
                 throw new Error(
                     `${String(value)} is not assignable to '${values.map((item) => JSON.stringify(item)).join(" | ")}'`
@@ -101,25 +93,17 @@ function union<T extends readonly (string | number | boolean)[]>(value: T | T[nu
     );
 }
 
-function defined<T>(value: T | undefined): T {
-    if (typeof value === "undefined") {
-        throw new Error("Unexpected undefined");
+function stringValidator(value: unknown): string {
+    if (typeof value !== "string") {
+        throw new Error(`${String(value)} is not assignable to 'string'`);
     }
 
     return value;
 }
 
-function stringValidator(value: unknown): string | undefined {
-    if (typeof value !== "undefined" && typeof value !== "string") {
-        throw new Error(`${String(value)} is not assignable to 'string | undefined'`);
-    }
-
-    return value;
-}
-
-function numberValidator(value: unknown): number | undefined {
-    if (typeof value !== "undefined" && typeof value !== "number") {
-        throw new Error(`${String(value)} is not assignable to 'number | undefined'`);
+function numberValidator(value: unknown): number {
+    if (typeof value !== "number") {
+        throw new Error(`${String(value)} is not assignable to 'number'`);
     }
 
     if (Number.isNaN(value)) {
@@ -129,17 +113,17 @@ function numberValidator(value: unknown): number | undefined {
     return value;
 }
 
-function booleanValidator(value: unknown): boolean | undefined {
-    if (typeof value !== "undefined" && typeof value !== "boolean") {
-        throw new Error(`${String(value)} is not assignable to 'boolean | undefined'`);
+function booleanValidator(value: unknown): boolean {
+    if (typeof value !== "boolean") {
+        throw new Error(`${String(value)} is not assignable to 'boolean'`);
     }
 
     return value;
 }
 
-function dateValidator(value: unknown): Date | undefined {
-    if (typeof value !== "undefined" && !(value instanceof Date)) {
-        throw new Error(`${String(value)} is not assignable to 'Date | undefined'`);
+function dateValidator(value: unknown): Date {
+    if (!(value instanceof Date)) {
+        throw new Error(`${String(value)} is not assignable to 'Date'`);
     }
 
     if (typeof value !== "undefined" && Number.isNaN(value.getTime())) {
@@ -149,4 +133,8 @@ function dateValidator(value: unknown): Date | undefined {
     return value;
 }
 
-export { string, number, boolean, date, union, defined };
+function identity<T>(value: T): T {
+    return value;
+}
+
+export { string, number, boolean, date, union };
