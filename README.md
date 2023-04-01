@@ -89,7 +89,7 @@ const ROUTES = {
         {
             // We can override some or all path params. Here, we override 'id'.
             // We specify that an error will be thrown in case of an absent/invalid param.
-            // WARNING: Usually you shouldn't throw.
+            // For demonstration purposes only, normally you shouldn't throw.
             params: { id: number().defined() },
             // These are search params.
             // We specify a default value to use in case of an absent/invalid param.
