@@ -497,14 +497,7 @@ interface StateParamType<TOut, TIn = TOut> {
 
 > ❗ It's guaranteed that `undefined` will never be passed as `TIn`.
 
-These interfaces allow to express pretty much anything:
-
--   We can make type objects that implement some of these interfaces or all of them.
--   We can specify different types for `TIn` and `TOut`, and even different types for different params.
--   We can return `undefined` as `TOut` instead of throwing an error.
--   We can work with multiple keys with the same name in search string.
-
-Normally, you should use the built-in helpers for constructing these objects. Manual construction should only be used if you're hitting some limitations.
+These interfaces allow to express pretty much anything, though normally you should use the built-in helpers for constructing these objects. Manual construction should only be used if you're hitting some limitations.
 
 #### Type helpers
 
