@@ -183,7 +183,7 @@ import { useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /
 import { ROUTES } from "./path/to/routes";
 
 // The type here is { infoVisible: boolean }.
-// Note how infoVisible can't be undefined because a default value is used in case of an absent/invalid param.
+// Note how infoVisible can't be undefined because we specified a default value.
 const [{ infoVisible }, setTypedSearchParams] = useTypedSearchParams(ROUTES.USER.DETAILS);
 ```
 
@@ -194,7 +194,7 @@ import { useTypedState } from "react-router-typesafe-routes/dom"; // Or /native
 import { ROUTES } from "./path/to/routes";
 
 // The type here is { fromUserList: boolean | undefined }.
-// Note how fromUserList can be undefined due to returning undefined upon error.
+// Note how fromUserList can be undefined, which means that it's absent or invalid.
 const { fromUserList } = useTypedState(ROUTES.USER.DETAILS);
 ```
 
