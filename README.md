@@ -288,7 +288,7 @@ import { zod } from "react-router-typesafe-routes/zod";
 import { z } from "zod";
 
 const ROUTE = route(":id", {
-    // You should only describe a string, number, boolean, or date. It can be optional ('undefined').
+    // You should only describe a string, number, boolean, or date (possibly optional).
     // Otherwise, the value is stringified and parsed by JSON.
     params: { id: zod(z.string().uuid()) },
 });
@@ -304,7 +304,7 @@ import { yup } from "react-router-typesafe-routes/yup";
 import { string } from "yup";
 
 const ROUTE = route(":id", {
-    // You should only describe a string, number, boolean, or date. It can be optional ('undefined').
+    // You should only describe a string, number, boolean, or date (possibly optional).
     // Otherwise, the value is stringified and parsed by JSON.
     params: { id: yup(string().uuid()) },
 });
@@ -319,8 +319,9 @@ import { v, Schema } from "third-party-library";
 
 function getTypeHint(schema: Schema): ParserHint {
     // This is the most tricky part.
-    // We determine if the schema type is assignable to string, number, boolean, or date. It can be optional ('undefined').
+    // We determine if the schema type is assignable to 'string', 'number', 'boolean', or 'date'.
     // If so, we return the corresponding hint, and 'unknown' otherwise.
+    // The type can also be optional ('undefined').
     return schema.type;
 }
 
