@@ -507,11 +507,11 @@ Normally, you should use the built-in helpers for constructing these objects. Ma
 
 #### Type helpers
 
-To make type objects constructing and usage easier, we impose a set of reasonbale restrictions / design choices:
+To make type objects construction and usage easier, we impose a set of reasonable restrictions / design choices:
 
--   `TIn` and `TOut` are the same, for all params (excluding cases when `undefined` is returned as a result of a failed parsing).
--   Type objects for arrays are constructed based on helpers for individual values.
--   By default, parsing errors result in `undefined`, and throwing or returning a fallback value is an opt-in.
+-   `TIn` and `TOut` are the same, for all params (excluding cases when `undefined` is returned as a result of a failed parsing/validation).
+-   Type objects for arrays are constructed based on helpers for individual values. Array params can never be parsed/validated into `undefined`.
+-   By default, parsing/validation errors result in `undefined`. We can also opt in to returning a default value or throwing an error in case of an absent/invalid param.
 -   State params are only validated and not transformed in any way.
 -   Type objects for individual values can be used for any param. Type objects for arrays can only be used for search params and state fields.
 
@@ -565,36 +565,36 @@ type(positiveNumber, parser("number"));
 type(positiveNumber);
 ```
 
-The resulting type object will return undefined upon a parsing (or validation) error. We can throw the error or return a fallback instead:
+The resulting type object will return undefined upon a parsing (or validation) error. We can change how absent/invalid params are treated:
 
 ```typescript
-// This will throw a parsing error.
+// This will throw an error.
 type(positiveNumber).defined();
-// This will return the given fallback upon a parsing error.
-type(positiveNumber).defined(1);
+// This will return the given value.
+type(positiveNumber).default(1);
 ```
 
-The `.defined()` modifier guarantees that the parsing error result is not `undefined`, even if the given validator can return it. Fallbacks passed to `.defined()` are validated.
+The `.defined()`/`.default()` modifiers guarantee that the parsing result is not `undefined`, even if the given validator can return it. Default values passed to `.default()` are validated.
 
 We can also construct type objects for arrays:
 
 ```typescript
 // Upon parsing:
 
-// This will give (number | undefined)[] | undefined
+// This will give '(number | undefined)[]'.
+// This should be the most common variant.
 type(positiveNumber).array();
 
-// This will give number[] | undefined
+// This will give 'number[]'.
+// Absent/invalid values will be replaced with '-1'.
+type(positiveNumber).default(-1).array();
+
+// This will give 'number[]'.
+// Absent/invalid values will lead to an error.
 type(positiveNumber).defined().array();
-
-// This will give (number | undefined)[]
-type(positiveNumber).array().defined();
-
-// This will give number[]
-type(positiveNumber).defined().array().defined();
 ```
 
-Arrays can only be used in search params and state fields, because there is no standard way to store arrays in path params.
+Arrays can only be used in search params and state fields, because there is no standard way to store arrays in path params. For state fields, if a value is not an array, it's parsed as an empty array.
 
 ##### Type-specific helpers
 
@@ -613,6 +613,15 @@ const positive: Validator<number, number> = (value: number): number => {
 
 number(positive);
 ```
+
+##### Third-party validation libraries
+
+You can use Zod and Yup out-of-box, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced Examples](#advanced-examples).
+
+Gotchas:
+
+-   It doesn't matter if a validator can accept or return `undefined` or not - it will be normalized by `type()` anyway.
+-   A validator can receive `undefined`, which means that it can define its own default value, for example.
 
 #### Hash values
 
@@ -819,7 +828,7 @@ There are also built-in helpers for third-party validation libraries:
 -   `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
 -   `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
 
-For types that are assignable to `string`, `number`, `boolean`, or `date`, the corresponding parser hint is used.
+For types that are assignable to `string`, `number`, `boolean`, or `date` (ignoring `undefined`), the corresponding parser hint is used.
 
 ### `hashValues()`
 
