@@ -321,7 +321,7 @@ function getTypeHint(schema: Schema): ParserHint {
     // This is the most tricky part.
     // We determine if the schema type is assignable to 'string', 'number', 'boolean', or 'date'.
     // If so, we return the corresponding hint, and 'unknown' otherwise.
-    // The type can also be optional ('undefined').
+    // The type can also be optional, e.g. 'string | undefined' should use 'string' hint.
     return schema.type;
 }
 
