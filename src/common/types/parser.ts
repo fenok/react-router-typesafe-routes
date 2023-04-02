@@ -5,7 +5,7 @@ interface Parser<T> {
 
 type ParserHint = "string" | "number" | "boolean" | "date" | "unknown";
 
-type ParserType<T extends ParserHint | undefined> = T extends "unknown"
+type ParserType<T extends ParserHint> = T extends "unknown"
     ? unknown
     : T extends "string"
     ? string
