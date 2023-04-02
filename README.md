@@ -345,6 +345,7 @@ import { route, ParamType } from "react-router-typesafe-routes/dom"; // Or /nati
 // For other params, we would need to implement SearchParamType and StateParamType.
 const looseString: ParamType<string, string | number | boolean> = {
     getPlainParam(value) {
+        // It's always guaranteed that value is not 'undefined' here.
         return String(value);
     },
     getTypedParam(value) {
@@ -479,19 +480,19 @@ Path params, search params, and state fields serializing, parsing, validation, a
 ```typescript
 // Can be used for path params
 interface ParamType<TOut, TIn = TOut> {
-    getPlainParam: (originalValue: TIn) => string;
+    getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
     getTypedParam: (plainValue: string | undefined) => TOut;
 }
 
 // Can be used for search params
 interface SearchParamType<TOut, TIn = TOut> {
-    getPlainSearchParam: (originalValue: TIn) => string[] | string;
+    getPlainSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
     getTypedSearchParam: (plainValue: string[]) => TOut;
 }
 
 // Can be used for state fields
 interface StateParamType<TOut, TIn = TOut> {
-    getPlainStateParam: (originalValue: TIn) => unknown;
+    getPlainStateParam: (originalValue: Exclude<TIn, undefined>) => unknown;
     getTypedStateParam: (plainValue: unknown) => TOut;
 }
 ```

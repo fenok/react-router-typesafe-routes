@@ -1,17 +1,17 @@
 import { parser as defaultParser, Parser } from "./parser.js";
 
 interface ParamType<TOut, TIn = TOut> {
-    getPlainParam: (originalValue: TIn) => string;
+    getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
     getTypedParam: (plainValue: string | undefined) => TOut;
 }
 
 interface SearchParamType<TOut, TIn = TOut> {
-    getPlainSearchParam: (originalValue: TIn) => string[] | string;
+    getPlainSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
     getTypedSearchParam: (plainValue: string[]) => TOut;
 }
 
 interface StateParamType<TOut, TIn = TOut> {
-    getPlainStateParam: (originalValue: TIn) => unknown;
+    getPlainStateParam: (originalValue: Exclude<TIn, undefined>) => unknown;
     getTypedStateParam: (plainValue: unknown) => TOut;
 }
 
