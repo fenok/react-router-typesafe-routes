@@ -14,6 +14,8 @@
 | `arrayOfType(/*  */)([])`        | N/A[^5]                                                 |
 | `arrayOfType(/*  */)(throwable)` | N/A[^5]                                                 |
 
+If you need some behavior that can't be achieved with the new syntax, you can construct type objects manually.
+
 [^1]: With new syntax, for state fields, the value (or its parts) is not stringified or parsed.
 [^2]: With old syntax, custom types could technically allow `undefined`, in which case `throwable` and a fallback value wouldn't be used for absent values. With new syntax, `undefined` can't be returned if `.default()` or `.defined()` are used.
 [^3]: With old syntax, any invalid item fails the whole array, and that error is replaced with undefined. There is no equivalent new syntax, but `string().array()` should be more useful. It always returns an array, and invalid items are replaced with `undefined`. If you need to fail the whole array, the closest new syntax is `string().defined().array()`, which throws an error if any item is absent or invalid (though it's not very useful).
