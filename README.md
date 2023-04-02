@@ -612,7 +612,7 @@ number(positive);
 
 ##### Third-party validation libraries
 
-You can use Zod and Yup out-of-box, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced Examples](#advanced-examples).
+You can use Zod and Yup out-of-box, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
 
 Gotchas:
 
