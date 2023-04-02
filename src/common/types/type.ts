@@ -120,7 +120,7 @@ const getArrayParamTypeBuilder =
         };
     };
 
-function ensureNoError<TFn extends (...args: never[]) => unknown, TFallback>(
+function ensureNoError<TFn extends (...args: never[]) => unknown, TDefault>(
     fn: TFn
 ): (...args: Parameters<TFn>) => ReturnType<TFn> | undefined {
     return (...args: Parameters<TFn>) => {
@@ -155,13 +155,13 @@ function ensureNoUndefined<TFn extends (...args: never[]) => unknown>(
 }
 
 function validateDef<T>(validator: Validator<T>, def: unknown): Exclude<T, undefined> {
-    const validatedFallback = validator(def);
+    const validDef = validator(def);
 
-    if (validatedFallback === undefined) {
+    if (validDef === undefined) {
         throw new Error("Default value validation resulted in 'undefined', which is forbidden");
     }
 
-    return validatedFallback as Exclude<T, undefined>;
+    return validDef as Exclude<T, undefined>;
 }
 
 export { type, UniversalType, Validator, ParamType, SearchParamType, StateParamType };
