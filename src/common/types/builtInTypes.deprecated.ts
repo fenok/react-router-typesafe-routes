@@ -8,7 +8,7 @@ import {
     assertIsNumber,
 } from "./helpers.deprecated.js";
 
-/** @deprecated Use string instead */
+/** @deprecated Use string() instead */
 export const stringType = createType<string>({
     getPlain(value) {
         return value;
@@ -20,7 +20,7 @@ export const stringType = createType<string>({
     },
 });
 
-/** @deprecated Use number instead */
+/** @deprecated Use number() instead */
 export const numberType = createType<number>({
     getPlain(value) {
         return JSON.stringify(value);
@@ -35,7 +35,7 @@ export const numberType = createType<number>({
     },
 });
 
-/** @deprecated Use boolean instead */
+/** @deprecated Use boolean() instead */
 export const booleanType = createType<boolean>({
     getPlain(value) {
         return JSON.stringify(value);
@@ -50,7 +50,7 @@ export const booleanType = createType<boolean>({
     },
 });
 
-/** @deprecated Use date instead */
+/** @deprecated Use date() instead */
 export const dateType = createType<Date>({
     getPlain(value) {
         return value.toISOString();
@@ -65,7 +65,7 @@ export const dateType = createType<Date>({
     },
 });
 
-/** @deprecated Use union instead */
+/** @deprecated Use union() instead */
 export const oneOfType = <T extends (string | number | boolean)[]>(...values: T) => {
     return createType<T[number]>({
         getPlain: (value) => {
