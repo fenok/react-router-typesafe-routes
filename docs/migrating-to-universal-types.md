@@ -15,7 +15,7 @@
 | `arrayOfType(/*  */)([])`            | N/A[^6]                                                 |
 | `arrayOfType(/*  */)(throwable)`     | N/A[^6]                                                 |
 
-For additional info, check out [Advanced Examples](../README.md#advanced-examples) in the README.
+For additional info, check out [Advanced examples](../README.md#advanced-examples) in the README.
 
 [^1]: With new syntax, for state fields, the value (or its parts) is not stringified or parsed (i.e. only validated).
 [^2]: With old syntax, custom types could technically allow `undefined`, in which case `throwable` and a fallback value wouldn't be used for absent values. With new syntax, `undefined` can't be returned if `.default()` or `.defined()` are used.
