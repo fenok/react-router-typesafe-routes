@@ -826,6 +826,11 @@ There are also built-in helpers for third-party validation libraries:
 
 For types that are assignable to `string`, `number`, `boolean`, or `date` (ignoring `undefined`), the corresponding parser hint is used.
 
+All built-in helpers catch parsing and validation errors and replace them with `undefined`. This behavior can be altered with the following modifiers:
+
+-   `.default()` - accepts a default value that is used instead of an absent/invalid param;
+-   `.defined()` - specifies that an error is thrown in case of an absent/invalid param. For invalid params, the original error is used.
+
 ### `hashValues()`
 
 The `hashValues()` helper types the hash part of the URL. See [Typing: Hash](#hash).
