@@ -342,6 +342,7 @@ import { route, ParamType } from "react-router-typesafe-routes/dom"; // Or /nati
 
 // This type accepts 'string | number | boolean' and returns 'string'.
 // We only implement ParamType interface, so this type can only be used for path params.
+// For other params, we would need to implement SearchParamType and StateParamType.
 const looseString: ParamType<string, string | number | boolean> = {
     getPlainParam(value) {
         return String(value);
