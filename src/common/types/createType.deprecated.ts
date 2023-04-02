@@ -3,7 +3,7 @@ import { Type, CallableType, ThrowableFallback } from "./type.deprecated.js";
 /** @deprecated It's not needed for universal types */
 export const throwable = {} as ThrowableFallback;
 
-/** @deprecated Use type instead */
+/** @deprecated Use type() instead */
 export function createType<TOriginal, TPlain = string, TRetrieved = TOriginal>({
     getPlain,
     getTyped,
