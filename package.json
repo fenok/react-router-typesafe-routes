@@ -32,7 +32,11 @@
     "files": [
         "common/",
         "dom/",
-        "native/"
+        "native/",
+        "zod/",
+        "yup/",
+        "docs/",
+        "CHANGELOG.md"
     ],
     "engines": {
         "node": ">=14"
