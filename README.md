@@ -505,7 +505,7 @@ These interfaces allow to express pretty much anything, though normally you shou
 
 To make type objects construction and usage easier, we impose a set of reasonable restrictions / design choices:
 
--   `TIn` and `TOut` are the same, for all params (excluding cases when `undefined` is returned as a result of a failed parsing/validation).
+-   `TIn` and `TOut` are the same, for all params.
 -   Type objects for arrays are constructed based on helpers for individual values. Array params can never be parsed/validated into `undefined`.
 -   By default, parsing/validation errors result in `undefined`. We can also opt in to returning a default value or throwing an error in case of an absent/invalid param.
 -   State params are only validated and not transformed in any way.
