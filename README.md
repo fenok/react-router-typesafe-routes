@@ -348,7 +348,7 @@ const looseString: ParamType<string, string | number | boolean> = {
         return String(value);
     },
     getTypedParam(value) {
-        // We throw the error here, but we could also return undefined or something else.
+        // We could treat 'undefined' in a special way to distinguish absent and invalid params.
         if (typeof value !== "string") {
             throw new Error("Expected string");
         }
