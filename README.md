@@ -10,8 +10,6 @@ If you want, you can use a validation library. There is first-party support for 
 
 In built-in types, parsing and validation errors are caught and replaced with `undefined`. You can also return a default value or throw an error in case of an absent or invalid param. All these adjustments reflect in types, too!
 
-Serialization is type-aware, so there are no wrapping quotes for strings, for example.
-
 If you need more control, you can build completely custom types, which means that parsing, serializing, and typing are fully customizable.
 
 The library doesn't restrict or alter React Router API in any way, including nested routes and relative links. It's also gradually adoptable.
@@ -288,8 +286,7 @@ import { zod } from "react-router-typesafe-routes/zod";
 import { z } from "zod";
 
 const ROUTE = route(":id", {
-    // You should only describe a string, number, boolean, or date (possibly optional).
-    // Otherwise, the value is stringified and parsed by JSON.
+    // Wrapping quotes in serialized values are omitted where possible.
     params: { id: zod(z.string().uuid()) },
 });
 ```
@@ -304,8 +301,7 @@ import { yup } from "react-router-typesafe-routes/yup";
 import { string } from "yup";
 
 const ROUTE = route(":id", {
-    // You should only describe a string, number, boolean, or date (possibly optional).
-    // Otherwise, the value is stringified and parsed by JSON.
+    // Wrapping quotes in serialized values are omitted where possible.
     params: { id: yup(string().uuid()) },
 });
 ```
@@ -317,17 +313,22 @@ import { type, parser, UniversalType, ParserHint } from "react-router-typesafe-r
 // Schema is a library-specific interface.
 import { v, Schema } from "third-party-library";
 
+function valid<T>(schema: Schema<T>): UniversalType<T> {
+    return type(
+        // We use library-specific validation logic.
+        (value: unknown) => schema.validate(value),
+        // We can optionally provide a parser.
+        // Built-in parser is used to remove wrapping quotes where possible.
+        // We could also supply a custom parser.
+        parser(getTypeHint(schema))
+    );
+}
+
 function getTypeHint(schema: Schema): ParserHint {
-    // This is the most tricky part.
-    // We determine if the schema type is assignable to 'string', 'number', 'boolean', or 'date'.
+    // We determine if the schema type is assignable to 'string' or 'date'.
     // If so, we return the corresponding hint, and 'unknown' otherwise.
     // The type can also be optional, e.g. 'string | undefined' should use 'string' hint.
     return schema.type;
-}
-
-function valid<T>(schema: Schema<T>): UniversalType<T> {
-    // We use library-specific validation logic.
-    return type((value: unknown) => schema.validate(value), parser(getTypeHint(schema)));
 }
 
 const ROUTE = route(":id", {
@@ -526,7 +527,7 @@ interface Parser<T> {
 }
 ```
 
-The library provides `parser()` helper for accessing built-in parsers. By default, it simply uses `JSON`. If you know that a parser will only be used for values of a specific type, you can hint this type to parser to get nicer stringification. For instance, `parser('string')` returns a parser that omits wrapping quotes in stringified values, which makes URLs cleaner.
+The library provides `parser()` helper for accessing the built-in parser. It can accept an optional type hint. By default, it simply behaves as `JSON`. It also has a special behavior for strings and dates, where it omits wrapping quotes in such serialized values.
 
 ##### `Validator`
 
@@ -540,7 +541,7 @@ interface Validator<T, TPrev = unknown> {
 
 It returns a valid value or throws if that's impossible. It can transform values to make them valid.
 
-The important thing is that it has to handle both the original value and whatever the corresponding parser `parse()` returns.
+The important thing is that it has to handle both the original value and whatever the corresponding parser returns.
 
 ##### Generic helper
 
@@ -555,9 +556,10 @@ const positiveNumber: Validator<number> = (value: unknown): number => {
     return value;
 };
 
-type(positiveNumber, parser("number"));
-
-// We can also omit parser. The default parser is simply JSON.
+// The following types are equivalent (we use JSON as a parser).
+// We could also supply a custom parser.
+type(positiveNumber, parser("unknown"));
+type(positiveNumber, parser());
 type(positiveNumber);
 ```
 
@@ -801,8 +803,6 @@ The built-in parser is exposed as `parser()`. It should only be used for creatin
 It accepts the following type hints:
 
 -   `'string'` - the value is not transformed in any way.
--   `'number'` - the value is processed by `JSON`.
--   `'boolean'` - the value is processed by `JSON`.
 -   `'date'` - the value is transformed to an ISO string.
 -   `'unknown'` - the value is processed by `JSON`.
 
@@ -824,7 +824,7 @@ There are also built-in helpers for third-party validation libraries:
 -   `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
 -   `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
 
-For types that are assignable to `string`, `number`, `boolean`, or `date` (ignoring `undefined`), the corresponding parser hint is used.
+All of them use the built-in parser with the corresponding hint.
 
 All built-in helpers catch parsing and validation errors and replace them with `undefined`. This behavior can be altered with the following modifiers:
 
