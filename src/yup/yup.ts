@@ -1,5 +1,5 @@
 import { UniversalType, parser, ParserHint, type } from "../common/index.js";
-import { Schema, StringSchema, NumberSchema, BooleanSchema, DateSchema } from "yup";
+import { Schema, StringSchema, DateSchema } from "yup";
 
 export function yup<T>(schema: Schema<T>): UniversalType<T> {
     let typeHint: ParserHint = "unknown";
@@ -7,10 +7,6 @@ export function yup<T>(schema: Schema<T>): UniversalType<T> {
     if (!schema.spec.nullable) {
         if (schema instanceof StringSchema) {
             typeHint = "string";
-        } else if (schema instanceof NumberSchema) {
-            typeHint = "number";
-        } else if (schema instanceof BooleanSchema) {
-            typeHint = "boolean";
         } else if (schema instanceof DateSchema) {
             typeHint = "date";
         }

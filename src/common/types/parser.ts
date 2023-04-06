@@ -3,16 +3,12 @@ interface Parser<T> {
     parse: (value: string) => unknown;
 }
 
-type ParserHint = "string" | "number" | "boolean" | "date" | "unknown";
+type ParserHint = "string" | "date" | "unknown";
 
 type ParserType<T extends ParserHint> = T extends "unknown"
     ? unknown
     : T extends "string"
     ? string
-    : T extends "number"
-    ? number
-    : T extends "boolean"
-    ? boolean
     : T extends "date"
     ? Date
     : never;
@@ -26,14 +22,6 @@ function parser<T extends ParserHint>(hint?: T): Parser<ParserType<T>> {
                 return stringParser.stringify(value);
             }
 
-            if (hint === "number" && typeof value === "number") {
-                return numberParser.stringify(value);
-            }
-
-            if (hint === "boolean" && typeof value === "boolean") {
-                return booleanParser.stringify(value);
-            }
-
             if (hint === "date" && value instanceof Date) {
                 return dateParser.stringify(value);
             }
@@ -43,14 +31,6 @@ function parser<T extends ParserHint>(hint?: T): Parser<ParserType<T>> {
         parse(value: string) {
             if (hint === "string") {
                 return stringParser.parse(value);
-            }
-
-            if (hint === "number") {
-                return numberParser.parse(value);
-            }
-
-            if (hint === "boolean") {
-                return booleanParser.parse(value);
             }
 
             if (hint === "date") {
@@ -63,8 +43,6 @@ function parser<T extends ParserHint>(hint?: T): Parser<ParserType<T>> {
 }
 
 const defaultParser: Parser<unknown> = JSON;
-const numberParser: Parser<number> = JSON;
-const booleanParser: Parser<boolean> = JSON;
 const stringParser: Parser<string> = { stringify: (value: string) => value, parse: (value: string) => value };
 const dateParser: Parser<Date> = {
     stringify(value: Date): string {

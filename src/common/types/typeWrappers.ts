@@ -13,10 +13,7 @@ function string<T extends string = string>(validator = identity as Validator<T, 
 function number(): UniversalType<number | undefined>;
 function number<T extends number>(validator: Validator<T, number>): UniversalType<T | undefined>;
 function number<T extends number = number>(validator = identity as Validator<T, number>): UniversalType<T | undefined> {
-    return type(
-        (value: unknown) => (value === undefined ? value : validator(numberValidator(value))),
-        parser("number")
-    );
+    return type((value: unknown) => (value === undefined ? value : validator(numberValidator(value))));
 }
 
 function boolean(): UniversalType<boolean | undefined>;
@@ -24,10 +21,7 @@ function boolean<T extends boolean>(validator: Validator<T, boolean>): Universal
 function boolean<T extends boolean = boolean>(
     validator = identity as Validator<T, boolean>
 ): UniversalType<T | undefined> {
-    return type(
-        (value: unknown) => (value === undefined ? value : validator(booleanValidator(value))),
-        parser("boolean")
-    );
+    return type((value: unknown) => (value === undefined ? value : validator(booleanValidator(value))));
 }
 
 function date(): UniversalType<Date | undefined>;
@@ -42,8 +36,7 @@ function union<T extends readonly (string | number | boolean)[]>(value: T | T[nu
     const values = Array.isArray(value) ? value : [value, ...restValues];
 
     const stringParser = parser("string");
-    const numberParser = parser("number");
-    const booleanParser = parser("boolean");
+    const defaultParser = parser();
 
     return type(
         (value: unknown): T[number] | undefined => {
@@ -61,11 +54,7 @@ function union<T extends readonly (string | number | boolean)[]>(value: T | T[nu
         },
         {
             stringify(value: T[number]): string {
-                return typeof value === "string"
-                    ? stringParser.stringify(value)
-                    : typeof value === "number"
-                    ? numberParser.stringify(value)
-                    : booleanParser.stringify(value);
+                return typeof value === "string" ? stringParser.stringify(value) : defaultParser.stringify(value);
             },
             parse(value: string): unknown {
                 for (const canonicalValue of values) {
@@ -74,9 +63,7 @@ function union<T extends readonly (string | number | boolean)[]>(value: T | T[nu
                             canonicalValue ===
                             (typeof canonicalValue === "string"
                                 ? stringParser.parse(value)
-                                : typeof canonicalValue === "number"
-                                ? numberParser.parse(value)
-                                : booleanParser.parse(value))
+                                : defaultParser.parse(value))
                         ) {
                             return canonicalValue;
                         }
