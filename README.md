@@ -822,7 +822,7 @@ There are also built-in helpers for third-party validation libraries:
 -   `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
 -   `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
 
-All of them use the built-in parser with the corresponding hint.
+All of them use the built-in parser with auto-detected hint.
 
 All built-in helpers catch parsing and validation errors and replace them with `undefined`. This behavior can be altered with the following modifiers:
 
