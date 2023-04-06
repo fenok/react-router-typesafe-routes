@@ -41,7 +41,7 @@ The library is distributed as an ES module written in ES6.
 -   To make params merging possible, the state has to be an object, and the hash has to be one of the known strings (or any string).
 -   Since React Router only considers pathname on route matching, search parameters, state fields, and hash are considered optional upon URL or state building.
 -   For simplicity, the hash is always considered optional upon URL parsing.
--   For convenience, absent and invalid params are considered virtually the same during parsing and validation in built-in types (but you have full control with custom types).
+-   For convenience, absent and invalid params are considered virtually the same by built-in types (but you have full control with custom types).
 -   To prevent overlapping with route API, child routes have to start with an uppercase letter (this only affects code and not the resulting URL).
 -   To emphasize that route relativity is governed by the library, leading slashes in path patterns are forbidden. Trailing slashes are also forbidden due to being purely cosmetic.
 
