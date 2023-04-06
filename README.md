@@ -596,7 +596,7 @@ Arrays can only be used in search params and state fields, because there is no s
 
 ##### Type-specific helpers
 
-Most of the time, you should use type-specific helpers: `string()`, `number()`, `boolean()`, or `date()`. They are built on top of `type()`, but they have the corresponding parsers and `typeof` checks built-in.
+Most of the time, you should use type-specific helpers: `string()`, `number()`, `boolean()`, or `date()`. They are built on top of `type()`, but they have the corresponding parsers and type checks built-in.
 
 For instance:
 
@@ -814,7 +814,7 @@ See [Typing: Type helpers](#type-helpers).
 
 There are built-in helpers for common types:
 
--   `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and `typeof` checks. Can accept validators that expect the corresponding types as an input.
+-   `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and type checks. Can accept validators that expect the corresponding types as an input.
 -   `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values. Can accept a readonly array or individual values.
 
 There are also built-in helpers for third-party validation libraries:
