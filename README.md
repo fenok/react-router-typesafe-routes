@@ -802,11 +802,9 @@ The built-in parser is exposed as `parser()`. It should only be used for creatin
 
 It accepts the following type hints:
 
+-   `'unknown'` - the value is processed by `JSON`. This is the default.
 -   `'string'` - the value is not transformed in any way.
 -   `'date'` - the value is transformed to an ISO string.
--   `'unknown'` - the value is processed by `JSON`.
-
-When called without a hint, `'unknown'` is used.
 
 ### `type()`
 
