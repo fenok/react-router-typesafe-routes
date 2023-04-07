@@ -1,7 +1,7 @@
 import { Type, throwable, ThrowableFallback, ParamType, SearchParamType, StateParamType } from "../types/index.js";
 import { warn } from "../warn.js";
 import { RouteTypes, types } from "./types.js";
-import { Merge, Readable } from "./helpers.js";
+import { Merge, Readable, ErrorMessage } from "./helpers.js";
 
 type RouteWithChildren<
     TChildren,
@@ -50,8 +50,8 @@ type DecoratedChildren<
 };
 
 interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateTypes> {
-    path: `/${TPath}`;
-    relativePath: PathWithoutIntermediateStars<TPath>;
+    path: `/${SanitizedPath<TPath>}`;
+    relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
     getPlainParams: (params: InParams<TPath, TPathTypes>) => Record<string, string | undefined>;
     getPlainSearchParams: (params: InSearchParams<TSearchTypes>) => Record<string, string | string[]>;
     getTypedParams: (params: Record<string, string | undefined>) => OutParams<TPath, TPathTypes>;
@@ -175,7 +175,11 @@ type PickWithFallback<T, K extends string, F> = { [P in K]: P extends keyof T ? 
 
 type PartialByKey<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
-type SanitizedPath<T> = T extends `/${string}` ? never : T extends `${string}/` ? never : T;
+type SanitizedPath<T> = T extends `/${string}`
+    ? ErrorMessage<"Leading slashes are forbidden">
+    : T extends `${string}/`
+    ? ErrorMessage<"Trailing slashes are forbidden">
+    : T;
 
 type PathWithoutIntermediateStars<T extends string> = T extends `${infer TStart}*?/${infer TEnd}`
     ? PathWithoutIntermediateStars<`${TStart}${TEnd}`>
@@ -187,7 +191,7 @@ type SanitizedChildren<T> = T extends Record<infer TKey, unknown>
     ? TKey extends string
         ? TKey extends Capitalize<TKey>
             ? T
-            : never
+            : ErrorMessage<"Child routes have to start with an uppercase letter">
         : T
     : T;
 
