@@ -548,6 +548,8 @@ The important thing is that it has to handle both the original value and whateve
 The `type()` helper is used for creating all kinds of type objects. The resulting param type is inferred from the given validator.
 
 ```typescript
+import { type, parser, Validator } from "react-router-typesafe-routes/dom"; // Or /native
+
 const positiveNumber: Validator<number> = (value: unknown): number => {
     if (typeof value !== "number" || value <= 0) {
         throw new Error("Expected positive number");
@@ -601,6 +603,8 @@ Most of the time, you should use type-specific helpers: `string()`, `number()`, 
 For instance:
 
 ```typescript
+import { number, Validator } from "react-router-typesafe-routes/dom"; // Or /native
+
 const positive: Validator<number, number> = (value: number): number => {
     if (value <= 0) {
         throw new Error("Expected positive number");
