@@ -9,7 +9,7 @@
     "parserOptions": {
         "project": ["./tsconfig.json"]
     },
-    "plugins": ["@typescript-eslint", "import", "react-hooks"],
+    "plugins": ["@typescript-eslint", "react-hooks"],
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
@@ -18,7 +18,6 @@
     ],
     "rules": {
         "@typescript-eslint/no-unused-vars": "off",
-        "import/extensions": ["error", "always"],
         "react-hooks/rules-of-hooks": "error",
         "react-hooks/exhaustive-deps": "error"
     }

@@ -1,5 +1,7 @@
 common
 dom
 native
+zod
+yup
 !src/*
 update-changelog.js

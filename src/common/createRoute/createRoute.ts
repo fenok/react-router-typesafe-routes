@@ -1,13 +1,7 @@
-import {
-    Type,
-    OriginalParams,
-    RetrievedParams,
-    KeysWithFallback,
-    throwable,
-    ThrowableFallback,
-} from "../types/index.js";
+import { Type, throwable, ThrowableFallback, ParamType, SearchParamType, StateParamType } from "../types/index.js";
 import { warn } from "../warn.js";
 import { RouteTypes, types } from "./types.js";
+import { Merge, Readable, ErrorMessage } from "./helpers.js";
 
 type RouteWithChildren<
     TChildren,
@@ -47,17 +41,17 @@ type DecoratedChildren<
                   : TChildPath extends ""
                   ? TPath
                   : `${TPath}/${TChildPath}`,
-              TExcludePath extends true ? TChildPathTypes : TPathTypes & TChildPathTypes,
-              TSearchTypes & TChildSearchTypes,
+              TExcludePath extends true ? TChildPathTypes : Merge<TPathTypes, TChildPathTypes>,
+              Merge<TSearchTypes, TChildSearchTypes>,
               THash | TChildHash,
-              TStateTypes & TChildStateTypes
+              Merge<TStateTypes, TChildStateTypes>
           >
         : TChildren[TKey];
 };
 
 interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateTypes> {
-    path: `/${TPath}`;
-    relativePath: PathWithoutIntermediateStars<TPath>;
+    path: `/${SanitizedPath<TPath>}`;
+    relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
     getPlainParams: (params: InParams<TPath, TPathTypes>) => Record<string, string | undefined>;
     getPlainSearchParams: (params: InSearchParams<TSearchTypes>) => Record<string, string | string[]>;
     getTypedParams: (params: Record<string, string | undefined>) => OutParams<TPath, TPathTypes>;
@@ -95,46 +89,97 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
     ) => string;
 }
 
-type InParams<TPath extends string, TPathTypes> = PartialByKey<
-    PickWithFallback<OriginalParams<TPathTypes>, PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>, string>,
-    EnsureExtends<
-        PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>, "optional", "in">,
-        PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
+type InParams<TPath extends string, TPathTypes> = Readable<
+    PartialByKey<
+        PickWithFallback<
+            RawParams<TPathTypes, "in">,
+            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>,
+            string
+        >,
+        EnsureExtends<
+            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>, "optional", "in">,
+            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
+        >
     >
 >;
 
 type EnsureExtends<TFirst, TSecond> = TFirst extends TSecond ? TFirst : never;
 
-type OutParams<TPath extends string, TPathTypes> = OutParamsByKey<
-    PathParam<SanitizedPath<TPath>>,
-    PathParam<SanitizedPath<TPath>, "optional">,
-    TPathTypes
+type OutParams<TPath extends string, TPathTypes> = Readable<
+    OutParamsByKey<PathParam<SanitizedPath<TPath>>, PathParam<SanitizedPath<TPath>, "optional">, TPathTypes>
 >;
 
-type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes> = Partial<
-    RetrievedParams<TPathTypes>
-> &
-    RetrievedParams<Pick<TPathTypes, KeysWithFallback<TPathTypes>>> &
+type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes> = RawParams<TPathTypes, "out"> &
     PartialByKey<
         Record<Exclude<TKey, keyof TPathTypes>, string>,
         EnsureExtends<Exclude<TOptionalKey, keyof TPathTypes>, Exclude<TKey, keyof TPathTypes>>
     >;
 
-type InSearchParams<TSearchTypes> = Partial<OriginalParams<TSearchTypes>>;
+type InSearchParams<TSearchTypes> = Readable<Partial<RawSearchParams<TSearchTypes, "in">>>;
 
-type OutSearchParams<TSearchTypes> = Partial<RetrievedParams<TSearchTypes>> &
-    RetrievedParams<Pick<TSearchTypes, KeysWithFallback<TSearchTypes>>>;
+type OutSearchParams<TSearchTypes> = Readable<RawSearchParams<TSearchTypes, "out">>;
 
-type InStateParams<TStateTypes> = Partial<OriginalParams<TStateTypes>>;
+type InStateParams<TStateTypes> = Readable<Partial<RawStateParams<TStateTypes, "in">>>;
 
-type OutStateParams<TStateTypes> = Partial<RetrievedParams<TStateTypes>> &
-    RetrievedParams<Pick<TStateTypes, KeysWithFallback<TStateTypes>>>;
+type OutStateParams<TStateTypes> = Readable<RawStateParams<TStateTypes, "out">>;
+
+type RawParams<TTypes, TMode extends "in" | "out"> = {
+    [TKey in keyof TTypes]: RawParam<TTypes[TKey], TMode>;
+};
+
+type RawParam<TType, TMode extends "in" | "out"> = TType extends ParamType<infer TOut, infer TIn>
+    ? TMode extends "in"
+        ? Exclude<TIn, undefined>
+        : TOut
+    : TType extends Type<infer TIn, infer TPlain, infer TOut>
+    ? TMode extends "in"
+        ? Exclude<TIn, undefined>
+        : TType extends { __brand: "withFallback" }
+        ? TOut
+        : TOut | undefined
+    : never;
+
+type RawSearchParams<TTypes, TMode extends "in" | "out"> = {
+    [TKey in keyof TTypes]: RawSearchParam<TTypes[TKey], TMode>;
+};
+
+type RawSearchParam<TType, TMode extends "in" | "out"> = TType extends SearchParamType<infer TOut, infer TIn>
+    ? TMode extends "in"
+        ? Exclude<TIn, undefined>
+        : TOut
+    : TType extends Type<infer TIn, infer TPlain, infer TOut>
+    ? TMode extends "in"
+        ? Exclude<TIn, undefined>
+        : TType extends { __brand: "withFallback" }
+        ? TOut
+        : TOut | undefined
+    : never;
+
+type RawStateParams<TTypes, TMode extends "in" | "out"> = {
+    [TKey in keyof TTypes]: RawStateParam<TTypes[TKey], TMode>;
+};
+
+type RawStateParam<TType, TMode extends "in" | "out"> = TType extends StateParamType<infer TOut, infer TIn>
+    ? TMode extends "in"
+        ? Exclude<TIn, undefined>
+        : TOut
+    : TType extends Type<infer TIn, infer TPlain, infer TOut>
+    ? TMode extends "in"
+        ? Exclude<TIn, undefined>
+        : TType extends { __brand: "withFallback" }
+        ? TOut
+        : TOut | undefined
+    : never;
 
 type PickWithFallback<T, K extends string, F> = { [P in K]: P extends keyof T ? T[P] : F };
 
 type PartialByKey<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
-type SanitizedPath<T> = T extends `/${string}` ? never : T extends `${string}/` ? never : T;
+type SanitizedPath<T> = T extends `/${string}`
+    ? ErrorMessage<"Leading slashes are forbidden">
+    : T extends `${string}/`
+    ? ErrorMessage<"Trailing slashes are forbidden">
+    : T;
 
 type PathWithoutIntermediateStars<T extends string> = T extends `${infer TStart}*?/${infer TEnd}`
     ? PathWithoutIntermediateStars<`${TStart}${TEnd}`>
@@ -146,7 +191,7 @@ type SanitizedChildren<T> = T extends Record<infer TKey, unknown>
     ? TKey extends string
         ? TKey extends Capitalize<TKey>
             ? T
-            : never
+            : ErrorMessage<"Child routes have to start with an uppercase letter">
         : T
     : T;
 
@@ -191,10 +236,17 @@ const createRoute =
         TChildren = void,
         TPath extends string = string,
         /* eslint-disable @typescript-eslint/no-explicit-any */
-        TPathTypes extends Partial<Record<PathParam<SanitizedPath<TPath>>, Type<any>>> = Record<never, never>,
-        TSearchTypes extends Partial<Record<string, Type<any, string | string[]>>> = Record<never, never>,
+        TPathTypes extends Partial<
+            Record<PathParam<SanitizedPath<TPath>>, ParamType<unknown, never> | Type<any>>
+        > = Record<never, never>,
+        TSearchTypes extends Partial<
+            Record<string, SearchParamType<unknown, never> | Type<any, string | string[]>>
+        > = Record<never, never>,
         THash extends string[] = never[],
-        TStateTypes extends Partial<Record<string, Type<any, any>>> = Record<never, never>
+        TStateTypes extends Partial<Record<string, StateParamType<unknown, never> | Type<any, any>>> = Record<
+            never,
+            never
+        >
         /* eslint-enable */
     >(
         path: SanitizedPath<TPath>,
@@ -253,9 +305,14 @@ function decorateChildren<
 function getRoute<
     TPath extends string,
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    TPathTypes extends Partial<Record<PathParam<SanitizedPath<TPath>>, Type<any>>> = Record<never, never>,
-    TSearchTypes extends Partial<Record<string, Type<any, string | string[]>>> = Record<never, never>,
-    TStateTypes extends Partial<Record<string, Type<any, any>>> = Record<never, never>,
+    TPathTypes extends Partial<Record<PathParam<SanitizedPath<TPath>>, ParamType<unknown, never> | Type<any>>> = Record<
+        never,
+        never
+    >,
+    TSearchTypes extends Partial<
+        Record<string, SearchParamType<unknown, never> | Type<any, string | string[]>>
+    > = Record<never, never>,
+    TStateTypes extends Partial<Record<string, StateParamType<unknown, never> | Type<any, any>>> = Record<never, never>,
     THash extends string[] = never[]
     /* eslint-enable */
 >(
@@ -412,7 +469,7 @@ function getRoute<
 function getPlainParamsByTypes(
     keys: [string[], string[]],
     params: Record<string, unknown>,
-    types?: Partial<Record<string, Type<unknown>>>
+    types?: Partial<Record<string, ParamType<unknown, never> | Type<unknown>>>
 ): Record<string, string> {
     const result: Record<string, string> = {};
 
@@ -421,7 +478,11 @@ function getPlainParamsByTypes(
         const value = params[key];
 
         if (type && keys[0].indexOf(key) !== -1 && value !== undefined) {
-            result[key] = type.getPlain(value);
+            if (isParamType(type)) {
+                result[key] = type.getPlainParam(value as never);
+            } else {
+                result[key] = type.getPlain(value);
+            }
         } else if (typeof value === "string") {
             result[key] = value;
         }
@@ -432,7 +493,7 @@ function getPlainParamsByTypes(
 
 function getPlainSearchParamsByTypes(
     params: Record<string, unknown>,
-    types?: Partial<Record<string, Type<unknown, string | string[]>>>
+    types?: Partial<Record<string, SearchParamType<unknown, never> | Type<unknown, string | string[]>>>
 ): Record<string, string | string[]> {
     const result: Record<string, string | string[]> = {};
 
@@ -440,7 +501,11 @@ function getPlainSearchParamsByTypes(
         const type = types?.[key];
 
         if (type && params[key] !== undefined) {
-            result[key] = type.getPlain(params[key]);
+            if (isSearchParamType(type)) {
+                result[key] = type.getPlainSearchParam(params[key] as never);
+            } else {
+                result[key] = type.getPlain(params[key]);
+            }
         }
     });
 
@@ -449,7 +514,7 @@ function getPlainSearchParamsByTypes(
 
 function getPlainStateParamsByTypes(
     params: Record<string, unknown>,
-    types?: Partial<Record<string, Type<unknown, unknown>>>
+    types?: Partial<Record<string, StateParamType<unknown, never> | Type<unknown, unknown>>>
 ): Record<string, unknown> {
     const result: Record<string, unknown> = {};
 
@@ -458,7 +523,11 @@ function getPlainStateParamsByTypes(
         const value = params[key];
 
         if (type && value !== undefined) {
-            result[key] = type.getPlain(value);
+            if (isStateParamType(type)) {
+                result[key] = type.getPlainStateParam(value as never);
+            } else {
+                result[key] = type.getPlain(value);
+            }
         }
     });
 
@@ -468,7 +537,7 @@ function getPlainStateParamsByTypes(
 function getTypedParamsByTypes<
     TKey extends string,
     TOptionalKey extends string,
-    TPathTypes extends Partial<Record<TKey, Type<unknown>>>
+    TPathTypes extends Partial<Record<TKey, ParamType<unknown, never> | Type<unknown>>>
 >(
     keys: [TKey[], TOptionalKey[]],
     pathParams: Record<string, string | undefined>,
@@ -480,14 +549,18 @@ function getTypedParamsByTypes<
         const type = types?.[key];
 
         if (type) {
-            try {
-                result[key] = type.getTyped(pathParams[key]);
-            } catch (error) {
-                if (isThrowableError(error)) {
-                    throw error[0];
-                }
+            if (isParamType(type)) {
+                result[key] = type.getTypedParam(pathParams[key]);
+            } else {
+                try {
+                    result[key] = type.getTyped(pathParams[key]);
+                } catch (error) {
+                    if (isThrowableError(error)) {
+                        throw error[0];
+                    }
 
-                result[key] = undefined;
+                    result[key] = undefined;
+                }
             }
         } else {
             if (typeof pathParams[key] === "string") {
@@ -495,7 +568,7 @@ function getTypedParamsByTypes<
             } else {
                 if (keys[1].indexOf(key as unknown as TOptionalKey) === -1) {
                     throw new Error(
-                        `Expected param ${key} to exist in the given path. Most likely you're rendering the component at a wrong path. You can make it optional or explicitly specify its type as stringType('').`
+                        `Expected param ${key} to exist in the given path. Most likely you're rendering the component at a wrong path. You can make it optional or explicitly specify its type as string().`
                     );
                 }
             }
@@ -505,10 +578,9 @@ function getTypedParamsByTypes<
     return result as OutParamsByKey<TKey, TOptionalKey, TPathTypes>;
 }
 
-function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string, Type<unknown, string | string[]>>>>(
-    searchParams: URLSearchParams,
-    types?: TSearchTypes
-): OutSearchParams<TSearchTypes> {
+function getTypedSearchParamsByTypes<
+    TSearchTypes extends Partial<Record<string, SearchParamType<unknown, never> | Type<unknown, string | string[]>>>
+>(searchParams: URLSearchParams, types?: TSearchTypes): OutSearchParams<TSearchTypes> {
     const result: Record<string, unknown> = {};
 
     if (types) {
@@ -516,14 +588,18 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
             const type = types[key];
 
             if (type) {
-                try {
-                    result[key] = type.getTyped(type.isArray ? searchParams.getAll(key) : searchParams.get(key));
-                } catch (error) {
-                    if (isThrowableError(error)) {
-                        throw error[0];
-                    }
+                if (isSearchParamType(type)) {
+                    result[key] = type.getTypedSearchParam(searchParams.getAll(key));
+                } else {
+                    try {
+                        result[key] = type.getTyped(type.isArray ? searchParams.getAll(key) : searchParams.get(key));
+                    } catch (error) {
+                        if (isThrowableError(error)) {
+                            throw error[0];
+                        }
 
-                    result[key] = undefined;
+                        result[key] = undefined;
+                    }
                 }
             }
         });
@@ -542,10 +618,9 @@ function getTypedHashByValues(hash?: string, hashValues?: string[]): string | un
     return undefined;
 }
 
-function getTypedStateByTypes<TStateTypes extends Partial<Record<string, Type<unknown, unknown>>>>(
-    state: unknown,
-    types?: TStateTypes
-): OutStateParams<TStateTypes> {
+function getTypedStateByTypes<
+    TStateTypes extends Partial<Record<string, StateParamType<unknown, never> | Type<unknown, unknown>>>
+>(state: unknown, types?: TStateTypes): OutStateParams<TStateTypes> {
     const result: Record<string, unknown> = {};
 
     if (types && isRecord(state)) {
@@ -553,14 +628,18 @@ function getTypedStateByTypes<TStateTypes extends Partial<Record<string, Type<un
             const type = types[key];
 
             if (type) {
-                try {
-                    result[key] = type.getTyped(state[key]);
-                } catch (error) {
-                    if (isThrowableError(error)) {
-                        throw error[0];
-                    }
+                if (isStateParamType(type)) {
+                    result[key] = type.getTypedStateParam(state[key]);
+                } else {
+                    try {
+                        result[key] = type.getTyped(state[key]);
+                    } catch (error) {
+                        if (isThrowableError(error)) {
+                            throw error[0];
+                        }
 
-                    result[key] = undefined;
+                        result[key] = undefined;
+                    }
                 }
             }
         });
@@ -620,6 +699,25 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isThrowableError(error: unknown): error is [unknown, ThrowableFallback] {
     return Array.isArray(error) && error[1] === throwable;
+}
+
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+function isParamType<TOut, TIn>(type: ParamType<TOut, TIn> | Type<any, any>): type is ParamType<TOut, TIn> {
+    return Boolean(type && typeof type === "object" && "getTypedParam" in type && "getPlainParam" in type);
+}
+
+function isSearchParamType<TOut, TIn>(
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    type: SearchParamType<TOut, TIn> | Type<any, any>
+): type is SearchParamType<TOut, TIn> {
+    return Boolean(type && typeof type === "object" && "getTypedSearchParam" in type && "getPlainSearchParam" in type);
+}
+
+function isStateParamType<TOut, TIn>(
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    type: StateParamType<TOut, TIn> | Type<any, any>
+): type is StateParamType<TOut, TIn> {
+    return Boolean(type && typeof type === "object" && "getTypedStateParam" in type && "getPlainStateParam" in type);
 }
 
 export {
