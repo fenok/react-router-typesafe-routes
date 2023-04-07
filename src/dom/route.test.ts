@@ -1390,10 +1390,35 @@ it("allows to use yup", () => {
     });
 });
 
-it("allows to specify defaults within zod schema", () => {
+it("allows to specify defaults within zod types", () => {
     const TEST_ROUTE = route("", {
         searchParams: {
             a: zod(z.number().default(-1)),
+        },
+    });
+
+    assert<
+        IsExact<
+            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
+            {
+                a: number | undefined;
+            }
+        >
+    >(true);
+
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams())).toEqual({
+        a: -1,
+    });
+
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "f" }))).toEqual({
+        a: undefined,
+    });
+});
+
+it("allows to specify defaults within yup schemas", () => {
+    const TEST_ROUTE = route("", {
+        searchParams: {
+            a: yup(y.number().default(-1)),
         },
     });
 

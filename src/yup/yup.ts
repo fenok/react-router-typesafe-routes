@@ -1,7 +1,15 @@
 import { UniversalType, parser, ParserHint, type } from "../common/index.js";
-import { Schema, StringSchema, DateSchema } from "yup";
+import { StringSchema, DateSchema } from "yup";
 
-export function yup<T>(schema: Schema<T>): UniversalType<T> {
+/** @see https://github.com/jquense/yup/issues/1974 */
+interface SchemaLike<T> {
+    spec: {
+        nullable: boolean;
+    };
+    validateSync(value: unknown): T;
+}
+
+export function yup<T>(schema: SchemaLike<T>): UniversalType<T> {
     let typeHint: ParserHint = "unknown";
 
     if (!schema.spec.nullable) {
