@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--   For types of parsed path params, search params, and state fields, keys that correspond to type objects that return undefined upon a parsing error are no longer optional.
+-   For types of parsed path params, search params, and state fields, keys that correspond to type objects that return `undefined` upon a parsing error are no longer optional.
 -   Route params input and output types are now much more readable in IDE hints.
 
 ### Deprecated
