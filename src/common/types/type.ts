@@ -1,27 +1,167 @@
-interface Type<TOriginal, TPlain = string, TRetrieved = TOriginal> {
-    getPlain: (originalValue: TOriginal) => TPlain;
-    getTyped: (plainValue: unknown) => TRetrieved;
-    isArray?: boolean;
+import { parser as defaultParser, Parser } from "./parser.js";
+
+interface ParamType<TOut, TIn = TOut> {
+    getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
+    getTypedParam: (plainValue: string | undefined) => TOut;
 }
 
-interface CallableType<TOriginal, TPlain = string, TRetrieved = TOriginal>
-    extends Type<TOriginal, TPlain, TRetrieved | undefined> {
-    (fallback: TOriginal | ThrowableFallback): Type<TOriginal, TPlain, TRetrieved>;
+interface SearchParamType<TOut, TIn = TOut> {
+    getPlainSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
+    getTypedSearchParam: (plainValue: string[]) => TOut;
 }
 
-type ThrowableFallback = { __brand: "throwable" };
+interface StateParamType<TOut, TIn = TOut> {
+    getPlainStateParam: (originalValue: Exclude<TIn, undefined>) => unknown;
+    getTypedStateParam: (plainValue: unknown) => TOut;
+}
 
-type OriginalParams<TTypes> = Params<TTypes, true>;
-type RetrievedParams<TTypes> = Params<TTypes>;
+type AnyParamType<TOut, TIn = TOut> = ParamType<TOut, TIn> & SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
 
-type Params<TTypes, TUseOriginal extends boolean = false> = {
-    [TKey in keyof TTypes]: TypeValue<TTypes[TKey], TUseOriginal>;
+type ArrayParamType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
+
+type UniversalType<TOut> = ConfiguredType<TOut | undefined> & {
+    default: (def: Exclude<TOut, undefined>) => ConfiguredType<Exclude<TOut, undefined>>;
+    defined: () => ConfiguredType<Exclude<TOut, undefined>>;
 };
 
-type TypeValue<T, TUseOriginal extends boolean> = T extends Type<infer TOriginal, unknown, infer TRetrieved>
-    ? TUseOriginal extends true
-        ? TOriginal
-        : TRetrieved
-    : never;
+type ConfiguredType<TOut> = AnyParamType<TOut, Exclude<TOut, undefined>> & {
+    array: () => ArrayParamType<TOut[], Exclude<TOut, undefined>[]>;
+};
 
-export { Type, CallableType, OriginalParams, RetrievedParams, ThrowableFallback };
+interface Validator<T, TPrev = unknown> {
+    (value: TPrev): T;
+}
+
+function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> = defaultParser()): UniversalType<T> {
+    const getPlainParam = (value: Exclude<T, undefined>) => parser.stringify(value);
+    const getTypedParam = (value: string | undefined) =>
+        validator(typeof value === "undefined" ? value : parser.parse(value));
+    const getPlainSearchParam = (value: Exclude<T, undefined>) => parser.stringify(value);
+    const getTypedSearchParam = (value: string[]) =>
+        validator(typeof value[0] === "undefined" ? value[0] : parser.parse(value[0]));
+    const getPlainStateParam = (value: T) => value;
+    const getTypedStateParam = (value: unknown) => validator(value);
+
+    return Object.assign(
+        {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
+        {
+            getPlainParam,
+            getTypedParam: ensureNoError(getTypedParam),
+            getPlainSearchParam,
+            getTypedSearchParam: ensureNoError(getTypedSearchParam),
+            getPlainStateParam,
+            getTypedStateParam: ensureNoError(getTypedStateParam),
+        },
+        {
+            array: getArrayParamTypeBuilder(ensureNoError(validator), {
+                stringify: parser.stringify,
+                parse: ensureNoError(parser.parse),
+            }),
+        },
+        {
+            default: (def: Exclude<T, undefined>) => {
+                const validDef = validateDef(validator, def);
+
+                return Object.assign(
+                    {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
+                    {
+                        getPlainParam,
+                        getTypedParam: ensureNoUndefined(ensureNoError(getTypedParam), validDef),
+                        getPlainSearchParam,
+                        getTypedSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validDef),
+                        getPlainStateParam,
+                        getTypedStateParam: ensureNoUndefined(ensureNoError(getTypedStateParam), validDef),
+                    },
+                    {
+                        array: getArrayParamTypeBuilder(ensureNoUndefined(ensureNoError(validator), validDef), {
+                            stringify: parser.stringify,
+                            parse: ensureNoUndefined(ensureNoError(parser.parse), validDef),
+                        }),
+                    }
+                );
+            },
+            defined: () => {
+                return Object.assign(
+                    {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
+                    {
+                        getPlainParam,
+                        getTypedParam: ensureNoUndefined(getTypedParam),
+                        getPlainSearchParam,
+                        getTypedSearchParam: ensureNoUndefined(getTypedSearchParam),
+                        getPlainStateParam,
+                        getTypedStateParam: ensureNoUndefined(getTypedStateParam),
+                    },
+                    {
+                        array: getArrayParamTypeBuilder(ensureNoUndefined(validator), {
+                            stringify: parser.stringify,
+                            parse: ensureNoUndefined(parser.parse),
+                        }),
+                    }
+                );
+            },
+        }
+    );
+}
+
+const getArrayParamTypeBuilder =
+    <TOut, TIn>(validator: Validator<TOut>, parser: Parser<TIn>) =>
+    (): ArrayParamType<TOut[], TIn[]> => {
+        const getPlainSearchParam = (values: TIn[]) => values.map((value) => parser.stringify(value));
+        const getTypedSearchParam = (values: string[]) => values.map((item) => validator(parser.parse(item)));
+        const getPlainStateParam = (values: TIn[]) => values;
+        const getTypedStateParam = (values: unknown) =>
+            (Array.isArray(values) ? values : []).map((item) => validator(item));
+
+        return {
+            getPlainSearchParam,
+            getTypedSearchParam,
+            getPlainStateParam,
+            getTypedStateParam,
+        };
+    };
+
+function ensureNoError<TFn extends (...args: never[]) => unknown, TDefault>(
+    fn: TFn
+): (...args: Parameters<TFn>) => ReturnType<TFn> | undefined {
+    return (...args: Parameters<TFn>) => {
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            return fn(...args) as ReturnType<TFn>;
+        } catch (error) {
+            return undefined;
+        }
+    };
+}
+
+function ensureNoUndefined<TFn extends (...args: never[]) => unknown>(
+    fn: TFn,
+    def?: Exclude<ReturnType<TFn>, undefined>
+): (...args: Parameters<TFn>) => Exclude<ReturnType<TFn>, undefined> {
+    return (...args: Parameters<TFn>) => {
+        const result = fn(...args);
+
+        if (result === undefined) {
+            if (def === undefined) {
+                throw new Error("Unexpected undefined");
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            return def;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return result as Exclude<ReturnType<TFn>, undefined>;
+    };
+}
+
+function validateDef<T>(validator: Validator<T>, def: unknown): Exclude<T, undefined> {
+    const validDef = validator(def);
+
+    if (validDef === undefined) {
+        throw new Error("Default value validation resulted in 'undefined', which is forbidden");
+    }
+
+    return validDef as Exclude<T, undefined>;
+}
+
+export { type, UniversalType, Validator, ParamType, SearchParamType, StateParamType };

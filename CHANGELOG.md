@@ -7,16 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+-   Introduce type objects that allow to fine-tune parsing and serialization logic for every route part.
+-   Add helpers for creating these type objects. They can generally be used instead of the old ones (see [Migrating to Universal Types](docs/migrating-to-universal-types.md)). The helpers are:
+    -   `type()` for creating any type;
+    -   `parser()` for accessing the built-in parser, most likely for building custom wrappers around `type()`;
+    -   `string()`, `number()`, `boolean()`, and `date()` for creating types based on the corresponding primitives;
+    -   `union()` for creating unions of `string`, `number`, and `boolean` values;
+    -   `zod()` for creating types based on Zod Types;
+    -   `yup()` for creating types based on Yup Schemas.
+
 ### Fixed
 
--   Type objects are now fully responsible for tweaking how parsing errors are processed, as they semantically should.
-    -   Type objects that use other type objects now work as expected. For instance, `arrayOfType(numberType)` will now give `(number | undefined)[] | undefined` instead of `number[] | undefined` upon parsing.
-    -   If a custom type wasn't created via `createType()`, it will now behave as `throwable`. It shouldn't be done in the first place, so it's not considered a breaking change.
 -   For types of parsed path params, search params, and state fields, keys that correspond to type objects that return `undefined` upon a parsing error are no longer optional.
+-   Route params input and output types are now much more readable in IDE hints.
 
-### Removed
+### Deprecated
 
--   Remove `KeysWithFallback` helper which is now obsolete. It's not considered a breaking change, because this helper is internal.
+-   Deprecate old helpers for creating type objects: `createType()`, `stringType()`, `numberType()`, `booleanType()`, `dateType()`, `oneOfType()`, `arrayOfType()`, `throwable`, and all types that are exclusive to them.
+-   Deprecate `assertIsString()`, `assertIsNumber()`, `assertIsBoolean()`, `assertIsArray()`, and `assertIsValidDate()` because they are embedded in new helpers, which allow to run additional checks after these assertions.
 
 ## [1.0.0] - 2023-01-23
 
