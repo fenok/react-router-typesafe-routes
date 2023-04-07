@@ -17,11 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   `union()` for creating unions of `string`, `number`, and `boolean` values;
     -   `zod()` for creating types based on Zod Types;
     -   `yup()` for creating types based on Yup Schemas.
+-   Route params input and output types are now much more readable in IDE hints.
+-   Specifying a path pattern with leading or trailing slashes or a child route starting with a lowercase letter will now lead to a human-readable error.
 
 ### Fixed
 
 -   For types of parsed path params, search params, and state fields, keys that correspond to type objects that return `undefined` upon a parsing error are no longer optional.
--   Route params input and output types are now much more readable in IDE hints.
 
 ### Deprecated
 
