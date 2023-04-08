@@ -43,7 +43,7 @@ jobs:
           git push
           git push --tags
 
-      - name: Publish to NPM
+      - name: Publish to NPM (next)
         run: yarn npm publish --tag next
         env:
           YARN_NPM_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
