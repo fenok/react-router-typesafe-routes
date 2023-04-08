@@ -1,0 +1,49 @@
+name: prerelease
+on: workflow_dispatch
+jobs:
+  release:
+    environment: NPM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.ADMIN_TOKEN }}
+
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          registry-url: https://registry.npmjs.org/
+
+      - name: Configure Git
+        run: |
+          git config user.name "${{ secrets.ADMIN_NAME }}"
+          git config user.email "${{ secrets.ADMIN_EMAIL }}"
+
+      - name: Perform project installation
+        run: yarn
+
+      - name: Bump version
+        run: yarn node ./apply-prerelease-version.mjs
+
+      - name: Retrieve version from package.json
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.1.0
+
+      - name: Commit and tag version
+        run: |
+          git add .
+          git commit -m "[CI] Bump version to v${{ steps.package-version.outputs.current-version}}"
+          git tag v${{ steps.package-version.outputs.current-version}}
+
+      - name: Push
+        run: |
+          git push
+          git push --tags
+
+      - name: Publish to NPM
+        run: yarn npm publish --tag next
+        env:
+          YARN_NPM_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
