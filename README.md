@@ -32,9 +32,7 @@ Additionally, there are optional entry points for types based on third-party val
 -   `react-router-typesafe-routes/zod` exports `zod` type, `zod` is a peer dependency;
 -   `react-router-typesafe-routes/yup` exports `yup` type, `yup` is a peer dependency;
 
-The library is distributed as an ES module written in ES6.
-
-> Note that I'm not opposed to adding CommonJS support, but I'm not an expert in dealing with the [dual package hazard](https://nodejs.org/api/packages.html#packages_dual_package_hazard). And, since some packages are [dropping CommonJS support](https://devclass.com/2021/06/15/d3-7-0-goes-all-in-on-ecmascript-modules/) anyway, I'm not sure that it worth spending resources on. I'll gladly accept a PR, but it shouldn't affect the ES module users in any way.
+The library is built with [Microbundle](https://github.com/developit/microbundle) (Modern and CommonJS builds).
 
 ## Limitations & Caveats
 
