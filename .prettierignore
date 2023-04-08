@@ -1,8 +1,8 @@
 .yarn/
 .pnp.*
-common/
-dom/
-native/
-zod/
-yup/
-!src/*
+lib
+index.*
+dom.*
+native.*
+zod.*
+yup.*

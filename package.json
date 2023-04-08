@@ -16,25 +16,41 @@
     },
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
-    "type": "module",
-    "main": "common/index.js",
-    "module": "common/index.js",
-    "types": "common/index.d.ts",
+    "type": "commonjs",
+    "main": "./index.js",
+    "module": "./index.mjs",
+    "types": "./index.d.ts",
     "exports": {
-        ".": "./common/index.js",
-        "./dom": "./dom/index.js",
-        "./native": "./native/index.js",
-        "./zod": "./zod/index.js",
-        "./yup": "./yup/index.js",
+        ".": {
+            "import": "./index.mjs",
+            "default": "./index.js"
+        },
+        "./dom": {
+            "import": "./dom.mjs",
+            "default": "./dom.js"
+        },
+        "./native": {
+            "import": "./native.mjs",
+            "default": "./native.js"
+        },
+        "./zod": {
+            "import": "./zod.mjs",
+            "default": "./zod.js"
+        },
+        "./yup": {
+            "import": "./yup.mjs",
+            "default": "./yup.js"
+        },
         "./package.json": "./package.json"
     },
     "sideEffects": false,
     "files": [
-        "common/",
-        "dom/",
-        "native/",
-        "zod/",
-        "yup/",
+        "lib/",
+        "index.*",
+        "dom.*",
+        "native.*",
+        "zod.*",
+        "yup.*",
         "docs/",
         "CHANGELOG.md"
     ],
@@ -43,7 +59,7 @@
     },
     "scripts": {
         "format": "prettier --write --ignore-unknown .",
-        "build": "rimraf common dom native zod yup && tsc --project tsconfig.build.json --outDir .",
+        "build": "rimraf lib && microbundle --tsconfig ./tsconfig.build.json src/*.ts -f modern,cjs --compress false --sourcemap false",
         "format:check": "prettier --check .",
         "lint": "eslint --max-warnings=0 --report-unused-disable-directives .",
         "test": "jest",

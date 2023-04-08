@@ -1,7 +1,7 @@
-common
-dom
-native
-zod
-yup
-!src/*
-update-changelog.js
+lib
+index.*
+dom.*
+native.*
+zod.*
+yup.*
+update-changelog.mjs

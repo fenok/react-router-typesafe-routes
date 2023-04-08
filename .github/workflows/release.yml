@@ -29,7 +29,7 @@ jobs:
         run: yarn version apply
 
       - name: Update CHANGELOG.md
-        run: yarn node ./update-changelog.js
+        run: yarn node ./update-changelog.mjs
 
       - name: Retrieve version from package.json
         id: package-version
