@@ -1,8 +1,9 @@
-lib/*
+lib/
 index.*
 dom.*
 native.*
 zod.*
 yup.*
+!src/**/*
 update-changelog.mjs
 apply-prerelease-version.mjs

@@ -1,8 +1,9 @@
 .yarn/
 .pnp.*
-lib
+lib/
 index.*
 dom.*
 native.*
 zod.*
 yup.*
+!src/**/*
