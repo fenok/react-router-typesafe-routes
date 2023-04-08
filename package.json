@@ -45,14 +45,14 @@
     },
     "sideEffects": false,
     "files": [
-        "lib/",
-        "index.*",
-        "dom.*",
-        "native.*",
-        "zod.*",
-        "yup.*",
-        "docs/",
-        "CHANGELOG.md"
+        "./lib/",
+        "./index.*",
+        "./dom.*",
+        "./native.*",
+        "./zod.*",
+        "./yup.*",
+        "./docs/",
+        "./CHANGELOG.md"
     ],
     "engines": {
         "node": ">=14"
