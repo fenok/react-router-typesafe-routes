@@ -22,22 +22,27 @@
     "types": "./index.d.ts",
     "exports": {
         ".": {
+            "types": "./index.d.ts",
             "import": "./index.mjs",
             "default": "./index.js"
         },
         "./dom": {
+            "types": "./dom.d.ts",
             "import": "./dom.mjs",
             "default": "./dom.js"
         },
         "./native": {
+            "types": "./native.d.ts",
             "import": "./native.mjs",
             "default": "./native.js"
         },
         "./zod": {
+            "types": "./zod.d.ts",
             "import": "./zod.mjs",
             "default": "./zod.js"
         },
         "./yup": {
+            "types": "./yup.d.ts",
             "import": "./yup.mjs",
             "default": "./yup.js"
         },
