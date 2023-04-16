@@ -17,6 +17,7 @@
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
     "type": "module",
+    "main": "index.js",
     "types": "./index.d.ts",
     "exports": {
         ".": {
