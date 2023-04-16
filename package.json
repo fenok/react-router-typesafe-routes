@@ -16,35 +16,33 @@
     },
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
-    "type": "commonjs",
-    "main": "./index.js",
-    "module": "./index.mjs",
+    "type": "module",
     "types": "./index.d.ts",
     "exports": {
         ".": {
             "types": "./index.d.ts",
-            "import": "./index.mjs",
-            "default": "./index.js"
+            "import": "./index.js",
+            "require": "./index.cjs"
         },
         "./dom": {
             "types": "./dom.d.ts",
-            "import": "./dom.mjs",
-            "default": "./dom.js"
+            "import": "./dom.js",
+            "require": "./dom.cjs"
         },
         "./native": {
             "types": "./native.d.ts",
-            "import": "./native.mjs",
-            "default": "./native.js"
+            "import": "./native.js",
+            "require": "./native.cjs"
         },
         "./zod": {
             "types": "./zod.d.ts",
-            "import": "./zod.mjs",
-            "default": "./zod.js"
+            "import": "./zod.js",
+            "require": "./zod.cjs"
         },
         "./yup": {
             "types": "./yup.d.ts",
-            "import": "./yup.mjs",
-            "default": "./yup.js"
+            "import": "./yup.js",
+            "require": "./yup.cjs"
         },
         "./package.json": "./package.json"
     },

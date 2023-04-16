@@ -32,7 +32,7 @@ Additionally, there are optional entry points for types based on third-party val
 -   `react-router-typesafe-routes/zod` exports `zod` type, `zod` is a peer dependency;
 -   `react-router-typesafe-routes/yup` exports `yup` type, `yup` is a peer dependency;
 
-The library is built with [Microbundle](https://github.com/developit/microbundle) (Modern and CommonJS builds).
+The library is built with [Microbundle](https://github.com/developit/microbundle) (Modern (ESM) and CommonJS builds). By default, ESM is used. CommonJS is only usable in environments that support the `exports` field in `package.json`.
 
 ## Limitations & Caveats
 
