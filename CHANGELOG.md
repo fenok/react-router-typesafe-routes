@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--   Add CommonJS support.
+-   Add CommonJS support for environments that support the `exports` field in `package.json`.
 
 ## [1.1.0] - 2023-04-07
 
