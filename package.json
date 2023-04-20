@@ -17,54 +17,48 @@
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
     "type": "module",
-    "main": "./index.js",
-    "module": "./index.js",
-    "types": "./index.d.ts",
+    "main": "./common/index.js",
+    "module": "./common/index.js",
+    "types": "./common/index.d.ts",
     "exports": {
         ".": {
-            "types": "./index.d.ts",
-            "import": "./index.js",
-            "require": "./index.cjs"
+            "import": "./common/index.js",
+            "require": "./common/index.cjs"
         },
         "./dom": {
-            "types": "./dom.d.ts",
-            "import": "./dom.js",
-            "require": "./dom.cjs"
+            "import": "./dom/index.js",
+            "require": "./dom/index.cjs"
         },
         "./native": {
-            "types": "./native.d.ts",
-            "import": "./native.js",
-            "require": "./native.cjs"
+            "import": "./native/index.js",
+            "require": "./native/index.cjs"
         },
         "./zod": {
-            "types": "./zod.d.ts",
-            "import": "./zod.js",
-            "require": "./zod.cjs"
+            "import": "./zod/index.js",
+            "require": "./zod/index.cjs"
         },
         "./yup": {
-            "types": "./yup.d.ts",
-            "import": "./yup.js",
-            "require": "./yup.cjs"
+            "import": "./yup/index.js",
+            "require": "./yup/index.cjs"
         },
         "./package.json": "./package.json"
     },
     "sideEffects": false,
     "files": [
-        "./lib/",
-        "./index.*",
-        "./dom.*",
-        "./native.*",
-        "./zod.*",
-        "./yup.*",
-        "./docs/",
-        "./CHANGELOG.md"
+        "common",
+        "dom",
+        "native",
+        "zod",
+        "yup",
+        "docs",
+        "CHANGELOG.md"
     ],
     "engines": {
         "node": ">=14"
     },
     "scripts": {
         "format": "prettier --write --ignore-unknown .",
-        "build": "rimraf lib && microbundle --tsconfig ./tsconfig.build.json src/*.ts -f modern,cjs --compress false --sourcemap false",
+        "build": "rimraf common dom native zod yup && node create-cts.mjs && tsc --project tsconfig.build.mjs.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-cts.mjs",
         "format:check": "prettier --check .",
         "lint": "eslint --max-warnings=0 --report-unused-disable-directives .",
         "test": "jest",
@@ -82,7 +76,6 @@
         "eslint-config-prettier": "^8.7.0",
         "eslint-plugin-react-hooks": "^4.6.0",
         "jest": "^29.5.0",
-        "microbundle": "^0.15.1",
         "prettier": "^2.8.4",
         "react": ">=16.8",
         "react-router-dom": "^6.7.0",

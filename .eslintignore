@@ -1,9 +1,9 @@
-lib/
-index.*
-dom.*
-native.*
-zod.*
-yup.*
-!src/**/*
+common/*
+dom/*
+native/*
+zod/*
+yup/*
+src/**/*.cts
 update-changelog.mjs
 apply-prerelease-version.mjs
+create-cts.mjs
