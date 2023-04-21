@@ -58,7 +58,7 @@
     },
     "scripts": {
         "format": "prettier --write --ignore-unknown .",
-        "build": "rimraf common dom native zod yup && node create-cts.mjs && tsc --project tsconfig.build.mjs.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-cts.mjs",
+        "build": "rimraf common dom native zod yup && node create-cts.mjs && tsc --project tsconfig.build.js.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-cts.mjs",
         "format:check": "prettier --check .",
         "lint": "eslint --max-warnings=0 --report-unused-disable-directives .",
         "test": "jest",
