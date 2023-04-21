@@ -8,15 +8,12 @@
 !.yarn/versions
 
 # Compiled code
-lib
-index.*
-dom.*
-native.*
-zod.*
-yup.*
-
-# Microbundle cache
-node_modules/.cache
+common/*
+dom/*
+native/*
+zod/*
+yup/*
+src/**/*.cts
 
 # Created by https://www.toptal.com/developers/gitignore/api/linux,macos,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,macos,windows
