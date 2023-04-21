@@ -7,3 +7,4 @@ src/**/*.cts
 update-changelog.mjs
 apply-prerelease-version.mjs
 create-cts.mjs
+remove-cts.mjs
