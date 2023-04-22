@@ -1,4 +1,4 @@
-name: release
+name: prerelease
 on: workflow_dispatch
 jobs:
   release:
@@ -26,10 +26,7 @@ jobs:
         run: yarn
 
       - name: Bump version
-        run: yarn version apply
-
-      - name: Update CHANGELOG.md
-        run: yarn node ./update-changelog.mjs
+        run: yarn node ./apply-prerelease-version.mjs
 
       - name: Retrieve version from package.json
         id: package-version
@@ -50,14 +47,3 @@ jobs:
         run: yarn npm publish --tag next
         env:
           YARN_NPM_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-
-      - name: Publish to NPM (latest)
-        run: yarn npm publish
-        env:
-          YARN_NPM_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-
-      - name: Update main branch
-        run: |
-          git checkout main
-          git merge ${GITHUB_REF##*/} --no-ff
-          git push

@@ -1,6 +1,6 @@
 {
     "name": "react-router-typesafe-routes",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Comprehensive and extensible type-safe routes for React Router v6 with first-class support for nested routes and param validation.",
     "keywords": [
         "typesafe",
@@ -17,25 +17,40 @@
     "license": "MIT",
     "author": "Leonid Fenko <fenok2112@gmail.com>",
     "type": "module",
-    "main": "common/index.js",
-    "module": "common/index.js",
-    "types": "common/index.d.ts",
+    "main": "./common/index.js",
+    "module": "./common/index.js",
+    "types": "./common/index.d.ts",
     "exports": {
-        ".": "./common/index.js",
-        "./dom": "./dom/index.js",
-        "./native": "./native/index.js",
-        "./zod": "./zod/index.js",
-        "./yup": "./yup/index.js",
+        ".": {
+            "import": "./common/index.js",
+            "require": "./common/index.cjs"
+        },
+        "./dom": {
+            "import": "./dom/index.js",
+            "require": "./dom/index.cjs"
+        },
+        "./native": {
+            "import": "./native/index.js",
+            "require": "./native/index.cjs"
+        },
+        "./zod": {
+            "import": "./zod/index.js",
+            "require": "./zod/index.cjs"
+        },
+        "./yup": {
+            "import": "./yup/index.js",
+            "require": "./yup/index.cjs"
+        },
         "./package.json": "./package.json"
     },
     "sideEffects": false,
     "files": [
-        "common/",
-        "dom/",
-        "native/",
-        "zod/",
-        "yup/",
-        "docs/",
+        "common",
+        "dom",
+        "native",
+        "zod",
+        "yup",
+        "docs",
         "CHANGELOG.md"
     ],
     "engines": {
@@ -43,7 +58,7 @@
     },
     "scripts": {
         "format": "prettier --write --ignore-unknown .",
-        "build": "rimraf common dom native zod yup && tsc --project tsconfig.build.json --outDir .",
+        "build": "rimraf common dom native zod yup && node create-cts.mjs && tsc --project tsconfig.build.js.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-cts.mjs",
         "format:check": "prettier --check .",
         "lint": "eslint --max-warnings=0 --report-unused-disable-directives .",
         "test": "jest",

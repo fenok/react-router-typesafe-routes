@@ -1,7 +1,10 @@
-common
-dom
-native
-zod
-yup
-!src/*
-update-changelog.js
+common/*
+dom/*
+native/*
+zod/*
+yup/*
+src/**/*.cts
+update-changelog.mjs
+apply-prerelease-version.mjs
+create-cts.mjs
+remove-cts.mjs

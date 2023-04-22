@@ -8,12 +8,12 @@
 !.yarn/versions
 
 # Compiled code
-common/
-dom/
-native/
-zod/
-yup/
-!src/*
+common/*
+dom/*
+native/*
+zod/*
+yup/*
+src/**/*.cts
 
 # Created by https://www.toptal.com/developers/gitignore/api/linux,macos,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,macos,windows
