@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   [UNFINISHED] Hash values can now be specified without the `hashValues()` helper.
 -   **Breaking**: In corresponding generics, the `THash` constraint is changed from `string[]` to `string`.
 
+### Removed
+
+-   **Breaking**: Removed all deprecated features.
+
 ## [1.2.2] - 2024-04-21
 
 ### Fixed

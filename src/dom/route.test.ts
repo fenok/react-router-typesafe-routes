@@ -12,8 +12,6 @@ import {
     ParamType,
     SearchParamType,
     StateParamType,
-    numberType,
-    throwable,
 } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 import { zod } from "../zod/index.js";
@@ -1555,38 +1553,6 @@ it("allows to define different types for different route parts", () => {
     expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ id: "" }))).toEqual({ id: -1 });
     expect(TEST_ROUTE.buildState({ id: new Date() })).toEqual({ id: "state" });
     expect(TEST_ROUTE.getTypedState({ id: false })).toEqual({ id: false });
-});
-
-it("allows to mix types with deprecated ones", () => {
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: number().defined(),
-            b: numberType(throwable),
-        },
-    });
-
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.getPlainSearchParams>[0],
-            {
-                a?: number;
-                b?: number;
-            }
-        >
-    >(true);
-
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: number;
-                b: number;
-            }
-        >
-    >(true);
-
-    expect(TEST_ROUTE.getPlainSearchParams({ a: 1, b: 1 })).toEqual({ a: "1", b: "1" });
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "1", b: "1" }))).toEqual({ a: 1, b: 1 });
 });
 
 it("generates correct paths when the first segment is optional", () => {
