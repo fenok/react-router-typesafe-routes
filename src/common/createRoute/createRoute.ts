@@ -8,7 +8,7 @@ type RouteWithChildren<
     TPath extends string,
     TPathTypes,
     TSearchTypes,
-    THash extends string[],
+    THash extends string,
     TStateTypes
 > = DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> &
     Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes> & {
@@ -20,7 +20,7 @@ type DecoratedChildren<
     TPath extends string,
     TPathTypes,
     TSearchTypes,
-    THash extends string[],
+    THash extends string,
     TStateTypes,
     TExcludePath extends boolean = false
 > = {
@@ -49,14 +49,14 @@ type DecoratedChildren<
         : TChildren[TKey];
 };
 
-interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateTypes> {
+interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends string, TStateTypes> {
     path: `/${SanitizedPath<TPath>}`;
     relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
     getPlainParams: (params: InParams<TPath, TPathTypes>) => Record<string, string | undefined>;
     getPlainSearchParams: (params: InSearchParams<TSearchTypes>) => Record<string, string | string[]>;
     getTypedParams: (params: Record<string, string | undefined>) => OutParams<TPath, TPathTypes>;
     getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSearchTypes>;
-    getTypedHash: (hash: string) => THash[number] | undefined;
+    getTypedHash: (hash: string) => THash | undefined;
     getTypedState: (state: unknown) => OutStateParams<TStateTypes>;
     getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
     getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
@@ -64,28 +64,28 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
     buildPath: (
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash[number]
+        hash?: THash
     ) => string;
     buildRelativePath: (
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash[number]
+        hash?: THash
     ) => string;
     buildSearch: (params: InSearchParams<TSearchTypes>) => string;
-    buildHash: (hash: THash[number]) => string;
+    buildHash: (hash: THash) => string;
     buildState: (state: InStateParams<TStateTypes>) => Record<string, unknown>;
     types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>;
     /** @deprecated Use buildPath instead. */
     buildUrl: (
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash[number]
+        hash?: THash
     ) => string;
     /** @deprecated Use buildRelativePath instead. */
     buildRelativeUrl: (
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash[number]
+        hash?: THash
     ) => string;
 }
 
@@ -250,7 +250,7 @@ const createRoute =
         TSearchTypes extends Partial<
             Record<string, SearchParamType<unknown, never> | Type<any, string | string[]>>
         > = Record<never, never>,
-        THash extends string[] = never[],
+        THash extends string = never,
         TStateTypes extends Partial<Record<string, StateParamType<unknown, never> | Type<any, any>>> = Record<
             never,
             never
@@ -272,7 +272,7 @@ function decorateChildren<
     TPath extends string,
     TPathTypes,
     TSearchTypes,
-    THash extends string[],
+    THash extends string,
     TStateTypes,
     TChildren,
     TExcludePath extends boolean
@@ -321,7 +321,7 @@ function getRoute<
         Record<string, SearchParamType<unknown, never> | Type<any, string | string[]>>
     > = Record<never, never>,
     TStateTypes extends Partial<Record<string, StateParamType<unknown, never> | Type<any, any>>> = Record<never, never>,
-    THash extends string[] = never[]
+    THash extends string = never
     /* eslint-enable */
 >(
     path: SanitizedPath<TPath>,
@@ -351,7 +351,7 @@ function getRoute<
         return searchString ? `?${searchString}` : "";
     }
 
-    function buildHash(hash: THash[number]) {
+    function buildHash(hash: THash) {
         return `#${hash}`;
     }
 
@@ -362,7 +362,7 @@ function getRoute<
     function buildRelativePath(
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash[number]
+        hash?: THash
     ) {
         return `${buildRelativePathname(params)}${searchParams !== undefined ? buildSearch(searchParams) : ""}${
             hash !== undefined ? buildHash(hash) : ""
@@ -372,25 +372,17 @@ function getRoute<
     function buildRelativeUrl(
         params: InParams<TPath, TPathTypes>,
         searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash[number]
+        hash?: THash
     ) {
         warn("buildRelativeUrl is deprecated, use buildRelativePath instead.");
         return buildRelativePath(params, searchParams, hash);
     }
 
-    function buildPath(
-        params: InParams<TPath, TPathTypes>,
-        searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash[number]
-    ) {
+    function buildPath(params: InParams<TPath, TPathTypes>, searchParams?: InSearchParams<TSearchTypes>, hash?: THash) {
         return `/${buildRelativePath(params, searchParams, hash)}`;
     }
 
-    function buildUrl(
-        params: InParams<TPath, TPathTypes>,
-        searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash[number]
-    ) {
+    function buildUrl(params: InParams<TPath, TPathTypes>, searchParams?: InSearchParams<TSearchTypes>, hash?: THash) {
         warn("buildUrl is deprecated, use buildPath instead.");
         return buildPath(params, searchParams, hash);
     }
@@ -618,11 +610,14 @@ function getTypedSearchParamsByTypes<
     return result as OutSearchParams<TSearchTypes>;
 }
 
-function getTypedHashByValues(hash?: string, hashValues?: string[]): string | undefined {
+function getTypedHashByValues<THash extends string>(hash?: string, hashValues?: THash[]): THash | undefined {
     const normalizedHash = hash?.substring(1, hash?.length);
 
-    if (hashValues?.length === 0 || (normalizedHash && hashValues && hashValues.indexOf(normalizedHash) !== -1)) {
-        return normalizedHash;
+    if (
+        hashValues?.length === 0 ||
+        (normalizedHash && hashValues && hashValues.indexOf(normalizedHash as THash) !== -1)
+    ) {
+        return normalizedHash as THash;
     }
 
     return undefined;
@@ -697,7 +692,7 @@ function isRoute(
     string,
     Record<never, never>,
     Record<never, never>,
-    string[],
+    string,
     Record<never, never>
 > {
     return Boolean(value && typeof value === "object" && "types" in value && "path" in value);

@@ -1,12 +1,12 @@
 import { Merge } from "./helpers.js";
 
-type Types<TPathTypes, TSearchTypes, THash extends string[], TStateTypes> = RouteTypes<
+type Types<TPathTypes, TSearchTypes, THash extends string, TStateTypes> = RouteTypes<
     TPathTypes,
     TSearchTypes,
     THash,
     TStateTypes
 > &
-    (<TChildPathTypes, TChildSearchTypes, TChildHash extends string[], TChildStateTypes>(
+    (<TChildPathTypes, TChildSearchTypes, TChildHash extends string, TChildStateTypes>(
         typesOrRoute:
             | {
                   types: RouteTypes<TChildPathTypes, TChildSearchTypes, TChildHash, TChildStateTypes>;
@@ -19,14 +19,14 @@ type Types<TPathTypes, TSearchTypes, THash extends string[], TStateTypes> = Rout
         Merge<TStateTypes, TChildStateTypes>
     >);
 
-interface RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes> {
+interface RouteTypes<TPathTypes, TSearchTypes, THash extends string, TStateTypes> {
     params?: TPathTypes;
     searchParams?: TSearchTypes;
-    hash?: THash;
+    hash?: THash[];
     state?: TStateTypes;
 }
 
-function types<TPathTypes, TSearchTypes, THash extends string[], TStateTypes>(
+function types<TPathTypes, TSearchTypes, THash extends string, TStateTypes>(
     typesOrRoute:
         | {
               types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>;
@@ -36,7 +36,7 @@ function types<TPathTypes, TSearchTypes, THash extends string[], TStateTypes>(
     const normalizedTypes: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes> =
         "types" in typesOrRoute ? typesOrRoute.types : typesOrRoute;
 
-    const result = <TChildPathTypes, TChildSearchTypes, TChildHash extends string[], TChildStateTypes>(
+    const result = <TChildPathTypes, TChildSearchTypes, TChildHash extends string, TChildStateTypes>(
         childTypesOrRoute:
             | {
                   types: RouteTypes<TChildPathTypes, TChildSearchTypes, TChildHash, TChildStateTypes>;
