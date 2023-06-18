@@ -7,7 +7,7 @@ interface TypedNavigateOptions<T> extends NavigateOptions {
     preserveUntyped?: boolean;
 }
 
-function useTypedSearchParams<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateTypes>(
+function useTypedSearchParams<TPath extends string, TPathTypes, TSearchTypes, THash extends string, TStateTypes>(
     route: Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes>,
     typedDefaultInit?: InSearchParams<TSearchTypes>
 ): [
