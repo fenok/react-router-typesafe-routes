@@ -1,5 +1,4 @@
 import { ParamType, SearchParamType, StateParamType } from "../types/index.js";
-import { warn } from "../warn.js";
 import { RouteTypes, types } from "./types.js";
 import { Merge, Readable, ErrorMessage } from "./helpers.js";
 
@@ -49,7 +48,13 @@ type DecoratedChildren<
         : TChildren[TKey];
 };
 
-interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends string, TStateTypes> {
+interface Route<
+    TPath extends string = string,
+    TPathTypes = Partial<Record<string, ParamType<any>>>,
+    TSearchTypes = Partial<Record<string, SearchParamType<any>>>,
+    THash extends string = any,
+    TStateTypes = Partial<Record<string, StateParamType<any>>>
+> {
     path: `/${SanitizedPath<TPath>}`;
     relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
     getPlainParams: (params: InParams<TPath, TPathTypes>) => Record<string, string | undefined>;
@@ -75,18 +80,6 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
     buildHash: (hash: THash) => string;
     buildState: (state: InStateParams<TStateTypes>) => Record<string, unknown>;
     types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>;
-    /** @deprecated Use buildPath instead. */
-    buildUrl: (
-        params: InParams<TPath, TPathTypes>,
-        searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash
-    ) => string;
-    /** @deprecated Use buildRelativePath instead. */
-    buildRelativeUrl: (
-        params: InParams<TPath, TPathTypes>,
-        searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash
-    ) => string;
 }
 
 type InParams<TPath extends string, TPathTypes> = [
@@ -345,22 +338,8 @@ function getRoute<
         }`;
     }
 
-    function buildRelativeUrl(
-        params: InParams<TPath, TPathTypes>,
-        searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash
-    ) {
-        warn("buildRelativeUrl is deprecated, use buildRelativePath instead.");
-        return buildRelativePath(params, searchParams, hash);
-    }
-
     function buildPath(params: InParams<TPath, TPathTypes>, searchParams?: InSearchParams<TSearchTypes>, hash?: THash) {
         return `/${buildRelativePath(params, searchParams, hash)}`;
-    }
-
-    function buildUrl(params: InParams<TPath, TPathTypes>, searchParams?: InSearchParams<TSearchTypes>, hash?: THash) {
-        warn("buildUrl is deprecated, use buildPath instead.");
-        return buildPath(params, searchParams, hash);
     }
 
     function getTypedParams(params: Record<string, string | undefined>) {
@@ -439,8 +418,6 @@ function getRoute<
         getPlainParams,
         getPlainSearchParams,
         types: types,
-        buildUrl,
-        buildRelativeUrl,
     };
 }
 
