@@ -1589,7 +1589,7 @@ it("allows to mix types with deprecated ones", () => {
     expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "1", b: "1" }))).toEqual({ a: 1, b: 1 });
 });
 
-it("generates correct paths if first segment is optional", () => {
+it("generates correct paths when the first segment is optional", () => {
     const TEST_ROUTE = route(":optional?/:required");
 
     expect(TEST_ROUTE.buildPath({ required: "req" })).toEqual("/req");
