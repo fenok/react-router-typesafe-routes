@@ -332,7 +332,9 @@ function getRoute<
     }
 
     function buildRelativePathname(params: InParams<TPath, TPathTypes>) {
-        return creatorOptions.generatePath(relativePath, getPlainParams(params));
+        const rawBuiltPath = creatorOptions.generatePath(relativePath, getPlainParams(params));
+
+        return rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
     }
 
     function buildSearch(params: InSearchParams<TSearchTypes>) {
