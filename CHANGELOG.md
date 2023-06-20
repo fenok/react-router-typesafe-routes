@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+-   Fix path generation when the first segment is optional. Previously, `route(":optional?/:required").buildPath({ required: "req" })` would be `"//req"`.
+
 ## [1.2.0] - 2023-04-22
 
 ### Added
@@ -106,6 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Hook dependencies are now properly listed, which is checked by ESLint. This fixes `useTypedSearchParams` for dynamic routes.
 -   Prevent access to internal `useUpdatingRef` helper.
 
+[unreleased]: https://github.com/fenok/react-router-typesafe-routes/tree/dev
 [1.2.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v1.2.0
 [1.1.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v1.1.0
 [1.0.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v1.0.0
