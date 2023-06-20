@@ -79,7 +79,10 @@ interface Route<
     buildSearch: (params: InSearchParams<TSearchTypes>) => string;
     buildHash: (hash: THash) => string;
     buildState: (state: InStateParams<TStateTypes>) => Record<string, unknown>;
-    types: Required<RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>>;
+    params: TPathTypes;
+    searchParams: TSearchTypes;
+    hash: THash[];
+    state: TStateTypes;
 }
 
 type InParams<TPath extends string, TPathTypes> = Readable<
@@ -261,7 +264,7 @@ function decorateChildren<
                               : value.path === "/"
                               ? path
                               : `${path}${value.path}`,
-                          types(excludePath ? { ...typesObj, params: undefined } : typesObj)(value.types),
+                          types(excludePath ? { ...typesObj, params: undefined } : typesObj)(value),
                           creatorOptions
                       ),
                       $: decorateChildren(path, typesObj, creatorOptions, value.$, true),
@@ -409,12 +412,10 @@ function getRoute<
         getUntypedState,
         getPlainParams,
         getPlainSearchParams,
-        types: {
-            params: types.params ?? ({} as TPathTypes),
-            searchParams: types.searchParams ?? ({} as TSearchTypes),
-            hash: types.hash ?? ([] as THash[]),
-            state: types.state ?? ({} as TStateTypes),
-        },
+        params: types.params ?? ({} as TPathTypes),
+        searchParams: types.searchParams ?? ({} as TSearchTypes),
+        hash: types.hash ?? ([] as THash[]),
+        state: types.state ?? ({} as TStateTypes),
     };
 }
 
