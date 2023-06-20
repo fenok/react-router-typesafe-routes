@@ -79,7 +79,7 @@ interface Route<
     buildSearch: (params: InSearchParams<TSearchTypes>) => string;
     buildHash: (hash: THash) => string;
     buildState: (state: InStateParams<TStateTypes>) => Record<string, unknown>;
-    types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>;
+    types: Required<RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>>;
 }
 
 type InParams<TPath extends string, TPathTypes> = [
@@ -417,7 +417,12 @@ function getRoute<
         getUntypedState,
         getPlainParams,
         getPlainSearchParams,
-        types: types,
+        types: {
+            params: types.params ?? ({} as TPathTypes),
+            searchParams: types.searchParams ?? ({} as TSearchTypes),
+            hash: types.hash ?? ([] as THash[]),
+            state: types.state ?? ({} as TStateTypes),
+        },
     };
 }
 
