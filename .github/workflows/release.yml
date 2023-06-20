@@ -52,7 +52,7 @@ jobs:
           YARN_NPM_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
       - name: Publish to NPM (latest)
-        run: yarn npm publish
+        run: yarn npm tag add react-router-typesafe-routes@${{ steps.package-version.outputs.current-version}} latest
         env:
           YARN_NPM_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
