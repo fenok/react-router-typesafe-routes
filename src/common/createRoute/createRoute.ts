@@ -81,7 +81,7 @@ interface Route<
     buildState: (state: InStateParams<TStateTypes>) => Record<string, unknown>;
     params: TPathTypes;
     searchParams: TSearchTypes;
-    hash: THash[];
+    hash: readonly THash[];
     state: TStateTypes;
 }
 
@@ -422,7 +422,7 @@ function getRoute<
         getPlainSearchParams,
         params: types.params ?? ({} as TPathTypes),
         searchParams: types.searchParams ?? ({} as TSearchTypes),
-        hash: types.hash ?? ([] as THash[]),
+        hash: types.hash ?? ([] as readonly THash[]),
         state: types.state ?? ({} as TStateTypes),
     };
 }
@@ -534,7 +534,7 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
     return result as OutSearchParams<TSearchTypes>;
 }
 
-function getTypedHashByValues<THash extends string>(hash?: string, hashValues?: THash[]): THash | undefined {
+function getTypedHashByValues<THash extends string>(hash?: string, hashValues?: readonly THash[]): THash | undefined {
     const normalizedHash = hash?.substring(1, hash?.length);
 
     if (

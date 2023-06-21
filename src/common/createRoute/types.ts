@@ -22,8 +22,36 @@ type Types<TPathTypes, TSearchTypes, THash extends string, TStateTypes> = RouteT
 interface RouteTypes<TPathTypes, TSearchTypes, THash extends string, TStateTypes> {
     params?: TPathTypes;
     searchParams?: TSearchTypes;
-    hash?: THash[];
+    hash?: ReadonlyArray<THash>;
     state?: TStateTypes;
+}
+
+type MergeTypesArray<T extends readonly unknown[]> = T extends readonly [infer TFirst, infer TSecond, ...infer TRest]
+    ? MergeTypesArray<[MergeTypesArrayItems<TFirst, TSecond>, ...TRest]>
+    : T extends readonly [infer TFirst]
+    ? TFirst
+    : never;
+
+type MergeTypesArrayItems<T, U> = T extends RouteTypes<infer TPathTypes, infer TSearchTypes, infer THash, infer TState>
+    ? U extends RouteTypes<infer TChildPathTypes, infer TChildSearchTypes, infer TChildHash, infer TChildState>
+        ? RouteTypes<
+              Merge<TPathTypes, TChildPathTypes>,
+              Merge<TSearchTypes, TChildSearchTypes>,
+              string extends THash
+                  ? string extends TChildHash
+                      ? never
+                      : TChildHash
+                  : string extends TChildHash
+                  ? THash
+                  : TChildHash | THash,
+              Merge<TState, TChildState>
+          >
+        : never
+    : never;
+
+function arrTypes<T extends readonly RouteTypes<any, any, any, any>[]>(types: T): MergeTypesArray<T> {
+    // TODO
+    return {} as any;
 }
 
 function types<TPathTypes, TSearchTypes, THash extends string, TStateTypes>(
@@ -59,7 +87,7 @@ function types<TPathTypes, TSearchTypes, THash extends string, TStateTypes>(
     return Object.assign(result, normalizedTypes) as Types<TPathTypes, TSearchTypes, THash, TStateTypes>;
 }
 
-function mergeHashValues<T, U>(firstHash?: T[], secondHash?: U[]): (T | U)[] | undefined {
+function mergeHashValues<T, U>(firstHash?: readonly T[], secondHash?: readonly U[]): (T | U)[] | undefined {
     if (!firstHash && !secondHash) {
         return undefined;
     }
@@ -71,4 +99,4 @@ function mergeHashValues<T, U>(firstHash?: T[], secondHash?: U[]): (T | U)[] | u
     return [...(firstHash ?? []), ...(secondHash ?? [])];
 }
 
-export { types, Types, RouteTypes };
+export { types, Types, RouteTypes, arrTypes };
