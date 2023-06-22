@@ -1,5 +1,4 @@
 import { ParamType, SearchParamType, StateParamType } from "../types/index.js";
-import { RouteTypes, types } from "./types.js";
 import { Merge, Readable, ErrorMessage } from "./helpers.js";
 
 type RouteWithChildren<
@@ -216,31 +215,93 @@ interface RouteOptions {
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
-const createRoute =
-    (creatorOptions: RouteOptions) =>
-    <
+interface RouteTypes<TPathTypes = any, TSearchTypes = any, THash extends string = string, TStateTypes = any> {
+    params?: TPathTypes;
+    searchParams?: TSearchTypes;
+    hash?: ReadonlyArray<THash>;
+    state?: TStateTypes;
+}
+
+type NormalizedTypes<T> = T extends RouteTypes<infer TPathTypes, infer TSearchTypes, infer THash, infer TState>
+    ? RouteTypes<
+          unknown extends TPathTypes ? Record<never, never> : TPathTypes,
+          unknown extends TSearchTypes ? Record<never, never> : TSearchTypes,
+          string extends THash ? never : THash,
+          unknown extends TState ? Record<never, never> : TState
+      >
+    : never;
+
+type MergeTypesArray<T extends readonly unknown[]> = T extends readonly [infer TFirst, infer TSecond, ...infer TRest]
+    ? MergeTypesArray<[MergeTypesArrayItems<NormalizedTypes<TFirst>, NormalizedTypes<TSecond>>, ...TRest]>
+    : T extends readonly [infer TFirst]
+    ? NormalizedTypes<TFirst>
+    : never;
+
+type MergeTypesArrayItems<T, U> = T extends RouteTypes<infer TPathTypes, infer TSearchTypes, infer THash, infer TState>
+    ? U extends RouteTypes<infer TChildPathTypes, infer TChildSearchTypes, infer TChildHash, infer TChildState>
+        ? RouteTypes<
+              Merge<TPathTypes, TChildPathTypes>,
+              Merge<TSearchTypes, TChildSearchTypes>,
+              TChildHash | THash,
+              Merge<TState, TChildState>
+          >
+        : never
+    : never;
+
+type ResolvedPathTypes<T> = T extends RouteTypes<infer TPathTypes, any, any, any> ? TPathTypes : never;
+type ResolvedSearchTypes<T> = T extends RouteTypes<any, infer TSearchTypes, any, any> ? TSearchTypes : never;
+type ResolvedStateTypes<T> = T extends RouteTypes<any, any, any, infer TStateTypes> ? TStateTypes : never;
+type ResolvedHash<T> = T extends RouteTypes<any, any, infer THash, any> ? THash : never;
+
+function createRoute(creatorOptions: RouteOptions) {
+    function route<
         TChildren = void,
         TPath extends string = string,
-        /* eslint-disable @typescript-eslint/no-explicit-any */
-        TPathTypes extends Partial<Record<PathParam<SanitizedPath<TPath>>, ParamType<unknown, never>>> = Record<
-            never,
-            never
-        >,
-        TSearchTypes extends Partial<Record<string, SearchParamType<unknown, never>>> = Record<never, never>,
-        THash extends string = never,
-        TStateTypes extends Partial<Record<string, StateParamType<unknown, never>>> = Record<never, never>
-        /* eslint-enable */
+        TTypes extends readonly RouteTypes[] | RouteTypes = {},
+        TResolvedTypes extends RouteTypes = TTypes extends readonly unknown[]
+            ? MergeTypesArray<TTypes>
+            : NormalizedTypes<TTypes>
     >(
         path: SanitizedPath<TPath>,
-        types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes> = {},
+        types: TTypes = {} as TTypes,
         children?: SanitizedChildren<TChildren>
-    ): RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> => {
+    ): RouteWithChildren<
+        TChildren,
+        TPath,
+        ResolvedPathTypes<TResolvedTypes>,
+        ResolvedSearchTypes<TResolvedTypes>,
+        ResolvedHash<TResolvedTypes>,
+        ResolvedStateTypes<TResolvedTypes>
+    > {
+        const resolvedTypes = (Array.isArray(types) ? mergeTypes(...types) : types) as unknown as TResolvedTypes;
+
         return {
-            ...decorateChildren(path, types, creatorOptions, children, false),
-            ...getRoute(path, types, creatorOptions),
-            $: decorateChildren(path, types, creatorOptions, children, true),
-        } as RouteWithChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes>;
-    };
+            ...decorateChildren(path, resolvedTypes, creatorOptions, children, false),
+            ...getRoute(path, resolvedTypes, creatorOptions),
+            $: decorateChildren(path, resolvedTypes, creatorOptions, children, true),
+        } as unknown as RouteWithChildren<
+            TChildren,
+            TPath,
+            ResolvedPathTypes<TResolvedTypes>,
+            ResolvedSearchTypes<TResolvedTypes>,
+            ResolvedHash<TResolvedTypes>,
+            ResolvedStateTypes<TResolvedTypes>
+        >;
+    }
+
+    return route;
+}
+
+function mergeTypes<T extends readonly RouteTypes[]>(...arr: T): MergeTypesArray<T> {
+    return arr.reduce((acc, item) => {
+        return {
+            params: { ...acc.params, ...item.params },
+            searchParams: { ...acc.searchParams, ...item.searchParams },
+            hash: [...(acc.hash || []), ...(item.hash || [])],
+            state: { ...acc.state, ...item.state },
+        };
+    }, {}) as MergeTypesArray<T>;
+}
 
 function decorateChildren<
     TPath extends string,
@@ -272,7 +333,7 @@ function decorateChildren<
                               : value.path === "/"
                               ? path
                               : `${path}${value.path}`,
-                          types(excludePath ? { ...typesObj, params: undefined } : typesObj)(value),
+                          mergeTypes(excludePath ? { ...typesObj, params: undefined } : typesObj, value),
                           creatorOptions
                       ),
                       $: decorateChildren(path, typesObj, creatorOptions, value.$, true),
@@ -608,7 +669,7 @@ function isRoute(
     string,
     Record<never, never>
 > {
-    return Boolean(value && typeof value === "object" && "types" in value && "path" in value);
+    return Boolean(value && typeof value === "object" && "path" in value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -630,4 +691,5 @@ export {
     PathParam,
     SanitizedPath,
     SanitizedChildren,
+    RouteTypes,
 };
