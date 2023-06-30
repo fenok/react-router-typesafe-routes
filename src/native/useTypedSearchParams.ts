@@ -1,4 +1,4 @@
-import { Route, InSearchParams, OutSearchParams, InStateParams } from "../common/index.js";
+import { BaseRoute, InSearchParams, OutSearchParams, InStateParams, TypesMap } from "../common/index.js";
 import { useSearchParams, NavigateOptions, createSearchParams } from "react-router-native";
 import { useMemo, useCallback } from "react";
 
@@ -7,16 +7,16 @@ interface TypedNavigateOptions<T> extends NavigateOptions {
     preserveUntyped?: boolean;
 }
 
-function useTypedSearchParams<TPath extends string, TPathTypes, TSearchTypes, THash extends string, TStateTypes>(
-    route: Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes>,
-    typedDefaultInit?: InSearchParams<TSearchTypes>
+function useTypedSearchParams<TPath extends string, TTypesMap extends TypesMap>(
+    route: BaseRoute<TPath, TTypesMap>,
+    typedDefaultInit?: InSearchParams<TTypesMap["searchParams"]>
 ): [
-    OutSearchParams<TSearchTypes>,
+    OutSearchParams<TTypesMap["searchParams"]>,
     (
         searchParams:
-            | InSearchParams<TSearchTypes>
-            | ((prevParams: OutSearchParams<TSearchTypes>) => InSearchParams<TSearchTypes>),
-        navigateOptions?: TypedNavigateOptions<InStateParams<TStateTypes>>
+            | InSearchParams<TTypesMap["searchParams"]>
+            | ((prevParams: OutSearchParams<TTypesMap["searchParams"]>) => InSearchParams<TTypesMap["searchParams"]>),
+        navigateOptions?: TypedNavigateOptions<InStateParams<TTypesMap["state"]>>
     ) => void
 ] {
     const defaultInit = useMemo(
@@ -31,9 +31,15 @@ function useTypedSearchParams<TPath extends string, TPathTypes, TSearchTypes, TH
     const setTypedSearchParams = useCallback(
         (
             params:
-                | InSearchParams<TSearchTypes>
-                | ((prevParams: OutSearchParams<TSearchTypes>) => InSearchParams<TSearchTypes>),
-            { state, preserveUntyped, ...restNavigateOptions }: TypedNavigateOptions<InStateParams<TStateTypes>> = {}
+                | InSearchParams<TTypesMap["searchParams"]>
+                | ((
+                      prevParams: OutSearchParams<TTypesMap["searchParams"]>
+                  ) => InSearchParams<TTypesMap["searchParams"]>),
+            {
+                state,
+                preserveUntyped,
+                ...restNavigateOptions
+            }: TypedNavigateOptions<InStateParams<TTypesMap["state"]>> = {}
         ) => {
             setSearchParams(
                 (prevParams) => {

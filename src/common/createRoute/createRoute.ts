@@ -1,28 +1,23 @@
 import { ParamType, SearchParamType, StateParamType } from "../types/index.js";
 import { Merge, Readable, ErrorMessage } from "./helpers.js";
 
-type RouteWithChildren<TChildren, TPath extends string, TTypes extends TypesMap> = DecoratedChildren<
-    TChildren,
+type Route<TPath extends string = string, TTypes extends TypesMap = TypesMap, TChildren = void> = DecoratedRouteMap<
     TPath,
-    TTypes
+    TTypes,
+    TChildren
 > &
-    Route<TPath, TTypes> & {
-        $: DecoratedChildren<TChildren, TPath, TTypes, true>;
+    BaseRoute<TPath, TTypes> & {
+        $: DecoratedRouteMap<TPath, TTypes, TChildren, true>;
     };
 
-type DecoratedChildren<
-    TChildren,
-    TPath extends string,
-    TTypes extends TypesMap,
+type DecoratedRouteMap<
+    TPath extends string = string,
+    TTypes extends TypesMap = TypesMap,
+    TChildren = void,
     TExcludePath extends boolean = false
 > = {
-    [TKey in keyof TChildren]: TChildren[TKey] extends RouteWithChildren<
-        infer TChildChildren,
-        infer TChildPath,
-        infer TChildTypes
-    >
-        ? RouteWithChildren<
-              TChildChildren,
+    [TKey in keyof TChildren]: TChildren[TKey] extends Route<infer TChildPath, infer TChildTypes, infer TChildChildren>
+        ? Route<
               TExcludePath extends true
                   ? TChildPath
                   : TPath extends ""
@@ -30,12 +25,13 @@ type DecoratedChildren<
                   : TChildPath extends ""
                   ? TPath
                   : `${TPath}/${TChildPath}`,
-              ComposedTypesMap<[TTypes, TChildTypes], TExcludePath>
+              ComposedTypesMap<[TTypes, TChildTypes], TExcludePath>,
+              TChildChildren
           >
         : TChildren[TKey];
 };
 
-type Route<TPath extends string = string, TTypes extends TypesMap = TypesMap> = {
+type BaseRoute<TPath extends string = string, TTypes extends TypesMap = TypesMap> = {
     path: `/${SanitizedPath<TPath>}`;
     relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
     getPlainParams: (params: InParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
@@ -150,7 +146,7 @@ type PathWithoutIntermediateStars<T extends string> = T extends `${infer TStart}
     ? PathWithoutIntermediateStars<`${TStart}${TEnd}`>
     : T;
 
-type SanitizedChildren<T> = T extends Record<infer TKey, unknown>
+type SanitizedRouteMap<T> = T extends Record<infer TKey, unknown>
     ? TKey extends string
         ? TKey extends Capitalize<TKey>
             ? T
@@ -251,15 +247,15 @@ function createRoute(creatorOptions: RouteOptions) {
     >(
         path: SanitizedPath<TPath>,
         types: TTypes = {} as TTypes,
-        children?: SanitizedChildren<TChildren>
-    ): RouteWithChildren<TChildren, TPath, ComposedTypesMap<TTypes>> {
+        children?: SanitizedRouteMap<TChildren>
+    ): Route<TPath, ComposedTypesMap<TTypes>, TChildren> {
         const resolvedTypes = mergeTypes(types);
 
         return {
             ...decorateChildren(path, resolvedTypes, creatorOptions, children, false),
             ...getRoute(path, resolvedTypes, creatorOptions),
             $: decorateChildren(path, resolvedTypes, creatorOptions, children, true),
-        } as RouteWithChildren<TChildren, TPath, ComposedTypesMap<TTypes>>;
+        } as Route<TPath, ComposedTypesMap<TTypes>, TChildren>;
     }
 
     return route;
@@ -292,7 +288,7 @@ function decorateChildren<TPath extends string, TTypes extends TypesMap, TChildr
     creatorOptions: RouteOptions,
     children: TChildren | undefined,
     excludePath: TExcludePath
-): DecoratedChildren<TChildren, TPath, TTypes, TExcludePath> {
+): DecoratedRouteMap<TPath, TTypes, TChildren, TExcludePath> {
     const result: Record<string, unknown> = {};
 
     if (children) {
@@ -317,14 +313,14 @@ function decorateChildren<TPath extends string, TTypes extends TypesMap, TChildr
         });
     }
 
-    return result as DecoratedChildren<TChildren, TPath, TTypes, TExcludePath>;
+    return result as DecoratedRouteMap<TPath, TTypes, TChildren, TExcludePath>;
 }
 
 function getRoute<TPath extends string, TTypes extends TypesMap>(
     path: SanitizedPath<TPath>,
     types: TTypes,
     creatorOptions: RouteOptions
-): Route<TPath, TTypes> {
+): BaseRoute<TPath, TTypes> {
     const keys = getKeys(path);
     const relativePath = removeIntermediateStars(path);
 
@@ -624,7 +620,7 @@ function removeIntermediateStars<TPath extends string>(path: TPath): PathWithout
     return path.replace(/\*\??\//g, "") as PathWithoutIntermediateStars<TPath>;
 }
 
-function isRoute(value: unknown): value is RouteWithChildren<unknown, string, TypesMap> {
+function isRoute(value: unknown): value is Route<string, TypesMap, unknown> {
     return Boolean(value && typeof value === "object" && "path" in value);
 }
 
@@ -635,9 +631,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export {
     createRoute,
     RouteOptions,
+    BaseRoute,
     Route,
-    RouteWithChildren,
-    DecoratedChildren,
+    DecoratedRouteMap,
     InParams,
     OutParams,
     InSearchParams,
@@ -646,6 +642,6 @@ export {
     OutStateParams,
     PathParam,
     SanitizedPath,
-    SanitizedChildren,
+    SanitizedRouteMap,
     TypesMap,
 };
