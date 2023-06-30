@@ -1,34 +1,25 @@
 import { ParamType, SearchParamType, StateParamType } from "../types/index.js";
 import { Merge, Readable, ErrorMessage } from "./helpers.js";
 
-type RouteWithChildren<
+type RouteWithChildren<TChildren, TPath extends string, TTypes extends RouteTypes> = DecoratedChildren<
     TChildren,
-    TPath extends string,
-    TPathTypes,
-    TSearchTypes,
-    THash extends string,
-    TStateTypes
-> = DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes> &
-    Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes> & {
-        $: DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes, true>;
+    TPath,
+    TTypes
+> &
+    Route<TPath, TTypes> & {
+        $: DecoratedChildren<TChildren, TPath, TTypes, true>;
     };
 
 type DecoratedChildren<
     TChildren,
     TPath extends string,
-    TPathTypes,
-    TSearchTypes,
-    THash extends string,
-    TStateTypes,
+    TTypes extends RouteTypes,
     TExcludePath extends boolean = false
 > = {
     [TKey in keyof TChildren]: TChildren[TKey] extends RouteWithChildren<
         infer TChildChildren,
         infer TChildPath,
-        infer TChildPathTypes,
-        infer TChildSearchTypes,
-        infer TChildHash,
-        infer TChildStateTypes
+        infer TChildTypes
     >
         ? RouteWithChildren<
               TChildChildren,
@@ -39,50 +30,37 @@ type DecoratedChildren<
                   : TChildPath extends ""
                   ? TPath
                   : `${TPath}/${TChildPath}`,
-              TExcludePath extends true ? TChildPathTypes : Merge<TPathTypes, TChildPathTypes>,
-              Merge<TSearchTypes, TChildSearchTypes>,
-              THash | TChildHash,
-              Merge<TStateTypes, TChildStateTypes>
+              MergeTypesArray<[TTypes, TChildTypes], TExcludePath>
           >
         : TChildren[TKey];
 };
 
-interface Route<
-    TPath extends string = string,
-    TPathTypes = Partial<Record<string, ParamType<any>>>,
-    TSearchTypes = Partial<Record<string, SearchParamType<any>>>,
-    THash extends string = any,
-    TStateTypes = Partial<Record<string, StateParamType<any>>>
-> {
+type Route<TPath extends string = string, TTypes extends RouteTypes = RouteTypes> = {
     path: `/${SanitizedPath<TPath>}`;
     relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
-    getPlainParams: (params: InParams<TPath, TPathTypes>) => Record<string, string | undefined>;
-    getPlainSearchParams: (params: InSearchParams<TSearchTypes>) => Record<string, string | string[]>;
-    getTypedParams: (params: Record<string, string | undefined>) => OutParams<TPath, TPathTypes>;
-    getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSearchTypes>;
-    getTypedHash: (hash: string) => THash | undefined;
-    getTypedState: (state: unknown) => OutStateParams<TStateTypes>;
+    getPlainParams: (params: InParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
+    getPlainSearchParams: (params: InSearchParams<TTypes["searchParams"]>) => Record<string, string | string[]>;
+    getTypedParams: (params: Record<string, string | undefined>) => OutParams<TPath, TTypes["params"]>;
+    getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TTypes["searchParams"]>;
+    getTypedHash: (hash: string) => TTypes["hash"][number] | undefined;
+    getTypedState: (state: unknown) => OutStateParams<TTypes["state"]>;
     getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
     getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     getUntypedState: (state: unknown) => Record<string, unknown>;
     buildPath: (
-        params: InParams<TPath, TPathTypes>,
-        searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash
+        params: InParams<TPath, TTypes["params"]>,
+        searchParams?: InSearchParams<TTypes["searchParams"]>,
+        hash?: TTypes["hash"][number]
     ) => string;
     buildRelativePath: (
-        params: InParams<TPath, TPathTypes>,
-        searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash
+        params: InParams<TPath, TTypes["params"]>,
+        searchParams?: InSearchParams<TTypes["searchParams"]>,
+        hash?: TTypes["hash"][number]
     ) => string;
-    buildSearch: (params: InSearchParams<TSearchTypes>) => string;
-    buildHash: (hash: THash) => string;
-    buildState: (state: InStateParams<TStateTypes>) => Record<string, unknown>;
-    params: TPathTypes;
-    searchParams: TSearchTypes;
-    hash: readonly THash[];
-    state: TStateTypes;
-}
+    buildSearch: (params: InSearchParams<TTypes["searchParams"]>) => string;
+    buildHash: (hash: TTypes["hash"][number]) => string;
+    buildState: (state: InStateParams<TTypes["state"]>) => Record<string, unknown>;
+} & TTypes;
 
 type InParams<TPath extends string, TPathTypes> = [
     PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
@@ -215,32 +193,49 @@ interface RouteOptions {
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
-interface RouteTypes<TPathTypes = any, TSearchTypes = any, THash extends string = string, TStateTypes = any> {
-    params?: TPathTypes;
-    searchParams?: TSearchTypes;
-    hash?: ReadonlyArray<THash>;
-    state?: TStateTypes;
+interface RouteTypes<
+    TPathTypes extends Record<string, ParamType<any>> = {},
+    TSearchTypes extends Record<string, SearchParamType<any>> = {},
+    THash extends readonly string[] = readonly string[],
+    TStateTypes extends Record<string, StateParamType<any>> = {}
+> {
+    params: TPathTypes;
+    searchParams: TSearchTypes;
+    hash: THash;
+    state: TStateTypes;
 }
 
-type NormalizedTypes<T> = T extends RouteTypes<infer TPathTypes, infer TSearchTypes, infer THash, infer TState>
+type NormalizedTypes<T> = T extends Partial<RouteTypes<infer TPathTypes, infer TSearchTypes, infer THash, infer TState>>
     ? RouteTypes<
-          unknown extends TPathTypes ? Record<never, never> : TPathTypes,
-          unknown extends TSearchTypes ? Record<never, never> : TSearchTypes,
-          string extends THash ? never : THash,
-          unknown extends TState ? Record<never, never> : TState
+          Record<string, ParamType<any>> extends TPathTypes ? {} : TPathTypes,
+          Record<string, SearchParamType<any>> extends TSearchTypes ? {} : TSearchTypes,
+          readonly string[] extends THash ? readonly [] : THash,
+          Record<string, StateParamType<any>> extends TState ? {} : TState
       >
     : never;
 
-type MergeTypesArray<T extends readonly unknown[]> = T extends readonly [infer TFirst, infer TSecond, ...infer TRest]
-    ? MergeTypesArray<[MergeTypesArrayItems<NormalizedTypes<TFirst>, NormalizedTypes<TSecond>>, ...TRest]>
+type MergeTypesArray<T extends readonly unknown[], TExcludePath extends boolean = false> = T extends readonly [
+    infer TFirst,
+    infer TSecond,
+    ...infer TRest
+]
+    ? MergeTypesArray<
+          [MergeTypesArrayItems<NormalizedTypes<TFirst>, NormalizedTypes<TSecond>, TExcludePath>, ...TRest],
+          TExcludePath
+      >
     : T extends readonly [infer TFirst]
     ? NormalizedTypes<TFirst>
     : never;
 
-type MergeTypesArrayItems<T, U> = T extends RouteTypes<infer TPathTypes, infer TSearchTypes, infer THash, infer TState>
+type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extends RouteTypes<
+    infer TPathTypes,
+    infer TSearchTypes,
+    infer THash,
+    infer TState
+>
     ? U extends RouteTypes<infer TChildPathTypes, infer TChildSearchTypes, infer TChildHash, infer TChildState>
         ? RouteTypes<
-              Merge<TPathTypes, TChildPathTypes>,
+              TExcludePath extends true ? TChildPathTypes : Merge<TPathTypes, TChildPathTypes>,
               Merge<TSearchTypes, TChildSearchTypes>,
               TChildHash | THash,
               Merge<TState, TChildState>
@@ -248,19 +243,11 @@ type MergeTypesArrayItems<T, U> = T extends RouteTypes<infer TPathTypes, infer T
         : never
     : never;
 
-type ResolvedPathTypes<T> = T extends RouteTypes<infer TPathTypes, any, any, any> ? TPathTypes : never;
-type ResolvedSearchTypes<T> = T extends RouteTypes<any, infer TSearchTypes, any, any> ? TSearchTypes : never;
-type ResolvedStateTypes<T> = T extends RouteTypes<any, any, any, infer TStateTypes> ? TStateTypes : never;
-type ResolvedHash<T> = T extends RouteTypes<any, any, infer THash, any> ? THash : never;
-
 function createRoute(creatorOptions: RouteOptions) {
     function route<
         TChildren = void,
         TPath extends string = string,
-        TTypes extends readonly RouteTypes[] | RouteTypes = {},
-        TResolvedTypes extends RouteTypes = TTypes extends readonly unknown[]
-            ? MergeTypesArray<TTypes>
-            : NormalizedTypes<TTypes>
+        TTypes extends Partial<RouteTypes> | readonly Partial<RouteTypes>[] = {}
     >(
         path: SanitizedPath<TPath>,
         types: TTypes = {} as TTypes,
@@ -268,24 +255,22 @@ function createRoute(creatorOptions: RouteOptions) {
     ): RouteWithChildren<
         TChildren,
         TPath,
-        ResolvedPathTypes<TResolvedTypes>,
-        ResolvedSearchTypes<TResolvedTypes>,
-        ResolvedHash<TResolvedTypes>,
-        ResolvedStateTypes<TResolvedTypes>
+        TTypes extends readonly unknown[] ? MergeTypesArray<TTypes> : NormalizedTypes<TTypes>
     > {
-        const resolvedTypes = (Array.isArray(types) ? mergeTypes(...types) : types) as unknown as TResolvedTypes;
+        const resolvedTypes = (Array.isArray(types)
+            ? mergeTypes(...types)
+            : types) as unknown as TTypes extends readonly unknown[]
+            ? MergeTypesArray<TTypes>
+            : NormalizedTypes<TTypes>;
 
         return {
             ...decorateChildren(path, resolvedTypes, creatorOptions, children, false),
             ...getRoute(path, resolvedTypes, creatorOptions),
             $: decorateChildren(path, resolvedTypes, creatorOptions, children, true),
-        } as unknown as RouteWithChildren<
+        } as RouteWithChildren<
             TChildren,
             TPath,
-            ResolvedPathTypes<TResolvedTypes>,
-            ResolvedSearchTypes<TResolvedTypes>,
-            ResolvedHash<TResolvedTypes>,
-            ResolvedStateTypes<TResolvedTypes>
+            TTypes extends readonly unknown[] ? MergeTypesArray<TTypes> : NormalizedTypes<TTypes>
         >;
     }
 
@@ -300,24 +285,16 @@ function mergeTypes<T extends readonly RouteTypes[]>(...arr: T): MergeTypesArray
             hash: [...(acc.hash || []), ...(item.hash || [])],
             state: { ...acc.state, ...item.state },
         };
-    }, {}) as MergeTypesArray<T>;
+    }, {} as RouteTypes) as MergeTypesArray<T>;
 }
 
-function decorateChildren<
-    TPath extends string,
-    TPathTypes,
-    TSearchTypes,
-    THash extends string,
-    TStateTypes,
-    TChildren,
-    TExcludePath extends boolean
->(
+function decorateChildren<TPath extends string, TTypes extends RouteTypes, TChildren, TExcludePath extends boolean>(
     path: SanitizedPath<TPath>,
-    typesObj: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>,
+    typesObj: TTypes,
     creatorOptions: RouteOptions,
     children: TChildren | undefined,
     excludePath: TExcludePath
-): DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes, TExcludePath> {
+): DecoratedChildren<TChildren, TPath, TTypes, TExcludePath> {
     const result: Record<string, unknown> = {};
 
     if (children) {
@@ -342,67 +319,60 @@ function decorateChildren<
         });
     }
 
-    return result as DecoratedChildren<TChildren, TPath, TPathTypes, TSearchTypes, THash, TStateTypes, TExcludePath>;
+    return result as DecoratedChildren<TChildren, TPath, TTypes, TExcludePath>;
 }
 
-function getRoute<
-    TPath extends string,
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    TPathTypes extends Partial<Record<PathParam<SanitizedPath<TPath>>, ParamType<unknown, never>>> = Record<
-        never,
-        never
-    >,
-    TSearchTypes extends Partial<Record<string, SearchParamType<unknown, never>>> = Record<never, never>,
-    TStateTypes extends Partial<Record<string, StateParamType<unknown, never>>> = Record<never, never>,
-    THash extends string = never
-    /* eslint-enable */
->(
+function getRoute<TPath extends string, TTypes extends RouteTypes>(
     path: SanitizedPath<TPath>,
-    types: RouteTypes<TPathTypes, TSearchTypes, THash, TStateTypes>,
+    types: TTypes,
     creatorOptions: RouteOptions
-): Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes> {
+): Route<TPath, TTypes> {
     const keys = getKeys(path);
     const relativePath = removeIntermediateStars(path);
 
-    function getPlainParams(params: InParams<TPath, TPathTypes>) {
+    function getPlainParams(params: InParams<TPath, TTypes["params"]>) {
         return getPlainParamsByTypes(keys, params, types.params);
     }
 
-    function getPlainSearchParams(params: InSearchParams<TSearchTypes>) {
+    function getPlainSearchParams(params: InSearchParams<TTypes["searchParams"]>) {
         return getPlainSearchParamsByTypes(params, types.searchParams);
     }
 
-    function buildRelativePathname(params: InParams<TPath, TPathTypes>) {
+    function buildRelativePathname(params: InParams<TPath, TTypes["params"]>) {
         const rawBuiltPath = creatorOptions.generatePath(relativePath, getPlainParams(params));
 
         return rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
     }
 
-    function buildSearch(params: InSearchParams<TSearchTypes>) {
+    function buildSearch(params: InSearchParams<TTypes["searchParams"]>) {
         const searchString = creatorOptions.createSearchParams(getPlainSearchParams(params)).toString();
 
         return searchString ? `?${searchString}` : "";
     }
 
-    function buildHash(hash: THash) {
+    function buildHash(hash: TTypes["hash"][number]) {
         return `#${hash}`;
     }
 
-    function buildState(params: InStateParams<TStateTypes>) {
+    function buildState(params: InStateParams<TTypes["state"]>) {
         return getPlainStateParamsByTypes(params, types.state);
     }
 
     function buildRelativePath(
-        params: InParams<TPath, TPathTypes>,
-        searchParams?: InSearchParams<TSearchTypes>,
-        hash?: THash
+        params: InParams<TPath, TTypes["params"]>,
+        searchParams?: InSearchParams<TTypes["searchParams"]>,
+        hash?: TTypes["hash"][number]
     ) {
         return `${buildRelativePathname(params)}${searchParams !== undefined ? buildSearch(searchParams) : ""}${
             hash !== undefined ? buildHash(hash) : ""
         }`;
     }
 
-    function buildPath(params: InParams<TPath, TPathTypes>, searchParams?: InSearchParams<TSearchTypes>, hash?: THash) {
+    function buildPath(
+        params: InParams<TPath, TTypes["params"]>,
+        searchParams?: InSearchParams<TTypes["searchParams"]>,
+        hash?: TTypes["hash"][number]
+    ) {
         return `/${buildRelativePath(params, searchParams, hash)}`;
     }
 
@@ -481,11 +451,8 @@ function getRoute<
         getUntypedState,
         getPlainParams,
         getPlainSearchParams,
-        params: types.params ?? ({} as TPathTypes),
-        searchParams: types.searchParams ?? ({} as TSearchTypes),
-        hash: types.hash ?? ([] as readonly THash[]),
-        state: types.state ?? ({} as TStateTypes),
-    };
+        ...types,
+    } as any;
 }
 
 function getPlainParamsByTypes(
@@ -659,16 +626,7 @@ function removeIntermediateStars<TPath extends string>(path: TPath): PathWithout
     return path.replace(/\*\??\//g, "") as PathWithoutIntermediateStars<TPath>;
 }
 
-function isRoute(
-    value: unknown
-): value is RouteWithChildren<
-    unknown,
-    string,
-    Record<never, never>,
-    Record<never, never>,
-    string,
-    Record<never, never>
-> {
+function isRoute(value: unknown): value is RouteWithChildren<unknown, string, RouteTypes> {
     return Boolean(value && typeof value === "object" && "path" in value);
 }
 
