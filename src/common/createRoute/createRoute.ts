@@ -196,21 +196,21 @@ interface RouteOptions {
 interface TypesMap<
     TPathTypes extends Record<string, ParamType<any>> = {},
     TSearchTypes extends Record<string, SearchParamType<any>> = {},
-    THash extends readonly string[] = readonly string[],
-    TStateTypes extends Record<string, StateParamType<any>> = {}
+    TStateTypes extends Record<string, StateParamType<any>> = {},
+    THash extends readonly string[] = readonly string[]
 > {
     params: TPathTypes;
     searchParams: TSearchTypes;
-    hash: THash;
     state: TStateTypes;
+    hash: THash;
 }
 
-type RequiredTypesMap<T> = T extends Partial<TypesMap<infer TPathTypes, infer TSearchTypes, infer THash, infer TState>>
+type RequiredTypesMap<T> = T extends Partial<TypesMap<infer TPathTypes, infer TSearchTypes, infer TState, infer THash>>
     ? TypesMap<
           Record<string, ParamType<any>> extends TPathTypes ? {} : TPathTypes,
           Record<string, SearchParamType<any>> extends TSearchTypes ? {} : TSearchTypes,
-          readonly string[] extends THash ? readonly [] : THash,
-          Record<string, StateParamType<any>> extends TState ? {} : TState
+          Record<string, StateParamType<any>> extends TState ? {} : TState,
+          readonly string[] extends THash ? readonly [] : THash
       >
     : never;
 
@@ -230,15 +230,15 @@ type ComposedTypesMap<T, TExcludePath extends boolean = false> = T extends reado
 type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extends TypesMap<
     infer TPathTypes,
     infer TSearchTypes,
-    infer THash,
-    infer TState
+    infer TState,
+    infer THash
 >
-    ? U extends TypesMap<infer TChildPathTypes, infer TChildSearchTypes, infer TChildHash, infer TChildState>
+    ? U extends TypesMap<infer TChildPathTypes, infer TChildSearchTypes, infer TChildState, infer TChildHash>
         ? TypesMap<
               TExcludePath extends true ? TChildPathTypes : Merge<TPathTypes, TChildPathTypes>,
               Merge<TSearchTypes, TChildSearchTypes>,
-              TChildHash | THash,
-              Merge<TState, TChildState>
+              Merge<TState, TChildState>,
+              TChildHash | THash
           >
         : never
     : never;
