@@ -1,4 +1,4 @@
-export type Merge<T, U> = Omit<T, keyof U> & U;
+export type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
 
 export type Identity<T> = T;
 

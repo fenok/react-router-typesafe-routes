@@ -234,7 +234,7 @@ type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extend
               TExcludePath extends true ? TChildPathTypes : Merge<TPathTypes, TChildPathTypes>,
               Merge<TSearchTypes, TChildSearchTypes>,
               Merge<TState, TChildState>,
-              TChildHash | THash
+              [...TChildHash, ...THash]
           >
         : never
     : never;
@@ -242,7 +242,7 @@ type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extend
 function createRoute(creatorOptions: RouteOptions) {
     function route<
         TPath extends string = string,
-        TTypes extends Partial<TypesMap> | readonly Partial<TypesMap>[] = {},
+        const TTypes extends Partial<TypesMap> | readonly Partial<TypesMap>[] = {},
         TChildren = void
     >(
         path: SanitizedPath<TPath>,

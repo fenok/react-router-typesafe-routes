@@ -976,7 +976,7 @@ it("allows types composition", () => {
         SEARCH,
         STATE,
         HASH,
-    ] as const);
+    ]);
 
     assert<IsExact<Parameters<typeof ROUTE.buildPath>[0], { id: number; subId: number }>>(true);
 
