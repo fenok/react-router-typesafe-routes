@@ -377,7 +377,7 @@ function getRoute<TPath extends string, TTypes extends RouteTypes>(
     }
 
     function getTypedParams(params: Record<string, string | undefined>) {
-        return getTypedParamsByTypes(keys, params, types.params);
+        return getTypedParamsByTypes(keys, params, types.params as TTypes["params"]);
     }
 
     function getUntypedParams(params: Record<string, string | undefined>) {
@@ -395,7 +395,7 @@ function getRoute<TPath extends string, TTypes extends RouteTypes>(
     }
 
     function getTypedSearchParams(params: URLSearchParams) {
-        return getTypedSearchParamsByTypes(params, types.searchParams);
+        return getTypedSearchParamsByTypes(params, types.searchParams as TTypes["searchParams"]);
     }
 
     function getUntypedSearchParams(params: URLSearchParams) {
@@ -411,7 +411,7 @@ function getRoute<TPath extends string, TTypes extends RouteTypes>(
     }
 
     function getTypedState(state: unknown) {
-        return getTypedStateByTypes(state, types.state);
+        return getTypedStateByTypes(state, types.state as TTypes["state"]);
     }
 
     function getUntypedState(state: unknown) {
@@ -452,7 +452,7 @@ function getRoute<TPath extends string, TTypes extends RouteTypes>(
         getPlainParams,
         getPlainSearchParams,
         ...types,
-    } as any;
+    };
 }
 
 function getPlainParamsByTypes(
