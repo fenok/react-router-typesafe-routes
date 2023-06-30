@@ -1,7 +1,7 @@
 import { ParamType, SearchParamType, StateParamType } from "../types/index.js";
 import { Merge, Readable, ErrorMessage } from "./helpers.js";
 
-type RouteWithChildren<TChildren, TPath extends string, TTypes extends RouteTypes> = DecoratedChildren<
+type RouteWithChildren<TChildren, TPath extends string, TTypes extends TypesMap> = DecoratedChildren<
     TChildren,
     TPath,
     TTypes
@@ -13,7 +13,7 @@ type RouteWithChildren<TChildren, TPath extends string, TTypes extends RouteType
 type DecoratedChildren<
     TChildren,
     TPath extends string,
-    TTypes extends RouteTypes,
+    TTypes extends TypesMap,
     TExcludePath extends boolean = false
 > = {
     [TKey in keyof TChildren]: TChildren[TKey] extends RouteWithChildren<
@@ -30,12 +30,12 @@ type DecoratedChildren<
                   : TChildPath extends ""
                   ? TPath
                   : `${TPath}/${TChildPath}`,
-              MergeTypesArray<[TTypes, TChildTypes], TExcludePath>
+              ComposedTypesMap<[TTypes, TChildTypes], TExcludePath>
           >
         : TChildren[TKey];
 };
 
-type Route<TPath extends string = string, TTypes extends RouteTypes = RouteTypes> = {
+type Route<TPath extends string = string, TTypes extends TypesMap = TypesMap> = {
     path: `/${SanitizedPath<TPath>}`;
     relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
     getPlainParams: (params: InParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
@@ -193,7 +193,7 @@ interface RouteOptions {
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
-interface RouteTypes<
+interface TypesMap<
     TPathTypes extends Record<string, ParamType<any>> = {},
     TSearchTypes extends Record<string, SearchParamType<any>> = {},
     THash extends readonly string[] = readonly string[],
@@ -205,8 +205,8 @@ interface RouteTypes<
     state: TStateTypes;
 }
 
-type NormalizedTypes<T> = T extends Partial<RouteTypes<infer TPathTypes, infer TSearchTypes, infer THash, infer TState>>
-    ? RouteTypes<
+type RequiredTypesMap<T> = T extends Partial<TypesMap<infer TPathTypes, infer TSearchTypes, infer THash, infer TState>>
+    ? TypesMap<
           Record<string, ParamType<any>> extends TPathTypes ? {} : TPathTypes,
           Record<string, SearchParamType<any>> extends TSearchTypes ? {} : TSearchTypes,
           readonly string[] extends THash ? readonly [] : THash,
@@ -214,27 +214,27 @@ type NormalizedTypes<T> = T extends Partial<RouteTypes<infer TPathTypes, infer T
       >
     : never;
 
-type MergeTypesArray<T extends readonly unknown[], TExcludePath extends boolean = false> = T extends readonly [
+type ComposedTypesMap<T, TExcludePath extends boolean = false> = T extends readonly [
     infer TFirst,
     infer TSecond,
     ...infer TRest
 ]
-    ? MergeTypesArray<
-          [MergeTypesArrayItems<NormalizedTypes<TFirst>, NormalizedTypes<TSecond>, TExcludePath>, ...TRest],
+    ? ComposedTypesMap<
+          [MergeTypesArrayItems<RequiredTypesMap<TFirst>, RequiredTypesMap<TSecond>, TExcludePath>, ...TRest],
           TExcludePath
       >
     : T extends readonly [infer TFirst]
-    ? NormalizedTypes<TFirst>
-    : never;
+    ? RequiredTypesMap<TFirst>
+    : RequiredTypesMap<T>;
 
-type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extends RouteTypes<
+type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extends TypesMap<
     infer TPathTypes,
     infer TSearchTypes,
     infer THash,
     infer TState
 >
-    ? U extends RouteTypes<infer TChildPathTypes, infer TChildSearchTypes, infer TChildHash, infer TChildState>
-        ? RouteTypes<
+    ? U extends TypesMap<infer TChildPathTypes, infer TChildSearchTypes, infer TChildHash, infer TChildState>
+        ? TypesMap<
               TExcludePath extends true ? TChildPathTypes : Merge<TPathTypes, TChildPathTypes>,
               Merge<TSearchTypes, TChildSearchTypes>,
               TChildHash | THash,
@@ -245,50 +245,48 @@ type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extend
 
 function createRoute(creatorOptions: RouteOptions) {
     function route<
-        TChildren = void,
         TPath extends string = string,
-        TTypes extends Partial<RouteTypes> | readonly Partial<RouteTypes>[] = {}
+        TTypes extends Partial<TypesMap> | readonly Partial<TypesMap>[] = {},
+        TChildren = void
     >(
         path: SanitizedPath<TPath>,
         types: TTypes = {} as TTypes,
         children?: SanitizedChildren<TChildren>
-    ): RouteWithChildren<
-        TChildren,
-        TPath,
-        TTypes extends readonly unknown[] ? MergeTypesArray<TTypes> : NormalizedTypes<TTypes>
-    > {
-        const resolvedTypes = (Array.isArray(types)
-            ? mergeTypes(...types)
-            : types) as unknown as TTypes extends readonly unknown[]
-            ? MergeTypesArray<TTypes>
-            : NormalizedTypes<TTypes>;
+    ): RouteWithChildren<TChildren, TPath, ComposedTypesMap<TTypes>> {
+        const resolvedTypes = mergeTypes(types);
 
         return {
             ...decorateChildren(path, resolvedTypes, creatorOptions, children, false),
             ...getRoute(path, resolvedTypes, creatorOptions),
             $: decorateChildren(path, resolvedTypes, creatorOptions, children, true),
-        } as RouteWithChildren<
-            TChildren,
-            TPath,
-            TTypes extends readonly unknown[] ? MergeTypesArray<TTypes> : NormalizedTypes<TTypes>
-        >;
+        } as RouteWithChildren<TChildren, TPath, ComposedTypesMap<TTypes>>;
     }
 
     return route;
 }
 
-function mergeTypes<T extends readonly RouteTypes[]>(...arr: T): MergeTypesArray<T> {
-    return arr.reduce((acc, item) => {
-        return {
-            params: { ...acc.params, ...item.params },
-            searchParams: { ...acc.searchParams, ...item.searchParams },
-            hash: [...(acc.hash || []), ...(item.hash || [])],
-            state: { ...acc.state, ...item.state },
-        };
-    }, {} as RouteTypes) as MergeTypesArray<T>;
+function mergeTypes<T extends readonly Partial<TypesMap>[] | Partial<TypesMap>>(value: T): ComposedTypesMap<T> {
+    const arr = (Array.isArray(value) ? value : [value]) as Partial<TypesMap>[];
+
+    return arr.reduce(
+        (acc, item) => {
+            return {
+                params: { ...acc.params, ...item.params },
+                searchParams: { ...acc.searchParams, ...item.searchParams },
+                hash: [...(acc.hash || []), ...(item.hash || [])],
+                state: { ...acc.state, ...item.state },
+            };
+        },
+        {
+            params: {},
+            searchParams: {},
+            hash: [],
+            state: {},
+        }
+    ) as ComposedTypesMap<T>;
 }
 
-function decorateChildren<TPath extends string, TTypes extends RouteTypes, TChildren, TExcludePath extends boolean>(
+function decorateChildren<TPath extends string, TTypes extends TypesMap, TChildren, TExcludePath extends boolean>(
     path: SanitizedPath<TPath>,
     typesObj: TTypes,
     creatorOptions: RouteOptions,
@@ -310,7 +308,7 @@ function decorateChildren<TPath extends string, TTypes extends RouteTypes, TChil
                               : value.path === "/"
                               ? path
                               : `${path}${value.path}`,
-                          mergeTypes(excludePath ? { ...typesObj, params: undefined } : typesObj, value),
+                          mergeTypes([excludePath ? { ...typesObj, params: undefined } : typesObj, value] as const),
                           creatorOptions
                       ),
                       $: decorateChildren(path, typesObj, creatorOptions, value.$, true),
@@ -322,7 +320,7 @@ function decorateChildren<TPath extends string, TTypes extends RouteTypes, TChil
     return result as DecoratedChildren<TChildren, TPath, TTypes, TExcludePath>;
 }
 
-function getRoute<TPath extends string, TTypes extends RouteTypes>(
+function getRoute<TPath extends string, TTypes extends TypesMap>(
     path: SanitizedPath<TPath>,
     types: TTypes,
     creatorOptions: RouteOptions
@@ -626,7 +624,7 @@ function removeIntermediateStars<TPath extends string>(path: TPath): PathWithout
     return path.replace(/\*\??\//g, "") as PathWithoutIntermediateStars<TPath>;
 }
 
-function isRoute(value: unknown): value is RouteWithChildren<unknown, string, RouteTypes> {
+function isRoute(value: unknown): value is RouteWithChildren<unknown, string, TypesMap> {
     return Boolean(value && typeof value === "object" && "path" in value);
 }
 
@@ -649,5 +647,5 @@ export {
     PathParam,
     SanitizedPath,
     SanitizedChildren,
-    RouteTypes,
+    TypesMap,
 };
