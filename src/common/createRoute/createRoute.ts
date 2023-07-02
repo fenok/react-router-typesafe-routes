@@ -1,4 +1,4 @@
-import { ParamType, SearchParamType, StateParamType } from "../types/index.js";
+import { ParamType, SearchParamType, StateParamType, HashType } from "../types/index.js";
 import { Merge, Readable, ErrorMessage } from "./helpers.js";
 
 type Route<TPath extends string = string, TTypes extends TypesMap = TypesMap, TChildren = void> = DecoratedRouteMap<
@@ -38,7 +38,7 @@ type BaseRoute<TPath extends string = string, TTypes extends TypesMap = TypesMap
     getPlainSearchParams: (params: InSearchParams<TTypes["searchParams"]>) => Record<string, string | string[]>;
     getTypedParams: (params: Record<string, string | undefined>) => OutParams<TPath, TTypes["params"]>;
     getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TTypes["searchParams"]>;
-    getTypedHash: (hash: string) => TTypes["hash"][number] | undefined;
+    getTypedHash: (hash: string) => OutHash<TTypes["hash"]>;
     getTypedState: (state: unknown) => OutStateParams<TTypes["state"]>;
     getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
     getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
@@ -46,15 +46,15 @@ type BaseRoute<TPath extends string = string, TTypes extends TypesMap = TypesMap
     buildPath: (
         params: InParams<TPath, TTypes["params"]>,
         searchParams?: InSearchParams<TTypes["searchParams"]>,
-        hash?: TTypes["hash"][number]
+        hash?: InHash<TTypes["hash"]>
     ) => string;
     buildRelativePath: (
         params: InParams<TPath, TTypes["params"]>,
         searchParams?: InSearchParams<TTypes["searchParams"]>,
-        hash?: TTypes["hash"][number]
+        hash?: InHash<TTypes["hash"]>
     ) => string;
     buildSearch: (params: InSearchParams<TTypes["searchParams"]>) => string;
-    buildHash: (hash: TTypes["hash"][number]) => string;
+    buildHash: (hash: InHash<TTypes["hash"]>) => string;
     buildState: (state: InStateParams<TTypes["state"]>) => Record<string, unknown>;
 } & TTypes;
 
@@ -92,6 +92,10 @@ type InStateParams<TStateTypes> = Readable<Partial<RawStateParams<TStateTypes, "
 
 type OutStateParams<TStateTypes> = Readable<RawStateParams<TStateTypes, "out">>;
 
+type InHash<THash> = RawHash<THash, "in">;
+
+type OutHash<THash> = RawHash<THash, "out">;
+
 type RawParams<TTypes, TMode extends "in" | "out"> = {
     [TKey in keyof TTypes]: RawParam<TTypes[TKey], TMode>;
 };
@@ -117,6 +121,16 @@ type RawStateParams<TTypes, TMode extends "in" | "out"> = {
 };
 
 type RawStateParam<TType, TMode extends "in" | "out"> = TType extends StateParamType<infer TOut, infer TIn>
+    ? TMode extends "in"
+        ? Exclude<TIn, undefined>
+        : TOut
+    : never;
+
+type RawHash<THash, TMode extends "in" | "out"> = THash extends readonly string[]
+    ? TMode extends "in"
+        ? THash[number]
+        : THash[number] | undefined
+    : THash extends HashType<infer TOut, infer TIn>
     ? TMode extends "in"
         ? Exclude<TIn, undefined>
         : TOut
@@ -185,7 +199,7 @@ interface TypesMap<
     TPathTypes extends Record<string, ParamType<any>> = {},
     TSearchTypes extends Record<string, SearchParamType<any>> = {},
     TStateTypes extends Record<string, StateParamType<any>> = {},
-    THash extends readonly string[] = readonly string[]
+    THash extends readonly string[] | HashType<any> = readonly string[] | HashType<any>
 > {
     params: TPathTypes;
     searchParams: TSearchTypes;
@@ -198,7 +212,7 @@ type RequiredTypesMap<T> = T extends Partial<TypesMap<infer TPathTypes, infer TS
           Record<string, ParamType<any>> extends TPathTypes ? {} : TPathTypes,
           Record<string, SearchParamType<any>> extends TSearchTypes ? {} : TSearchTypes,
           Record<string, StateParamType<any>> extends TState ? {} : TState,
-          readonly string[] extends THash ? readonly [] : THash
+          readonly string[] | HashType<any> extends THash ? readonly [] : THash
       >
     : never;
 
@@ -226,7 +240,11 @@ type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extend
               TExcludePath extends true ? TChildPathTypes : Merge<TPathTypes, TChildPathTypes>,
               Merge<TSearchTypes, TChildSearchTypes>,
               Merge<TState, TChildState>,
-              [...TChildHash, ...THash]
+              TChildHash extends readonly string[]
+                  ? THash extends readonly string[]
+                      ? [...THash, ...TChildHash]
+                      : THash
+                  : TChildHash
           >
         : never
     : never;
@@ -261,7 +279,11 @@ function mergeTypes<T extends readonly Partial<TypesMap>[] | Partial<TypesMap>>(
             return {
                 params: { ...acc.params, ...item.params },
                 searchParams: { ...acc.searchParams, ...item.searchParams },
-                hash: [...(acc.hash || []), ...(item.hash || [])],
+                hash: isHashType(item.hash)
+                    ? item.hash
+                    : isHashType(acc.hash)
+                    ? acc.hash
+                    : [...(acc.hash || []), ...(item.hash || [])],
                 state: { ...acc.state, ...item.state },
             };
         },
@@ -272,6 +294,10 @@ function mergeTypes<T extends readonly Partial<TypesMap>[] | Partial<TypesMap>>(
             state: {},
         }
     ) as ComposedTypesMap<T>;
+}
+
+function isHashType<T extends HashType<any>>(value: T | readonly string[] | undefined): value is T {
+    return Boolean(value) && !Array.isArray(value);
 }
 
 function decorateChildren<TPath extends string, TTypes extends TypesMap, TChildren, TExcludePath extends boolean>(
@@ -336,8 +362,11 @@ function getRoute<TPath extends string, TTypes extends TypesMap>(
         return searchString ? `?${searchString}` : "";
     }
 
-    function buildHash(hash: TTypes["hash"][number]) {
-        return `#${hash}`;
+    function buildHash(hash: InHash<TTypes["hash"]>) {
+        if (isHashType(types.hash)) {
+            return `#${types.hash.getPlainHash(hash)}`;
+        }
+        return `#${String(hash)}`;
     }
 
     function buildState(params: InStateParams<TTypes["state"]>) {
@@ -347,7 +376,7 @@ function getRoute<TPath extends string, TTypes extends TypesMap>(
     function buildRelativePath(
         params: InParams<TPath, TTypes["params"]>,
         searchParams?: InSearchParams<TTypes["searchParams"]>,
-        hash?: TTypes["hash"][number]
+        hash?: InHash<TTypes["hash"]>
     ) {
         return `${buildRelativePathname(params)}${searchParams !== undefined ? buildSearch(searchParams) : ""}${
             hash !== undefined ? buildHash(hash) : ""
@@ -357,7 +386,7 @@ function getRoute<TPath extends string, TTypes extends TypesMap>(
     function buildPath(
         params: InParams<TPath, TTypes["params"]>,
         searchParams?: InSearchParams<TTypes["searchParams"]>,
-        hash?: TTypes["hash"][number]
+        hash?: InHash<TTypes["hash"]>
     ) {
         return `/${buildRelativePath(params, searchParams, hash)}`;
     }
@@ -416,8 +445,18 @@ function getRoute<TPath extends string, TTypes extends TypesMap>(
         return result;
     }
 
-    function getTypedHash(hash: string) {
-        return getTypedHashByValues(hash, types.hash);
+    function getTypedHash(hash: string): OutHash<TTypes["hash"]> {
+        const normalizedHash = hash?.substring(1, hash?.length);
+
+        if (isHashType(types.hash)) {
+            return types.hash.getTypedHash(normalizedHash);
+        }
+
+        if (normalizedHash && types.hash.indexOf(normalizedHash) !== -1) {
+            return normalizedHash as OutHash<TTypes["hash"]>;
+        }
+
+        return undefined as OutHash<TTypes["hash"]>;
     }
 
     return {
@@ -546,19 +585,6 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
     }
 
     return result as OutSearchParams<TSearchTypes>;
-}
-
-function getTypedHashByValues<THash extends string>(hash?: string, hashValues?: readonly THash[]): THash | undefined {
-    const normalizedHash = hash?.substring(1, hash?.length);
-
-    if (
-        hashValues?.length === 0 ||
-        (normalizedHash && hashValues && hashValues.indexOf(normalizedHash as THash) !== -1)
-    ) {
-        return normalizedHash as THash;
-    }
-
-    return undefined;
 }
 
 function getTypedStateByTypes<TStateTypes extends Partial<Record<string, StateParamType<unknown, never>>>>(

@@ -15,7 +15,15 @@ interface StateParamType<TOut, TIn = TOut> {
     getTypedStateParam: (plainValue: unknown) => TOut;
 }
 
-type AnyParamType<TOut, TIn = TOut> = ParamType<TOut, TIn> & SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
+interface HashType<TOut, TIn = TOut> {
+    getPlainHash: (originalValue: Exclude<TIn, undefined>) => string;
+    getTypedHash: (plainValue: string | undefined) => TOut;
+}
+
+type AnyParamType<TOut, TIn = TOut> = ParamType<TOut, TIn> &
+    SearchParamType<TOut, TIn> &
+    StateParamType<TOut, TIn> &
+    HashType<TOut, TIn>;
 
 type ArrayParamType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
 
@@ -41,6 +49,9 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
         validator(typeof value[0] === "undefined" ? value[0] : parser.parse(value[0]));
     const getPlainStateParam = (value: T) => value;
     const getTypedStateParam = (value: unknown) => validator(value);
+    const getPlainHash = (value: Exclude<T, undefined>) => parser.stringify(value);
+    const getTypedHash = (value: string | undefined) =>
+        validator(typeof value === "undefined" ? value : parser.parse(value));
 
     return Object.assign(
         {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
@@ -51,6 +62,8 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
             getTypedSearchParam: ensureNoError(getTypedSearchParam),
             getPlainStateParam,
             getTypedStateParam: ensureNoError(getTypedStateParam),
+            getPlainHash,
+            getTypedHash: ensureNoError(getTypedHash),
         },
         {
             array: getArrayParamTypeBuilder(ensureNoError(validator), {
@@ -71,6 +84,8 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                         getTypedSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validDef),
                         getPlainStateParam,
                         getTypedStateParam: ensureNoUndefined(ensureNoError(getTypedStateParam), validDef),
+                        getPlainHash,
+                        getTypedHash: ensureNoUndefined(ensureNoError(getTypedHash), validDef),
                     },
                     {
                         array: getArrayParamTypeBuilder(ensureNoUndefined(ensureNoError(validator), validDef), {
@@ -90,6 +105,8 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                         getTypedSearchParam: ensureNoUndefined(getTypedSearchParam),
                         getPlainStateParam,
                         getTypedStateParam: ensureNoUndefined(getTypedStateParam),
+                        getPlainHash,
+                        getTypedHash: ensureNoUndefined(getTypedHash),
                     },
                     {
                         array: getArrayParamTypeBuilder(ensureNoUndefined(validator), {
@@ -164,4 +181,4 @@ function validateDef<T>(validator: Validator<T>, def: unknown): Exclude<T, undef
     return validDef as Exclude<T, undefined>;
 }
 
-export { type, UniversalType, Validator, ParamType, SearchParamType, StateParamType };
+export { type, UniversalType, Validator, ParamType, SearchParamType, StateParamType, HashType };
