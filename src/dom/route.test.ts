@@ -4,7 +4,6 @@ import {
     number,
     boolean,
     string,
-    hashValues,
     date,
     type,
     union,
@@ -458,7 +457,7 @@ it("prioritizes children when mixing search params with the same name", () => {
 });
 
 it("allows implicit hash params", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues() });
+    const GRANDCHILD = route("grand", { hash: string() });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -472,7 +471,7 @@ it("allows implicit hash params", () => {
 });
 
 it("allows explicit hash params", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues("foo", "bar") });
+    const GRANDCHILD = route("grand", { hash: ["foo", "bar"] });
     const CHILD = route("child", {}, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
@@ -486,8 +485,8 @@ it("allows explicit hash params", () => {
 });
 
 it("allows mixing explicit hash params across multiple routes", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues("foo", "bar") });
-    const CHILD = route("child", { hash: hashValues("baz") }, { GRANDCHILD });
+    const GRANDCHILD = route("grand", { hash: ["foo", "bar"] });
+    const CHILD = route("child", { hash: ["baz"] }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], undefined>>(true);
@@ -502,8 +501,8 @@ it("allows mixing explicit hash params across multiple routes", () => {
 });
 
 it("allows mixing explicit and implicit hash params across multiple routes", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues() });
-    const CHILD = route("child", { hash: hashValues("baz") }, { GRANDCHILD });
+    const GRANDCHILD = route("grand", { hash: string() });
+    const CHILD = route("child", { hash: ["baz"] }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], undefined>>(true);
@@ -852,11 +851,11 @@ it("throws if throwable search params are invalid", () => {
 });
 
 it("allows hash parsing", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues() });
+    const GRANDCHILD = route("grand", { hash: string() });
     const CHILD = route(
         "child",
         {
-            hash: hashValues("foo", "bar"),
+            hash: ["foo", "bar"],
         },
         { GRANDCHILD }
     );
@@ -874,11 +873,11 @@ it("allows hash parsing", () => {
 });
 
 it("allows any hash parsing", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues() });
+    const GRANDCHILD = route("grand", { hash: string() });
     const CHILD = route(
         "child",
         {
-            hash: hashValues("foo", "bar"),
+            hash: ["foo", "bar"],
         },
         { GRANDCHILD }
     );
@@ -956,7 +955,7 @@ it("allows types composition", () => {
     const PATH = route(":id", { params: { id: number() } });
     const SEARCH = route("", { searchParams: { page: number() } });
     const STATE = route("", { state: { fromList: boolean() } });
-    const HASH = route("", { hash: hashValues("about", "more") });
+    const HASH = route("", { hash: ["about", "more"] });
 
     const ROUTE = route(":id/:subId", [
         {
@@ -970,7 +969,7 @@ it("allows types composition", () => {
             state: {
                 hidden: boolean(),
             },
-            hash: hashValues("info"),
+            hash: ["info"],
         },
         PATH,
         SEARCH,
@@ -1013,16 +1012,16 @@ it("allows to inherit non-path params in trimmed children", () => {
     const GRANDCHILD = route("grand", {
         searchParams: { baz: boolean() },
         state: { stateBaz: string() },
-        hash: hashValues("hashBaz"),
+        hash: ["hashBaz"],
     });
     const CHILD = route(
         "child",
-        { searchParams: { bar: string() }, state: { stateBar: number() }, hash: hashValues("hashBar") },
+        { searchParams: { bar: string() }, state: { stateBar: number() }, hash: ["hashBar"] },
         { GRANDCHILD }
     );
     const TEST_ROUTE = route(
         "test",
-        { searchParams: { foo: number() }, state: { stateFoo: boolean() }, hash: hashValues("hashFoo") },
+        { searchParams: { foo: number() }, state: { stateFoo: boolean() }, hash: ["hashFoo"] },
         { CHILD }
     );
 
