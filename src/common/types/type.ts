@@ -17,7 +17,7 @@ interface StateParamType<TOut, TIn = TOut> {
 
 interface HashType<TOut, TIn = TOut> {
     getPlainHash: (originalValue: Exclude<TIn, undefined>) => string;
-    getTypedHash: (plainValue: string | undefined) => TOut;
+    getTypedHash: (plainValue: string) => TOut;
 }
 
 type AnyParamType<TOut, TIn = TOut> = ParamType<TOut, TIn> &
