@@ -1,37 +1,37 @@
 import { type, Type, Validator } from "./type.js";
 import { parser } from "./parser.js";
 
-function string(): Type<string | undefined>;
-function string<T extends string>(validator: Validator<T, string>): Type<T | undefined>;
-function string<T extends string = string>(validator = identity as Validator<T, string>): Type<T | undefined> {
+function string(): Type<string>;
+function string<T extends string>(validator: Validator<T, string>): Type<T>;
+function string<T extends string = string>(validator = identity as Validator<T, string>): Type<T> {
     return type(
         (value: unknown) => (value === undefined ? value : validator(stringValidator(value))),
         parser("string")
     );
 }
 
-function number(): Type<number | undefined>;
-function number<T extends number>(validator: Validator<T, number>): Type<T | undefined>;
-function number<T extends number = number>(validator = identity as Validator<T, number>): Type<T | undefined> {
+function number(): Type<number>;
+function number<T extends number>(validator: Validator<T, number>): Type<T>;
+function number<T extends number = number>(validator = identity as Validator<T, number>): Type<T> {
     return type((value: unknown) => (value === undefined ? value : validator(numberValidator(value))));
 }
 
-function boolean(): Type<boolean | undefined>;
-function boolean<T extends boolean>(validator: Validator<T, boolean>): Type<T | undefined>;
+function boolean(): Type<boolean>;
+function boolean<T extends boolean>(validator: Validator<T, boolean>): Type<T>;
 function boolean<T extends boolean = boolean>(
     validator = identity as Validator<T, boolean>
-): Type<T | undefined> {
+): Type<T> {
     return type((value: unknown) => (value === undefined ? value : validator(booleanValidator(value))));
 }
 
-function date(): Type<Date | undefined>;
-function date<T extends Date>(validator: Validator<T, Date>): Type<T | undefined>;
-function date<T extends Date = Date>(validator = identity as Validator<T, Date>): Type<T | undefined> {
+function date(): Type<Date>;
+function date<T extends Date>(validator: Validator<T, Date>): Type<T>;
+function date<T extends Date = Date>(validator = identity as Validator<T, Date>): Type<T> {
     return type((value: unknown) => (value === undefined ? value : validator(dateValidator(value))), parser("date"));
 }
 
-function union<T extends readonly (string | number | boolean)[]>(values: T): Type<T[number] | undefined>;
-function union<T extends readonly (string | number | boolean)[]>(...values: T): Type<T[number] | undefined>;
+function union<T extends readonly (string | number | boolean)[]>(values: T): Type<T[number]>;
+function union<T extends readonly (string | number | boolean)[]>(...values: T): Type<T[number]>;
 function union<T extends readonly (string | number | boolean)[]>(value: T | T[number], ...restValues: T) {
     const values = Array.isArray(value) ? value : [value, ...restValues];
 
