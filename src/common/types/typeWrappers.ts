@@ -1,37 +1,37 @@
-import { type, UniversalType, Validator } from "./type.js";
+import { type, Type, Validator } from "./type.js";
 import { parser } from "./parser.js";
 
-function string(): UniversalType<string | undefined>;
-function string<T extends string>(validator: Validator<T, string>): UniversalType<T | undefined>;
-function string<T extends string = string>(validator = identity as Validator<T, string>): UniversalType<T | undefined> {
+function string(): Type<string | undefined>;
+function string<T extends string>(validator: Validator<T, string>): Type<T | undefined>;
+function string<T extends string = string>(validator = identity as Validator<T, string>): Type<T | undefined> {
     return type(
         (value: unknown) => (value === undefined ? value : validator(stringValidator(value))),
         parser("string")
     );
 }
 
-function number(): UniversalType<number | undefined>;
-function number<T extends number>(validator: Validator<T, number>): UniversalType<T | undefined>;
-function number<T extends number = number>(validator = identity as Validator<T, number>): UniversalType<T | undefined> {
+function number(): Type<number | undefined>;
+function number<T extends number>(validator: Validator<T, number>): Type<T | undefined>;
+function number<T extends number = number>(validator = identity as Validator<T, number>): Type<T | undefined> {
     return type((value: unknown) => (value === undefined ? value : validator(numberValidator(value))));
 }
 
-function boolean(): UniversalType<boolean | undefined>;
-function boolean<T extends boolean>(validator: Validator<T, boolean>): UniversalType<T | undefined>;
+function boolean(): Type<boolean | undefined>;
+function boolean<T extends boolean>(validator: Validator<T, boolean>): Type<T | undefined>;
 function boolean<T extends boolean = boolean>(
     validator = identity as Validator<T, boolean>
-): UniversalType<T | undefined> {
+): Type<T | undefined> {
     return type((value: unknown) => (value === undefined ? value : validator(booleanValidator(value))));
 }
 
-function date(): UniversalType<Date | undefined>;
-function date<T extends Date>(validator: Validator<T, Date>): UniversalType<T | undefined>;
-function date<T extends Date = Date>(validator = identity as Validator<T, Date>): UniversalType<T | undefined> {
+function date(): Type<Date | undefined>;
+function date<T extends Date>(validator: Validator<T, Date>): Type<T | undefined>;
+function date<T extends Date = Date>(validator = identity as Validator<T, Date>): Type<T | undefined> {
     return type((value: unknown) => (value === undefined ? value : validator(dateValidator(value))), parser("date"));
 }
 
-function union<T extends readonly (string | number | boolean)[]>(values: T): UniversalType<T[number] | undefined>;
-function union<T extends readonly (string | number | boolean)[]>(...values: T): UniversalType<T[number] | undefined>;
+function union<T extends readonly (string | number | boolean)[]>(values: T): Type<T[number] | undefined>;
+function union<T extends readonly (string | number | boolean)[]>(...values: T): Type<T[number] | undefined>;
 function union<T extends readonly (string | number | boolean)[]>(value: T | T[number], ...restValues: T) {
     const values = Array.isArray(value) ? value : [value, ...restValues];
 
