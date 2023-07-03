@@ -422,8 +422,8 @@ it("allows search params", () => {
 });
 
 it("allows to mix search params across multiple routes", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
-    const CHILD = route("child", { searchParams: { bar: number().array() } }, { GRANDCHILD });
+    const GRANDCHILD = route("grand", { searchParams: { foo: number().defined() } });
+    const CHILD = route("child", { searchParams: { bar: number().default(1).array() } }, { GRANDCHILD });
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);

@@ -1,8 +1,8 @@
-import { BaseRoute, OutStateParams, TypesMap } from "../common/index.js";
+import { BaseRoute, OutStateParams, Types } from "../common/index.js";
 import { useLocation } from "react-router-dom";
 import { useMemo } from "react";
 
-export function useTypedState<TPath extends string, TTypesMap extends TypesMap>(
+export function useTypedState<TPath extends string, TTypesMap extends Types>(
     route: BaseRoute<TPath, TTypesMap>
 ): OutStateParams<TTypesMap["state"]> {
     const location = useLocation();

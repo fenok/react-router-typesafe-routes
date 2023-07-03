@@ -1,8 +1,8 @@
-import { BaseRoute, TypesMap } from "../common/index.js";
+import { BaseRoute, Types } from "../common/index.js";
 import { useLocation } from "react-router-native";
 import { useMemo } from "react";
 
-export function useTypedHash<TPath extends string, TTypesMap extends TypesMap>(
+export function useTypedHash<TPath extends string, TTypesMap extends Types>(
     route: BaseRoute<TPath, TTypesMap>
 ): TTypesMap["hash"][number] | undefined {
     const location = useLocation();

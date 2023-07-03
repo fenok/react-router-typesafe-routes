@@ -27,12 +27,12 @@ type AnyType<TOut, TIn = TOut> = ParamType<TOut, TIn> &
 
 type ArrayType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
 
-type Type<TOut> = ConfiguredType<TOut | undefined> & {
-    default: (def: Exclude<TOut, undefined>) => ConfiguredType<Exclude<TOut, undefined>>;
-    defined: () => ConfiguredType<Exclude<TOut, undefined>>;
+type Type<TOut> = DefType<TOut | undefined> & {
+    default: (def: Exclude<TOut, undefined>) => DefType<Exclude<TOut, undefined>>;
+    defined: () => DefType<Exclude<TOut, undefined>>;
 };
 
-type ConfiguredType<TOut> = AnyType<TOut, Exclude<TOut, undefined>> & {
+type DefType<TOut> = AnyType<TOut, Exclude<TOut, undefined>> & {
     array: () => ArrayType<TOut[], Exclude<TOut, undefined>[]>;
 };
 
