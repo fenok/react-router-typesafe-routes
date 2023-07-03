@@ -9,12 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
--   [UNFINISHED] Hash values can now be specified without the `hashValues()` helper.
--   **Breaking**: In corresponding generics, the `THash` constraint is changed from `string[]` to `string`.
+-   Route objects can now be directly used as types for other routes. You can also specify multiple types. For example:
+```typescript
+const FRAGMENT = route('', {searchParams: {page: number()}});
+const ROUTE = route('', [FRAGMENT, {searchParams: {query: string()}}]);
+```
+-   Hash should now be specified as an array of strings or a type. For example:
+    - `hashValues('about', 'info')` => `['about', 'info']`
+    - `hashValues()` => `string()`
+    - You can also use other types, like `number().default(-1)`
+- **Breaking**: For hash, empty array no longer means "any string". Instead, it means "no hash", and it's the default value.
+-   **Breaking**: Some types are changed.
+-   **Breaking**: The minimal required version of TS is now `v5.0.2`.
 
 ### Removed
 
 -   **Breaking**: Removed all deprecated features.
+-   **Breaking**: Removed `hashValues()`. Pass an array of strings or a type instead.
+-   **Breaking**: Removed `types()`. Pass an array of types instead.
+-   **Breaking**: Removed `types` field of a route object. Use route object directly instead.
 
 ## [1.2.2] - 2024-04-21
 
