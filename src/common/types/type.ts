@@ -20,27 +20,27 @@ interface HashType<TOut, TIn = TOut> {
     getTypedHash: (plainValue: string) => TOut;
 }
 
-type AnyParamType<TOut, TIn = TOut> = ParamType<TOut, TIn> &
+type AnyType<TOut, TIn = TOut> = ParamType<TOut, TIn> &
     SearchParamType<TOut, TIn> &
     StateParamType<TOut, TIn> &
     HashType<TOut, TIn>;
 
-type ArrayParamType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
+type ArrayType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
 
-type UniversalType<TOut> = ConfiguredType<TOut | undefined> & {
+type Type<TOut> = ConfiguredType<TOut | undefined> & {
     default: (def: Exclude<TOut, undefined>) => ConfiguredType<Exclude<TOut, undefined>>;
     defined: () => ConfiguredType<Exclude<TOut, undefined>>;
 };
 
-type ConfiguredType<TOut> = AnyParamType<TOut, Exclude<TOut, undefined>> & {
-    array: () => ArrayParamType<TOut[], Exclude<TOut, undefined>[]>;
+type ConfiguredType<TOut> = AnyType<TOut, Exclude<TOut, undefined>> & {
+    array: () => ArrayType<TOut[], Exclude<TOut, undefined>[]>;
 };
 
 interface Validator<T, TPrev = unknown> {
     (value: TPrev): T;
 }
 
-function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> = defaultParser()): UniversalType<T> {
+function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> = defaultParser()): Type<T> {
     const getPlainParam = (value: Exclude<T, undefined>) => parser.stringify(value);
     const getTypedParam = (value: string | undefined) =>
         validator(typeof value === "undefined" ? value : parser.parse(value));
@@ -122,7 +122,7 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
 
 const getArrayParamTypeBuilder =
     <TOut, TIn>(validator: Validator<TOut>, parser: Parser<TIn>) =>
-    (): ArrayParamType<TOut[], TIn[]> => {
+    (): ArrayType<TOut[], TIn[]> => {
         const getPlainSearchParam = (values: TIn[]) => values.map((value) => parser.stringify(value));
         const getTypedSearchParam = (values: string[]) => values.map((item) => validator(parser.parse(item)));
         const getPlainStateParam = (values: TIn[]) => values;
@@ -181,4 +181,4 @@ function validateDef<T>(validator: Validator<T>, def: unknown): Exclude<T, undef
     return validDef as Exclude<T, undefined>;
 }
 
-export { type, UniversalType, Validator, ParamType, SearchParamType, StateParamType, HashType };
+export { type, Type, Validator, ParamType, SearchParamType, StateParamType, HashType };
