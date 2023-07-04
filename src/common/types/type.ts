@@ -40,7 +40,10 @@ interface Validator<T, TPrev = unknown> {
     (value: TPrev): T;
 }
 
-function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> = defaultParser()): Type<T> {
+function type<T>(
+    validator: Validator<T | undefined>,
+    parser: Parser<Exclude<T, undefined>> = defaultParser()
+): Type<T> {
     const getPlainParam = (value: Exclude<T, undefined>) => parser.stringify(value);
     const getTypedParam = (value: string | undefined) =>
         validator(typeof value === "undefined" ? value : parser.parse(value));
@@ -124,7 +127,8 @@ const getArrayParamTypeBuilder =
     <T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>>) =>
     (): ArrayType<Exclude<T, undefined>> => {
         const getPlainSearchParam = (values: T[]) => values.filter(isDefined).map((value) => parser.stringify(value));
-        const getTypedSearchParam = (values: string[]) => values.map((item) => validator(parser.parse(item))).filter(isDefined);
+        const getTypedSearchParam = (values: string[]) =>
+            values.map((item) => validator(parser.parse(item))).filter(isDefined);
         const getPlainStateParam = (values: T[]) => values;
         const getTypedStateParam = (values: unknown) =>
             (Array.isArray(values) ? values : []).map((item) => validator(item)).filter(isDefined);
