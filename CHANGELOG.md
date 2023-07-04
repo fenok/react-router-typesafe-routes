@@ -10,15 +10,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 -   Route objects can now be directly used as types for other routes. You can also specify multiple types. For example:
-```typescript
-const FRAGMENT = route('', {searchParams: {page: number()}});
-const ROUTE = route('', [FRAGMENT, {searchParams: {query: string()}}]);
-```
+
+    ```typescript
+    const FRAGMENT = route("", { searchParams: { page: number() } });
+    const ROUTE = route("", [FRAGMENT, { searchParams: { query: string() } }]);
+    ```
+
 -   Hash should now be specified as an array of strings or a type. For example:
-    - `hashValues('about', 'info')` => `['about', 'info']`
-    - `hashValues()` => `string()`
-    - You can also use other types, like `number().default(-1)`
-- **Breaking**: For hash, empty array no longer means "any string". Instead, it means "no hash", and it's the default value.
+    -   `hashValues('about', 'info')` => `['about', 'info']`
+    -   `hashValues()` => `string()`
+    -   You can also use other types, like `number().default(-1)`
+-   **Breaking**: Array types like `string().array()` now filter `undefined` values upon parsing. The previous behavior broke a common pattern of changing a subset of search parameters:
+
+    ```typescript
+    const FRAGMENT = route("", { searchParams: { pages: number().array(), query: string() } });
+
+    const [{ pages, query }, setTypedSearchParams] = useTypedSearchParams(FRAGMENT);
+
+    setTypedSearchParams((prevParams) => ({
+        // Previously, prevParams.pages would be (number|undefined)[],
+        // which is not assignable to number[].
+        ...prevParams,
+        query: "hi",
+    }));
+    ```
+
+-   **Breaking**: For hash, empty array no longer means "any string". Instead, it means "no hash", and it's the default value.
 -   **Breaking**: Some types are changed.
 -   **Breaking**: The minimal required version of TS is now `v5.0.2`.
 
@@ -152,3 +169,11 @@ const ROUTE = route('', [FRAGMENT, {searchParams: {query: string()}}]);
 [0.5.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.5.0
 [0.4.3]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.4.3
 [0.4.2]: https://github.com/fenok/react-router-typesafe-routes/tree/v0.4.2
+
+```
+
+```
+
+```
+
+```
