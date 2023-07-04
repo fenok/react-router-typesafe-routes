@@ -25,7 +25,7 @@ type AnyType<TOut, TIn = TOut> = ParamType<TOut, TIn> &
     StateParamType<TOut, TIn> &
     HashType<TOut, TIn>;
 
-type ArrayType<TOut, TIn = TOut> = SearchParamType<TOut, TIn> & StateParamType<TOut, TIn>;
+type ArrayType<TOut> = SearchParamType<TOut[]> & StateParamType<TOut[]>;
 
 type Type<TOut> = DefType<TOut | undefined> & {
     default: (def: Exclude<TOut, undefined>) => DefType<Exclude<TOut, undefined>>;
@@ -33,7 +33,7 @@ type Type<TOut> = DefType<TOut | undefined> & {
 };
 
 type DefType<TOut> = AnyType<TOut, Exclude<TOut, undefined>> & {
-    array: () => ArrayType<TOut[], Exclude<TOut, undefined>[]>;
+    array: () => ArrayType<Exclude<TOut, undefined>>;
 };
 
 interface Validator<T, TPrev = unknown> {
@@ -66,7 +66,7 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
             getTypedHash: ensureNoError(getTypedHash),
         },
         {
-            array: getArrayParamTypeBuilder(ensureNoError(validator), {
+            array: getArrayParamTypeBuilder<T | undefined>(ensureNoError(validator), {
                 stringify: parser.stringify,
                 parse: ensureNoError(parser.parse),
             }),
@@ -121,13 +121,13 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
 }
 
 const getArrayParamTypeBuilder =
-    <TOut, TIn>(validator: Validator<TOut>, parser: Parser<TIn>) =>
-    (): ArrayType<TOut[], TIn[]> => {
-        const getPlainSearchParam = (values: TIn[]) => values.map((value) => parser.stringify(value));
-        const getTypedSearchParam = (values: string[]) => values.map((item) => validator(parser.parse(item)));
-        const getPlainStateParam = (values: TIn[]) => values;
+    <T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>>) =>
+    (): ArrayType<Exclude<T, undefined>> => {
+        const getPlainSearchParam = (values: T[]) => values.filter(isDefined).map((value) => parser.stringify(value));
+        const getTypedSearchParam = (values: string[]) => values.map((item) => validator(parser.parse(item))).filter(isDefined);
+        const getPlainStateParam = (values: T[]) => values;
         const getTypedStateParam = (values: unknown) =>
-            (Array.isArray(values) ? values : []).map((item) => validator(item));
+            (Array.isArray(values) ? values : []).map((item) => validator(item)).filter(isDefined);
 
         return {
             getPlainSearchParam,
@@ -136,6 +136,10 @@ const getArrayParamTypeBuilder =
             getTypedStateParam,
         };
     };
+
+function isDefined<T>(value: T): value is Exclude<T, undefined> {
+    return typeof value !== "undefined";
+}
 
 function ensureNoError<TFn extends (...args: never[]) => unknown, TDefault>(
     fn: TFn
