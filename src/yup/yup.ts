@@ -9,7 +9,7 @@ interface SchemaLike<T> {
     validateSync(value: unknown): T;
 }
 
-export function yup<T>(schema: SchemaLike<T>): Type<T> {
+export function yup<T>(schema: SchemaLike<T | undefined>): Type<T> {
     let typeHint: ParserHint = "unknown";
 
     if (!schema.spec.nullable) {
