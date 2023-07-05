@@ -66,7 +66,7 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
             getTypedHash: ensureNoError(getTypedHash),
         },
         {
-            array: getArrayParamTypeBuilder<T | undefined>(ensureNoError(validator), {
+            array: getArrayParamTypeBuilder(ensureNoError(validator), {
                 stringify: parser.stringify,
                 parse: ensureNoError(parser.parse),
             }),
