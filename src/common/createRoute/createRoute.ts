@@ -1,5 +1,14 @@
 import { ParamType, SearchParamType, StateParamType, HashType } from "../types/index.js";
-import { Merge, Readable, ErrorMessage } from "./helpers.js";
+
+type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
+
+type Identity<T> = T;
+
+type Readable<T> = Identity<{
+    [K in keyof T]: T[K];
+}>;
+
+type ErrorMessage<T extends string> = T & { __brand: ErrorMessage<T> };
 
 type Route<TPath extends string = string, TTypes extends Types = Types, TChildren = void> = DecoratedRouteMap<
     TPath,
