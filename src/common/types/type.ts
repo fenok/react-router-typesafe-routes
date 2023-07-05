@@ -37,13 +37,10 @@ type DefType<TOut> = AnyType<TOut, Exclude<TOut, undefined>> & {
 };
 
 interface Validator<T, TPrev = unknown> {
-    (value: TPrev): T;
+    (value: TPrev): T | undefined;
 }
 
-function type<T>(
-    validator: Validator<T | undefined>,
-    parser: Parser<Exclude<T, undefined>> = defaultParser()
-): Type<T> {
+function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> = defaultParser()): Type<T> {
     const getPlainParam = (value: Exclude<T, undefined>) => parser.stringify(value);
     const getTypedParam = (value: string | undefined) =>
         validator(typeof value === "undefined" ? value : parser.parse(value));
