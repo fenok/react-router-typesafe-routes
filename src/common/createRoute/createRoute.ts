@@ -658,6 +658,8 @@ export {
     OutSearchParams,
     InStateParams,
     OutStateParams,
+    InHash,
+    OutHash,
     PathParam,
     SanitizedPath,
     SanitizedRouteMap,
