@@ -10,16 +10,16 @@ type Readable<T> = Identity<{
 
 type ErrorMessage<T extends string> = T & { __brand: ErrorMessage<T> };
 
-type Route<TPath extends string = string, TTypes extends Types = Types, TChildren = void> = DecoratedRouteMap<
+type Route<TPath extends string = string, TTypes extends Types = Types, TChildren = void> = Children<
     TPath,
     TTypes,
     TChildren
 > &
     BaseRoute<TPath, TTypes> & {
-        $: DecoratedRouteMap<TPath, TTypes, TChildren, true>;
+        $: Children<TPath, TTypes, TChildren, true>;
     };
 
-type DecoratedRouteMap<
+type Children<
     TPath extends string = string,
     TTypes extends Types = Types,
     TChildren = void,
@@ -169,7 +169,7 @@ type PathWithoutIntermediateStars<T extends string> = T extends `${infer TStart}
     ? PathWithoutIntermediateStars<`${TStart}${TEnd}`>
     : T;
 
-type SanitizedRouteMap<T> = T extends Record<infer TKey, unknown>
+type SanitizedChildren<T> = T extends Record<infer TKey, unknown>
     ? TKey extends string
         ? TKey extends Capitalize<TKey>
             ? T
@@ -274,7 +274,7 @@ function createRoute(creatorOptions: RouteOptions) {
     >(
         path: SanitizedPath<TPath>,
         types: TTypes = {} as TTypes,
-        children?: SanitizedRouteMap<TChildren>
+        children?: SanitizedChildren<TChildren>
     ): Route<TPath, ComposedTypesMap<TTypes>, TChildren> {
         const resolvedTypes = mergeTypes(types);
 
@@ -323,7 +323,7 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren,
     creatorOptions: RouteOptions,
     children: TChildren | undefined,
     excludePath: TExcludePath
-): DecoratedRouteMap<TPath, TTypes, TChildren, TExcludePath> {
+): Children<TPath, TTypes, TChildren, TExcludePath> {
     const result: Record<string, unknown> = {};
 
     if (children) {
@@ -348,7 +348,7 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren,
         });
     }
 
-    return result as DecoratedRouteMap<TPath, TTypes, TChildren, TExcludePath>;
+    return result as Children<TPath, TTypes, TChildren, TExcludePath>;
 }
 
 function getRoute<TPath extends string, TTypes extends Types>(
@@ -666,9 +666,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export {
     createRoute,
     RouteOptions,
-    BaseRoute,
     Route,
-    DecoratedRouteMap,
+    BaseRoute,
+    Children,
+    Types,
+    PathParam,
+    SanitizedPath,
+    SanitizedChildren,
     InParams,
     OutParams,
     InSearchParams,
@@ -677,8 +681,4 @@ export {
     OutStateParams,
     InHash,
     OutHash,
-    PathParam,
-    SanitizedPath,
-    SanitizedRouteMap,
-    Types,
 };
