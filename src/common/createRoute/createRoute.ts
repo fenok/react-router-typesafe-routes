@@ -264,7 +264,7 @@ function createRoute(creatorOptions: RouteOptions) {
     function route<
         TPath extends string = string,
         THash extends string = string,
-        TTypes extends Partial<Types<any, any, any, THash[] | HashType<any>>> = {},
+        TTypes extends Partial<Types<{}, {}, {}, THash[] | HashType<any>>> = {},
         TChildren = void
     >(
         path: SanitizedPath<TPath>,
@@ -274,7 +274,7 @@ function createRoute(creatorOptions: RouteOptions) {
     function route<
         TPath extends string = string,
         THash extends string = string,
-        TTypes extends Partial<Types<any, any, any, THash[] | HashType<any>>>[] = [],
+        TTypes extends Partial<Types<{}, {}, {}, THash[] | HashType<any>>>[] = [],
         TChildren = void
     >(
         path: SanitizedPath<TPath>,
