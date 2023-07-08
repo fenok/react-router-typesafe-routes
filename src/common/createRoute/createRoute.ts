@@ -141,7 +141,7 @@ type RawStateParam<TType, TMode extends "in" | "out"> = TType extends StateParam
         : TOut
     : never;
 
-type RawHash<THash, TMode extends "in" | "out"> = THash extends readonly string[]
+type RawHash<THash, TMode extends "in" | "out"> = THash extends string[]
     ? TMode extends "in"
         ? THash[number]
         : THash[number] | undefined
@@ -218,7 +218,7 @@ interface Types<
     TPathTypes extends Record<string, ParamType<any>> = any,
     TSearchTypes extends Record<string, SearchParamType<any>> = any,
     TStateTypes extends Record<string, StateParamType<any>> = any,
-    THash extends readonly string[] | HashType<any> = readonly string[] | HashType<any>
+    THash extends string[] | HashType<any> = string[] | HashType<any>
 > {
     params: TPathTypes;
     searchParams: TSearchTypes;
@@ -231,20 +231,16 @@ type RequiredTypesMap<T> = T extends Partial<Types<infer TPathTypes, infer TSear
           Record<string, ParamType<any>> extends TPathTypes ? {} : TPathTypes,
           Record<string, SearchParamType<any>> extends TSearchTypes ? {} : TSearchTypes,
           Record<string, StateParamType<any>> extends TState ? {} : TState,
-          readonly string[] | HashType<any> extends THash ? readonly [] : THash
+          string[] | HashType<any> extends THash ? [] : THash
       >
     : never;
 
-type ComposedTypesMap<T, TExcludePath extends boolean = false> = T extends readonly [
-    infer TFirst,
-    infer TSecond,
-    ...infer TRest
-]
+type ComposedTypesMap<T, TExcludePath extends boolean = false> = T extends [infer TFirst, infer TSecond, ...infer TRest]
     ? ComposedTypesMap<
           [MergeTypesArrayItems<RequiredTypesMap<TFirst>, RequiredTypesMap<TSecond>, TExcludePath>, ...TRest],
           TExcludePath
       >
-    : T extends readonly [infer TFirst]
+    : T extends [infer TFirst]
     ? RequiredTypesMap<TFirst>
     : RequiredTypesMap<T>;
 
@@ -259,11 +255,7 @@ type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extend
               TExcludePath extends true ? TChildPathTypes : Merge<TPathTypes, TChildPathTypes>,
               Merge<TSearchTypes, TChildSearchTypes>,
               Merge<TState, TChildState>,
-              TChildHash extends readonly string[]
-                  ? THash extends readonly string[]
-                      ? [...THash, ...TChildHash]
-                      : THash
-                  : TChildHash
+              TChildHash extends string[] ? (THash extends string[] ? [...THash, ...TChildHash] : THash) : TChildHash
           >
         : never
     : never;
@@ -271,7 +263,27 @@ type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extend
 function createRoute(creatorOptions: RouteOptions) {
     function route<
         TPath extends string = string,
-        const TTypes extends Partial<Types> | readonly Partial<Types>[] = {},
+        THash extends string = string,
+        TTypes extends Partial<Types<any, any, any, THash[] | HashType<any>>> = {},
+        TChildren = void
+    >(
+        path: SanitizedPath<TPath>,
+        types?: TTypes,
+        children?: SanitizedChildren<TChildren>
+    ): Route<TPath, ComposedTypesMap<TTypes>, TChildren>;
+    function route<
+        TPath extends string = string,
+        THash extends string = string,
+        TTypes extends Partial<Types<any, any, any, THash[] | HashType<any>>>[] = [],
+        TChildren = void
+    >(
+        path: SanitizedPath<TPath>,
+        types?: [...TTypes],
+        children?: SanitizedChildren<TChildren>
+    ): Route<TPath, ComposedTypesMap<TTypes>, TChildren>;
+    function route<
+        TPath extends string = string,
+        TTypes extends Partial<Types> | Partial<Types>[] = {},
         TChildren = void
     >(
         path: SanitizedPath<TPath>,
@@ -290,7 +302,10 @@ function createRoute(creatorOptions: RouteOptions) {
     return route;
 }
 
-function mergeTypes<T extends readonly Partial<Types>[] | Partial<Types>>(value: T): ComposedTypesMap<T> {
+function mergeTypes<T extends Partial<Types>[]>(value: [...T]): ComposedTypesMap<T>;
+function mergeTypes<T extends Partial<Types>>(value: T): ComposedTypesMap<T>;
+function mergeTypes<T extends Partial<Types>[] | Partial<Types>>(value: T): ComposedTypesMap<T>;
+function mergeTypes<T extends Partial<Types>[] | Partial<Types>>(value: T): ComposedTypesMap<T> {
     const arr = (Array.isArray(value) ? value : [value]) as Partial<Types>[];
 
     return arr.reduce(
@@ -315,7 +330,7 @@ function mergeTypes<T extends readonly Partial<Types>[] | Partial<Types>>(value:
     ) as ComposedTypesMap<T>;
 }
 
-function isHashType<T extends HashType<any>>(value: T | readonly string[] | undefined): value is T {
+function isHashType<T extends HashType<any>>(value: T | string[] | undefined): value is T {
     return Boolean(value) && !Array.isArray(value);
 }
 
@@ -341,7 +356,7 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren,
                               : value.path === "/"
                               ? path
                               : `${path}${value.path}`,
-                          mergeTypes([excludePath ? { ...typesObj, params: undefined } : typesObj, value] as const),
+                          mergeTypes([excludePath ? { ...typesObj, params: undefined } : typesObj, value]),
                           creatorOptions
                       ),
                       $: decorateChildren(path, typesObj, creatorOptions, value.$, true),
