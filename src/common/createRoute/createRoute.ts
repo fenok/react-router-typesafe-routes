@@ -10,7 +10,7 @@ type Readable<T> = Identity<{
 
 type ErrorMessage<T extends string> = T & { __brand: ErrorMessage<T> };
 
-type Route<TPath extends string = string, TTypes extends Types = Types, TChildren = void> = Children<
+type Route<TPath extends string = string, TTypes extends Types = Types<any, any, any>, TChildren = void> = Children<
     TPath,
     TTypes,
     TChildren
@@ -40,7 +40,7 @@ type Children<
         : TChildren[TKey];
 };
 
-type BaseRoute<TPath extends string = string, TTypes extends Types = Types> = {
+type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, any, any>> = {
     path: `/${SanitizedPath<TPath>}`;
     relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
     getPlainParams: (params: InParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
@@ -215,9 +215,9 @@ interface RouteOptions {
 type IsAny<T> = 0 extends 1 & T ? true : false;
 
 interface Types<
-    TPathTypes extends Record<string, ParamType<any>> = any,
-    TSearchTypes extends Record<string, SearchParamType<any>> = any,
-    TStateTypes extends Record<string, StateParamType<any>> = any,
+    TPathTypes extends Record<string, ParamType<any>> = {},
+    TSearchTypes extends Record<string, SearchParamType<any>> = {},
+    TStateTypes extends Record<string, StateParamType<any>> = {},
     THash extends string[] | HashType<any> = string[] | HashType<any>
 > {
     params: TPathTypes;
