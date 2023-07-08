@@ -67,19 +67,21 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types> = {
     buildState: (state: InStateParams<TTypes["state"]>) => Record<string, unknown>;
 } & TTypes;
 
-type InParams<TPath extends string, TPathTypes> = Readable<
-    PartialByKey<
-        PickWithFallback<
-            RawParams<TPathTypes, "in">,
-            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>,
-            string
-        >,
-        EnsureExtends<
-            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>, "optional", "in">,
-            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
-        >
-    >
->;
+type InParams<TPath extends string, TPathTypes> = IsAny<TPathTypes> extends true
+    ? any
+    : Readable<
+          PartialByKey<
+              PickWithFallback<
+                  RawParams<TPathTypes, "in">,
+                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>,
+                  string
+              >,
+              EnsureExtends<
+                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>, "optional", "in">,
+                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
+              >
+          >
+      >;
 
 type EnsureExtends<TFirst, TSecond> = TFirst extends TSecond ? TFirst : never;
 
@@ -93,17 +95,21 @@ type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes
         EnsureExtends<Exclude<TOptionalKey, keyof TPathTypes>, Exclude<TKey, keyof TPathTypes>>
     >;
 
-type InSearchParams<TSearchTypes> = Readable<Partial<RawSearchParams<TSearchTypes, "in">>>;
+type InSearchParams<TSearchTypes> = IsAny<TSearchTypes> extends true
+    ? any
+    : Readable<Partial<RawSearchParams<TSearchTypes, "in">>>;
 
 type OutSearchParams<TSearchTypes> = Readable<RawSearchParams<TSearchTypes, "out">>;
 
-type InStateParams<TStateTypes> = Readable<Partial<RawStateParams<TStateTypes, "in">>>;
+type InStateParams<TStateTypes> = IsAny<TStateTypes> extends true
+    ? any
+    : Readable<Partial<RawStateParams<TStateTypes, "in">>>;
 
 type OutStateParams<TStateTypes> = Readable<RawStateParams<TStateTypes, "out">>;
 
-type InHash<THash> = RawHash<THash, "in">;
+type InHash<THash> = NeverToUndefined<RawHash<THash, "in">>;
 
-type OutHash<THash> = RawHash<THash, "out">;
+type OutHash<THash> = NeverToUndefined<RawHash<THash, "out">>;
 
 type RawParams<TTypes, TMode extends "in" | "out"> = {
     [TKey in keyof TTypes]: RawParam<TTypes[TKey], TMode>;
@@ -145,6 +151,8 @@ type RawHash<THash, TMode extends "in" | "out"> = THash extends readonly string[
         : TOut
     : never;
 
+type NeverToUndefined<T> = [T] extends [never] ? undefined : T;
+
 type PickWithFallback<T, K extends string, F> = { [P in K]: P extends keyof T ? T[P] : F };
 
 type PartialByKey<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -162,10 +170,10 @@ type PathWithoutIntermediateStars<T extends string> = T extends `${infer TStart}
     : T;
 
 type SanitizedChildren<T> = T extends Record<infer TKey, unknown>
-    ? TKey extends string
+    ? [TKey] extends [string]
         ? TKey extends Capitalize<TKey>
             ? T
-            : ErrorMessage<"Child routes have to start with an uppercase letter">
+            : ErrorMessage<"Route children have to start with an uppercase letter">
         : T
     : T;
 
@@ -204,10 +212,12 @@ interface RouteOptions {
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
+type IsAny<T> = 0 extends 1 & T ? true : false;
+
 interface Types<
-    TPathTypes extends Record<string, ParamType<any>> = {},
-    TSearchTypes extends Record<string, SearchParamType<any>> = {},
-    TStateTypes extends Record<string, StateParamType<any>> = {},
+    TPathTypes extends Record<string, ParamType<any>> = any,
+    TSearchTypes extends Record<string, SearchParamType<any>> = any,
+    TStateTypes extends Record<string, StateParamType<any>> = any,
     THash extends readonly string[] | HashType<any> = readonly string[] | HashType<any>
 > {
     params: TPathTypes;

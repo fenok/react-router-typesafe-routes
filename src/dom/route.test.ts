@@ -10,6 +10,7 @@ import {
     ParamType,
     SearchParamType,
     StateParamType,
+    BaseRoute,
 } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 import { zod } from "../zod/index.js";
@@ -1573,4 +1574,55 @@ it("generates correct paths when the first segment is optional", () => {
 
     expect(TEST_ROUTE.buildRelativePath({ required: "req" })).toStrictEqual("req");
     expect(TEST_ROUTE.buildRelativePath({ optional: "opt", required: "req" })).toStrictEqual("opt/req");
+});
+
+it("provides a base type that any route is assignable to", () => {
+    const TEST_ROUTE = route(
+        "test/:a/:b/:c?",
+        [
+            {
+                params: { a: number() },
+                searchParams: { q: string() },
+                state: { s: boolean() },
+                hash: ["hash1", "hash2"],
+            },
+        ],
+        {
+            CHILD: route(":d", {
+                params: { d: number() },
+                searchParams: { s: string() },
+                state: { f: number() },
+                hash: boolean(),
+            }),
+        }
+    );
+
+    const EMPTY_ROUTE = route("");
+
+    const test1: BaseRoute = TEST_ROUTE;
+    const test2: BaseRoute = TEST_ROUTE.CHILD;
+    const test3: BaseRoute = EMPTY_ROUTE;
+
+    expect(test1).toBeTruthy();
+    expect(test2).toBeTruthy();
+    expect(test3).toBeTruthy();
+});
+
+it("checks that leading and trailing slashes are forbidden", () => {
+    // @ts-expect-error Checking leading slash error
+    expect(route("/test")).toBeTruthy();
+
+    // @ts-expect-error Checking trailing slash error
+    expect(route("test/")).toBeTruthy();
+
+    // @ts-expect-error Checking both
+    expect(route("/test/")).toBeTruthy();
+});
+
+it("checks that route children start with an uppercase letter", () => {
+    // @ts-expect-error Checking single invalid child
+    expect(route("", {}, { child: route("") }));
+
+    // @ts-expect-error Checking mix of valid and invalid children
+    expect(route("", {}, { VALID: route(""), child: route("") }));
 });
