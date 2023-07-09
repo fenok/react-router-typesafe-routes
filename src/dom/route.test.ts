@@ -551,7 +551,7 @@ it("allows implicit optional path params parsing", () => {
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
     assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id?: string }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id: string | undefined }>>(true);
 
     expect(TEST_ROUTE.getTypedParams({})).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({})).toStrictEqual({});
@@ -642,10 +642,13 @@ it("doesn't throw if implicit optional path params are omitted", () => {
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId?: string }>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId?: string; id?: string }>>(
-        true
-    );
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: string | undefined }>>(true);
+    assert<
+        IsExact<
+            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>,
+            { childId: string | undefined; id: string | undefined }
+        >
+    >(true);
 
     expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: "2" });
@@ -723,8 +726,8 @@ it("allows implicit optional star path param parsing", () => {
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { "*"?: string }>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*"?: string }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { "*": string | undefined }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": string | undefined }>>(true);
 
     expect(TEST_ROUTE.getTypedParams({ "*": "foo/bar" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "foo/bar" })).toStrictEqual({ "*": "foo/bar" });
