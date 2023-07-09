@@ -1,4 +1,4 @@
-import { ParamType, SearchParamType, StateParamType, HashType } from "../types/index.js";
+import { ParamType, SearchParamType, StateParamType, HashType, Type, DefType, string } from "../types/index.js";
 
 type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
 
@@ -69,25 +69,24 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, 
 
 type InParams<TPath extends string, TPathTypes> = IsAny<TPathTypes> extends true
     ? any
-    : Readable<
-          PartialByKey<
+    : Merge<
+          PickWithFallback<
+              Readable<RawParams<TPathTypes, "in">>,
+              PathParam<PathWithoutIntermediateStars<TPath>, "all", "in">,
+              never
+          >,
+          Partial<
               PickWithFallback<
-                  RawParams<TPathTypes, "in">,
-                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>,
-                  string
-              >,
-              EnsureExtends<
-                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>, "optional", "in">,
-                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
+                  Readable<RawParams<TPathTypes, "in">>,
+                  PathParam<PathWithoutIntermediateStars<TPath>, "optional", "in">,
+                  never
               >
           >
       >;
 
 type EnsureExtends<TFirst, TSecond> = TFirst extends TSecond ? TFirst : never;
 
-type OutParams<TPath extends string, TPathTypes> = Readable<
-    OutParamsByKey<PathParam<SanitizedPath<TPath>>, PathParam<SanitizedPath<TPath>, "optional">, TPathTypes>
->;
+type OutParams<TPath extends string, TPathTypes> = Readable<RawParams<TPathTypes, "out">>;
 
 type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes> = RawParams<TPathTypes, "out"> &
     PartialByKey<
@@ -260,6 +259,25 @@ type MergeTypesArrayItems<T, U, TExcludePath extends boolean = false> = T extend
         : never
     : never;
 
+type DefaultTypes<T extends string> = {
+    params: Merge<Record<PathParam<T>, DefType<string>>, Record<PathParam<T, "optional">, Type<string>>>;
+};
+
+function getDefaultTypes<T extends string>(path: T): DefaultTypes<T> {
+    const [allKeys, optionalKeys] = getKeys(path);
+
+    const requiredKeys = allKeys.filter(
+        (key) => !optionalKeys.includes(key as unknown as (typeof optionalKeys)[number])
+    );
+
+    const requiredParams = Object.fromEntries(requiredKeys.map((key) => [key, string().defined()]));
+    const optionalParams = Object.fromEntries(optionalKeys.map((key) => [key, string()]));
+
+    return {
+        params: { ...requiredParams, ...optionalParams },
+    } as DefaultTypes<T>;
+}
+
 function createRoute(creatorOptions: RouteOptions) {
     function route<
         TPath extends string = string,
@@ -270,7 +288,7 @@ function createRoute(creatorOptions: RouteOptions) {
         path: SanitizedPath<TPath>,
         types?: TTypes,
         children?: SanitizedChildren<TChildren>
-    ): Route<TPath, ComposedTypesMap<TTypes>, TChildren>;
+    ): Route<TPath, ComposedTypesMap<[DefaultTypes<TPath>, TTypes]>, TChildren>;
     function route<
         TPath extends string = string,
         THash extends string = string,
@@ -280,7 +298,7 @@ function createRoute(creatorOptions: RouteOptions) {
         path: SanitizedPath<TPath>,
         types?: [...TTypes],
         children?: SanitizedChildren<TChildren>
-    ): Route<TPath, ComposedTypesMap<TTypes>, TChildren>;
+    ): Route<TPath, ComposedTypesMap<[DefaultTypes<TPath>, ...TTypes]>, TChildren>;
     function route<
         TPath extends string = string,
         TTypes extends Partial<Types> | Partial<Types>[] = {},
@@ -290,16 +308,24 @@ function createRoute(creatorOptions: RouteOptions) {
         types: TTypes = {} as TTypes,
         children?: SanitizedChildren<TChildren>
     ): Route<TPath, ComposedTypesMap<TTypes>, TChildren> {
-        const resolvedTypes = mergeTypes(types);
+        const typesArray = normalizeTypes(types);
+
+        const defaultTypes = getDefaultTypes(path);
+
+        const resolvedTypes = mergeTypes([defaultTypes, ...typesArray]);
 
         return {
             ...decorateChildren(path, resolvedTypes, creatorOptions, children, false),
             ...getRoute(path, resolvedTypes, creatorOptions),
             $: decorateChildren(path, resolvedTypes, creatorOptions, children, true),
-        } as Route<TPath, ComposedTypesMap<TTypes>, TChildren>;
+        } as unknown as Route<TPath, ComposedTypesMap<TTypes>, TChildren>;
     }
 
     return route;
+}
+
+function normalizeTypes<T extends Partial<Types>[] | Partial<Types>>(value: T): T extends unknown[] ? T : [T] {
+    return (Array.isArray(value) ? value : [value]) as T extends unknown[] ? T : [T];
 }
 
 function mergeTypes<T extends Partial<Types>[]>(value: [...T]): ComposedTypesMap<T>;

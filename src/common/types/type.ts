@@ -186,4 +186,4 @@ function validateDef<T>(validator: Validator<T>, def: unknown): Exclude<T, undef
     return validDef as Exclude<T, undefined>;
 }
 
-export { type, Type, Validator, ParamType, SearchParamType, StateParamType, HashType };
+export { type, Type, DefType, Validator, ParamType, SearchParamType, StateParamType, HashType };
