@@ -539,12 +539,12 @@ function getRoute<TPath extends string, TTypes extends Types>(
 function getPlainParamsByTypes(
     keys: [string[], string[]],
     params: Record<string, unknown>,
-    types?: Partial<Record<string, ParamType<unknown, never>>>
+    types: Partial<Record<string, ParamType<unknown, never>>>
 ): Record<string, string> {
     const result: Record<string, string> = {};
 
     Object.keys(params).forEach((key) => {
-        const type = types?.[key];
+        const type = types[key];
         const value = params[key];
 
         if (type && keys[0].indexOf(key) !== -1 && value !== undefined) {
@@ -559,12 +559,12 @@ function getPlainParamsByTypes(
 
 function getPlainSearchParamsByTypes(
     params: Record<string, unknown>,
-    types?: Partial<Record<string, SearchParamType<unknown, never>>>
+    types: Partial<Record<string, SearchParamType<unknown, never>>>
 ): Record<string, string | string[]> {
     const result: Record<string, string | string[]> = {};
 
     Object.keys(params).forEach((key) => {
-        const type = types?.[key];
+        const type = types[key];
 
         if (type && params[key] !== undefined) {
             result[key] = type.getPlainSearchParam(params[key] as never);
@@ -576,12 +576,12 @@ function getPlainSearchParamsByTypes(
 
 function getPlainStateParamsByTypes(
     params: Record<string, unknown>,
-    types?: Partial<Record<string, StateParamType<unknown, never>>>
+    types: Partial<Record<string, StateParamType<unknown, never>>>
 ): Record<string, unknown> {
     const result: Record<string, unknown> = {};
 
     Object.keys(params).forEach((key) => {
-        const type = types?.[key];
+        const type = types[key];
         const value = params[key];
 
         if (type && value !== undefined) {
@@ -593,56 +593,52 @@ function getPlainStateParamsByTypes(
 }
 
 function getTypedParamsByTypes<TPathTypes extends Partial<Record<string, ParamType<unknown, never>>>>(
-    pathParams: Record<string, string | undefined>,
-    types?: TPathTypes
+    params: Record<string, string | undefined>,
+    types: TPathTypes
 ): OutParams<TPathTypes> {
     const result: Record<string, unknown> = {};
 
-    if (types) {
-        Object.keys(types).forEach((key) => {
-            const type = types[key];
+    Object.keys(types).forEach((key) => {
+        const type = types[key];
 
-            if (type) {
-                const typedSearchParam = type.getTypedParam(pathParams[key]);
-                if (typedSearchParam !== undefined) {
-                    result[key] = typedSearchParam;
-                }
+        if (type) {
+            const typedSearchParam = type.getTypedParam(params[key]);
+            if (typedSearchParam !== undefined) {
+                result[key] = typedSearchParam;
             }
-        });
-    }
+        }
+    });
 
     return result as OutParams<TPathTypes>;
 }
 
 function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string, SearchParamType<unknown, never>>>>(
     searchParams: URLSearchParams,
-    types?: TSearchTypes
+    types: TSearchTypes
 ): OutSearchParams<TSearchTypes> {
     const result: Record<string, unknown> = {};
 
-    if (types) {
-        Object.keys(types).forEach((key) => {
-            const type = types[key];
+    Object.keys(types).forEach((key) => {
+        const type = types[key];
 
-            if (type) {
-                const typedSearchParam = type.getTypedSearchParam(searchParams.getAll(key));
-                if (typedSearchParam !== undefined) {
-                    result[key] = typedSearchParam;
-                }
+        if (type) {
+            const typedSearchParam = type.getTypedSearchParam(searchParams.getAll(key));
+            if (typedSearchParam !== undefined) {
+                result[key] = typedSearchParam;
             }
-        });
-    }
+        }
+    });
 
     return result as OutSearchParams<TSearchTypes>;
 }
 
 function getTypedStateByTypes<TStateTypes extends Partial<Record<string, StateParamType<unknown, never>>>>(
     state: unknown,
-    types?: TStateTypes
+    types: TStateTypes
 ): OutStateParams<TStateTypes> {
     const result: Record<string, unknown> = {};
 
-    if (types && isRecord(state)) {
+    if (isRecord(state)) {
         Object.keys(types).forEach((key) => {
             const type = types[key];
 
