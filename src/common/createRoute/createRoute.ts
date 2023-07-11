@@ -45,7 +45,7 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, 
     relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
     getPlainParams: (params: InParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
     getPlainSearchParams: (params: InSearchParams<TTypes["searchParams"]>) => Record<string, string | string[]>;
-    getTypedParams: (params: Record<string, string | undefined>) => OutParams<TPath, TTypes["params"]>;
+    getTypedParams: (params: Record<string, string | undefined>) => OutParams<TTypes["params"]>;
     getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TTypes["searchParams"]>;
     getTypedHash: (hash: string) => OutHash<TTypes["hash"]>;
     getTypedState: (state: unknown) => OutStateParams<TTypes["state"]>;
@@ -84,15 +84,7 @@ type InParams<TPath extends string, TPathTypes> = IsAny<TPathTypes> extends true
           >
       >;
 
-type EnsureExtends<TFirst, TSecond> = TFirst extends TSecond ? TFirst : never;
-
-type OutParams<TPath extends string, TPathTypes> = Readable<PartialUndefined<RawParams<TPathTypes, "out">>>;
-
-type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes> = RawParams<TPathTypes, "out"> &
-    PartialByKey<
-        Record<Exclude<TKey, keyof TPathTypes>, string>,
-        EnsureExtends<Exclude<TOptionalKey, keyof TPathTypes>, Exclude<TKey, keyof TPathTypes>>
-    >;
+type OutParams<TPathTypes> = Readable<PartialUndefined<RawParams<TPathTypes, "out">>>;
 
 type InSearchParams<TSearchTypes> = IsAny<TSearchTypes> extends true
     ? any
@@ -159,8 +151,6 @@ type RawHash<THash, TMode extends "in" | "out"> = THash extends string[]
 type NeverToUndefined<T> = [T] extends [never] ? undefined : T;
 
 type PickWithFallback<T, K extends string, F> = { [P in K]: P extends keyof T ? T[P] : F };
-
-type PartialByKey<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 type SanitizedPath<T> = T extends `/${string}`
     ? ErrorMessage<"Leading slashes are forbidden">
@@ -458,7 +448,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
     }
 
     function getTypedParams(params: Record<string, string | undefined>) {
-        return getTypedParamsByTypes(keys, params, types.params as TTypes["params"]);
+        return getTypedParamsByTypes(params, types.params as TTypes["params"]);
     }
 
     function getUntypedParams(params: Record<string, string | undefined>) {
@@ -602,39 +592,26 @@ function getPlainStateParamsByTypes(
     return result;
 }
 
-function getTypedParamsByTypes<
-    TKey extends string,
-    TOptionalKey extends string,
-    TPathTypes extends Partial<Record<TKey, ParamType<unknown, never>>>
->(
-    keys: [TKey[], TOptionalKey[]],
+function getTypedParamsByTypes<TPathTypes extends Partial<Record<string, ParamType<unknown, never>>>>(
     pathParams: Record<string, string | undefined>,
     types?: TPathTypes
-): OutParamsByKey<TKey, TOptionalKey, TPathTypes> {
+): OutParams<TPathTypes> {
     const result: Record<string, unknown> = {};
 
-    keys[0].forEach((key) => {
-        const type = types?.[key];
+    if (types) {
+        Object.keys(types).forEach((key) => {
+            const type = types[key];
 
-        if (type) {
-            const typedParam = type.getTypedParam(pathParams[key]);
-            if (typedParam !== undefined) {
-                result[key] = typedParam;
-            }
-        } else {
-            if (typeof pathParams[key] === "string") {
-                result[key] = pathParams[key];
-            } else {
-                if (keys[1].indexOf(key as unknown as TOptionalKey) === -1) {
-                    throw new Error(
-                        `Expected param ${key} to exist in the given path. Most likely you're rendering the component at a wrong path. You can make it optional or explicitly specify its type as string().`
-                    );
+            if (type) {
+                const typedSearchParam = type.getTypedParam(pathParams[key]);
+                if (typedSearchParam !== undefined) {
+                    result[key] = typedSearchParam;
                 }
             }
-        }
-    });
+        });
+    }
 
-    return result as OutParamsByKey<TKey, TOptionalKey, TPathTypes>;
+    return result as OutParams<TPathTypes>;
 }
 
 function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string, SearchParamType<unknown, never>>>>(
