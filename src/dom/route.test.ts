@@ -551,7 +551,7 @@ it("allows implicit optional path params parsing", () => {
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
     assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id: string | undefined }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id?: string }>>(true);
 
     expect(TEST_ROUTE.getTypedParams({})).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({})).toStrictEqual({});
@@ -566,7 +566,7 @@ it("allows explicit path params parsing", () => {
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
     assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id: number | undefined }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id?: number }>>(true);
 
     expect(TEST_ROUTE.getTypedParams({ id: "1" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ id: "1" })).toStrictEqual({});
@@ -579,13 +579,10 @@ it("allows to mix path params parsing across multiple routes", () => {
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: number | undefined }>>(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>,
-            { childId: number | undefined; id: number | undefined }
-        >
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId?: number }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId?: number; id?: number }>>(
+        true
+    );
 
     expect(TEST_ROUTE.getTypedParams({ id: "1", childId: "2" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ id: "1", childId: "2" })).toStrictEqual({ childId: 2 });
@@ -642,13 +639,10 @@ it("doesn't throw if implicit optional path params are omitted", () => {
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: string | undefined }>>(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>,
-            { childId: string | undefined; id: string | undefined }
-        >
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId?: string }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId?: string; id?: string }>>(
+        true
+    );
 
     expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: "2" });
@@ -661,17 +655,14 @@ it("doesn't throw if explicit path params are invalid", () => {
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: number | undefined }>>(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>,
-            { childId: number | undefined; id: number | undefined }
-        >
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId?: number }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId?: number; id?: number }>>(
+        true
+    );
 
     expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2 });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2, id: undefined });
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2 });
 });
 
 it("doesn't throw if explicit path params with defaults are invalid", () => {
@@ -726,8 +717,8 @@ it("allows implicit optional star path param parsing", () => {
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { "*": string | undefined }>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": string | undefined }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { "*"?: string }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*"?: string }>>(true);
 
     expect(TEST_ROUTE.getTypedParams({ "*": "foo/bar" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "foo/bar" })).toStrictEqual({ "*": "foo/bar" });
@@ -741,7 +732,7 @@ it("allows explicit star path param parsing", () => {
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
     assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": number | undefined }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*"?: number }>>(true);
 
     expect(TEST_ROUTE.getTypedParams({ "*": "1" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "1" })).toStrictEqual({});
@@ -769,11 +760,11 @@ it("doesn't throw if explicit star param is invalid", () => {
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
     assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": number | undefined }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*"?: number }>>(true);
 
     expect(TEST_ROUTE.getTypedParams({ "*": "foo" })).toStrictEqual({});
     expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "foo" })).toStrictEqual({});
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "foo" })).toStrictEqual({ "*": undefined });
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "foo" })).toStrictEqual({});
 });
 
 it("allows intermediate star param parsing", () => {
@@ -802,9 +793,7 @@ it("allows search params parsing", () => {
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedSearchParams>, Record<never, never>>>(true);
-    assert<
-        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>, { foo: string | undefined; arr: number[] }>
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>, { foo?: string; arr: number[] }>>(true);
     assert<
         IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>, { foo: number; arr: number[] }>
     >(true);
@@ -842,9 +831,7 @@ it("throws if throwable search params are invalid", () => {
     const TEST_ROUTE = route("test", {}, { CHILD });
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedSearchParams>, Record<never, never>>>(true);
-    assert<
-        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>, { foo: string | undefined; arr: number[] }>
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>, { foo?: string; arr: number[] }>>(true);
     assert<
         IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>, { foo: number; arr: number[] }>
     >(true);
@@ -906,13 +893,8 @@ it("allows state params parsing", () => {
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildState>[0], { foo?: string; bar?: number }>>(true);
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedState>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedState>, { foo: string | undefined }>>(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedState>,
-            { foo: string | undefined; bar: number | undefined }
-        >
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedState>, { foo?: string }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedState>, { foo?: string; bar?: number }>>(true);
 
     const state = { foo: "test", bar: 1, untyped: "untyped" };
 
@@ -935,10 +917,8 @@ it("throws if throwable state params are invalid", () => {
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildState>[0], { foo?: string; bar?: number }>>(true);
 
     assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedState>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedState>, { foo: string | undefined }>>(true);
-    assert<
-        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedState>, { foo: string | undefined; bar: number }>
-    >(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedState>, { foo?: string }>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedState>, { foo?: string; bar: number }>>(true);
 
     const state = { foo: "test", bar: "bar", untyped: "untyped" };
 
@@ -1217,7 +1197,7 @@ it("ensures that default/defined modifiers are applied if a custom type allows u
         IsExact<
             ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
             {
-                a: number | undefined;
+                a?: number;
                 b: number;
                 c: number;
             }
@@ -1231,13 +1211,11 @@ it("ensures that default/defined modifiers are applied if a custom type allows u
     });
 
     expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ b: "2", c: "3" }))).toStrictEqual({
-        a: undefined,
         b: 2,
         c: 3,
     });
 
     expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ b: "2" }))).toStrictEqual({
-        a: undefined,
         b: 2,
         c: -1,
     });
@@ -1297,13 +1275,13 @@ it("allows to use zod", () => {
         IsExact<
             ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
             {
-                a: string | undefined;
-                b: number | undefined;
-                c: boolean | undefined;
-                d: Date | undefined;
-                e: string | null | undefined;
-                f: string | null | undefined;
-                g: { d: Date } | undefined;
+                a?: string;
+                b?: number;
+                c?: boolean;
+                d?: Date;
+                e?: string | null;
+                f?: string | null;
+                g?: { d: Date };
             }
         >
     >(true);
@@ -1358,13 +1336,13 @@ it("allows to use yup", () => {
         IsExact<
             ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
             {
-                a: string | undefined;
-                b: number | undefined;
-                c: boolean | undefined;
-                d: Date | undefined;
-                e: string | null | undefined;
-                f: string | null | undefined;
-                g: { d: Date } | undefined;
+                a?: string;
+                b?: number;
+                c?: boolean;
+                d?: Date;
+                e?: string | null;
+                f?: string | null;
+                g?: { d: Date };
             }
         >
     >(true);
@@ -1413,7 +1391,7 @@ it("allows to specify defaults within zod types", () => {
         IsExact<
             ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
             {
-                a: number | undefined;
+                a?: number;
             }
         >
     >(true);
@@ -1422,9 +1400,7 @@ it("allows to specify defaults within zod types", () => {
         a: -1,
     });
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "f" }))).toStrictEqual({
-        a: undefined,
-    });
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "f" }))).toStrictEqual({});
 });
 
 it("allows to specify defaults within yup schemas", () => {
@@ -1438,7 +1414,7 @@ it("allows to specify defaults within yup schemas", () => {
         IsExact<
             ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
             {
-                a: number | undefined;
+                a?: number;
             }
         >
     >(true);
@@ -1447,9 +1423,7 @@ it("allows to specify defaults within yup schemas", () => {
         a: -1,
     });
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "f" }))).toStrictEqual({
-        a: undefined,
-    });
+    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "f" }))).toStrictEqual({});
 });
 
 it("allows to use unions", () => {
@@ -1465,8 +1439,8 @@ it("allows to use unions", () => {
         IsExact<
             ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
             {
-                a: 1 | true | "test" | undefined;
-                b: 1 | true | "test" | undefined;
+                a?: 1 | true | "test";
+                b?: 1 | true | "test";
                 c: 1 | true | "test";
             }
         >
