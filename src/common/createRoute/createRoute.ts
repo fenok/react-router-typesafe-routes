@@ -86,7 +86,7 @@ type InParams<TPath extends string, TPathTypes> = IsAny<TPathTypes> extends true
 
 type EnsureExtends<TFirst, TSecond> = TFirst extends TSecond ? TFirst : never;
 
-type OutParams<TPath extends string, TPathTypes> = Readable<RawParams<TPathTypes, "out">>;
+type OutParams<TPath extends string, TPathTypes> = Readable<PartialUndefined<RawParams<TPathTypes, "out">>>;
 
 type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes> = RawParams<TPathTypes, "out"> &
     PartialByKey<
@@ -98,13 +98,13 @@ type InSearchParams<TSearchTypes> = IsAny<TSearchTypes> extends true
     ? any
     : Readable<Partial<RawSearchParams<TSearchTypes, "in">>>;
 
-type OutSearchParams<TSearchTypes> = Readable<RawSearchParams<TSearchTypes, "out">>;
+type OutSearchParams<TSearchTypes> = Readable<PartialUndefined<RawSearchParams<TSearchTypes, "out">>>;
 
 type InStateParams<TStateTypes> = IsAny<TStateTypes> extends true
     ? any
     : Readable<Partial<RawStateParams<TStateTypes, "in">>>;
 
-type OutStateParams<TStateTypes> = Readable<RawStateParams<TStateTypes, "out">>;
+type OutStateParams<TStateTypes> = Readable<PartialUndefined<RawStateParams<TStateTypes, "out">>>;
 
 type InHash<THash> = NeverToUndefined<RawHash<THash, "in">>;
 
@@ -122,6 +122,12 @@ type RawParam<TType, TMode extends "in" | "out"> = TType extends ParamType<infer
 
 type RawSearchParams<TTypes, TMode extends "in" | "out"> = {
     [TKey in keyof TTypes]: RawSearchParam<TTypes[TKey], TMode>;
+};
+
+type PartialUndefined<T> = Undefined<T> & Omit<T, keyof Undefined<T>>;
+
+type Undefined<T> = {
+    [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
 };
 
 type RawSearchParam<TType, TMode extends "in" | "out"> = TType extends SearchParamType<infer TOut, infer TIn>
@@ -611,7 +617,10 @@ function getTypedParamsByTypes<
         const type = types?.[key];
 
         if (type) {
-            result[key] = type.getTypedParam(pathParams[key]);
+            const typedParam = type.getTypedParam(pathParams[key]);
+            if (typedParam !== undefined) {
+                result[key] = typedParam;
+            }
         } else {
             if (typeof pathParams[key] === "string") {
                 result[key] = pathParams[key];
@@ -639,7 +648,10 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
             const type = types[key];
 
             if (type) {
-                result[key] = type.getTypedSearchParam(searchParams.getAll(key));
+                const typedSearchParam = type.getTypedSearchParam(searchParams.getAll(key));
+                if (typedSearchParam !== undefined) {
+                    result[key] = typedSearchParam;
+                }
             }
         });
     }
@@ -658,7 +670,10 @@ function getTypedStateByTypes<TStateTypes extends Partial<Record<string, StatePa
             const type = types[key];
 
             if (type) {
-                result[key] = type.getTypedStateParam(state[key]);
+                const typedStateParam = type.getTypedStateParam(state[key]);
+                if (typedStateParam !== undefined) {
+                    result[key] = typedStateParam;
+                }
             }
         });
     }
