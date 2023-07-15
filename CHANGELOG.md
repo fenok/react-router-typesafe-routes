@@ -7,18 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+### Added
 
--   Route objects can now be directly used as types for other routes. You can also specify multiple types. For example:
+-   Route composition API:
 
     ```typescript
     const FRAGMENT = route("", { searchParams: { page: number() } });
-    const ROUTE = route("", [FRAGMENT, { searchParams: { query: string() } }]);
+
+    // Instead of types(FRAGMENT)({searchParams: { query: string() }})
+    const ROUTE = route("", {
+        compose: [FRAGMENT],
+        searchParams: { query: string() },
+    });
     ```
 
--   Hash should now be specified as an array of strings or a type. For example:
+### Changed
+
+-   **Breaking**: Hash should now be specified as an array of strings or a type. Empty array now means "nothing" instead of "any string". For example:
     -   `hashValues('about', 'info')` => `['about', 'info']`
     -   `hashValues()` => `string()`
+    -   Default: `[]`
     -   You can also use other types, like `number().default(-1)`
 -   **Breaking**: Array types like `string().array()` now filter `undefined` values upon parsing. The previous behavior broke a common pattern of changing a subset of search parameters:
 
@@ -35,15 +43,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     }));
     ```
 
--   **Breaking**: For hash, empty array no longer means "any string". Instead, it means "no hash", and it's the default value.
--   **Breaking**: Some types are changed.
--   **Breaking**: The minimal required version of TS is now `v5.0.2`.
+-   **Breaking**: Similarly, `undefined` keys are now omitted from all parsed params to match how there are no such keys in raw `params` from React Router. [The reason](https://github.com/fenok/react-router-typesafe-routes/issues/10#issuecomment-1186573588) this behavior was originally introduced is not relevant anymore.
+-   **Breaking**: Some types are changed for convenience and readability.
+-   Path params without explicit types now use `string()` and `string().defined()` for optional and required params respectively instead of custom code.
+-   ~~**Breaking**: The minimal required version of TS is now `v5.0.2`.~~
 
 ### Removed
 
 -   **Breaking**: Removed all deprecated features.
 -   **Breaking**: Removed `hashValues()`. Pass an array of strings or a type instead.
--   **Breaking**: Removed `types()`. Pass an array of types instead.
+-   **Breaking**: Removed `types()`. Use composition API instead.
 -   **Breaking**: Removed `types` field of a route object. Use route object directly instead.
 
 ## [1.2.2] - 2024-04-21
