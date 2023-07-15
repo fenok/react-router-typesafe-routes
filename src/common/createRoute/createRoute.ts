@@ -282,7 +282,7 @@ function createRoute(creatorOptions: RouteOptions) {
         TStateTypes extends Record<string, StateParamType<any>> = {},
         THashString extends string = string,
         THash extends THashString[] | HashType<any> = [],
-        TComposedTypes extends Partial<Types>[] = [],
+        TComposedTypes extends BaseRoute[] = [],
         TChildren = void
     >(
         path: SanitizedPath<TPath>,
