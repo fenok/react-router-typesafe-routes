@@ -277,51 +277,55 @@ function getDefaultTypes<T extends string>(path: T): DefaultTypes<T> {
 function createRoute(creatorOptions: RouteOptions) {
     function route<
         TPath extends string = string,
-        THash extends string = string,
-        TTypes extends Partial<Types<{}, {}, {}, THash[] | HashType<any>>> = {},
+        TPathTypes extends Record<string, ParamType<any>> = {},
+        TSearchTypes extends Record<string, SearchParamType<any>> = {},
+        TStateTypes extends Record<string, StateParamType<any>> = {},
+        THashString extends string = string,
+        THash extends THashString[] | HashType<any> = [],
+        TComposedTypes extends Partial<Types>[] = [],
         TChildren = void
     >(
         path: SanitizedPath<TPath>,
-        types?: TTypes,
+        types?: {
+            compose?: [...TComposedTypes];
+            params?: TPathTypes;
+            searchParams?: TSearchTypes;
+            state?: TStateTypes;
+            hash?: THash;
+        },
         children?: SanitizedChildren<TChildren>
-    ): Route<TPath, ComposedTypesMap<[DefaultTypes<TPath>, TTypes]>, TChildren>;
-    function route<
-        TPath extends string = string,
-        THash extends string = string,
-        TTypes extends Partial<Types<{}, {}, {}, THash[] | HashType<any>>>[] = [],
-        TChildren = void
-    >(
-        path: SanitizedPath<TPath>,
-        types?: [...TTypes],
-        children?: SanitizedChildren<TChildren>
-    ): Route<TPath, ComposedTypesMap<[DefaultTypes<TPath>, ...TTypes]>, TChildren>;
-    function route<
-        TPath extends string = string,
-        TTypes extends Partial<Types> | Partial<Types>[] = {},
-        TChildren = void
-    >(
-        path: SanitizedPath<TPath>,
-        types: TTypes = {} as TTypes,
-        children?: SanitizedChildren<TChildren>
-    ): Route<TPath, ComposedTypesMap<TTypes>, TChildren> {
-        const typesArray = normalizeTypes(types);
-
+    ): Route<
+        TPath,
+        ComposedTypesMap<[DefaultTypes<TPath>, ...TComposedTypes, Types<TPathTypes, TSearchTypes, TStateTypes, THash>]>,
+        TChildren
+    > {
         const defaultTypes = getDefaultTypes(path);
 
-        const resolvedTypes = mergeTypes([defaultTypes, ...typesArray]);
+        const composedTypes = types?.compose ?? ([] as unknown as [...TComposedTypes]);
+
+        const ownTypes = {
+            params: types?.params ?? {},
+            searchParams: types?.searchParams ?? {},
+            state: types?.state ?? {},
+            hash: types?.hash ?? [],
+        } as Types<TPathTypes, TSearchTypes, TStateTypes, THash>;
+
+        const resolvedTypes = mergeTypes([defaultTypes, ...composedTypes, ownTypes]);
 
         return {
             ...decorateChildren(path, resolvedTypes, creatorOptions, children, false),
             ...getRoute(path, resolvedTypes, creatorOptions),
             $: decorateChildren(path, resolvedTypes, creatorOptions, children, true),
-        } as unknown as Route<TPath, ComposedTypesMap<TTypes>, TChildren>;
+        } as unknown as Route<
+            TPath,
+            ComposedTypesMap<
+                [DefaultTypes<TPath>, ...TComposedTypes, Types<TPathTypes, TSearchTypes, TStateTypes, THash>]
+            >,
+            TChildren
+        >;
     }
 
     return route;
-}
-
-function normalizeTypes<T extends Partial<Types>[] | Partial<Types>>(value: T): T extends unknown[] ? T : [T] {
-    return (Array.isArray(value) ? value : [value]) as T extends unknown[] ? T : [T];
 }
 
 function mergeTypes<T extends Partial<Types>[]>(value: [...T]): ComposedTypesMap<T>;
