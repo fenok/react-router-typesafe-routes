@@ -202,7 +202,7 @@ type PathParam<
     ? SanitizedPathParam<TParam, TKind, TMode>
     : never;
 
-interface RouteOptions {
+interface CreateRouteOptions {
     createSearchParams: (init?: Record<string, string | string[]> | URLSearchParams) => URLSearchParams;
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
@@ -274,9 +274,9 @@ function getDefaultTypes<T extends string>(path: T): DefaultTypes<T> {
     } as DefaultTypes<T>;
 }
 
-function createRoute(creatorOptions: RouteOptions) {
+function createRoute(creatorOptions: CreateRouteOptions) {
     function route<
-        TPath extends string = string,
+        TPath extends string = "",
         TPathTypes extends Record<string, ParamType<any>> = {},
         TSearchTypes extends Record<string, SearchParamType<any>> = {},
         TStateTypes extends Record<string, StateParamType<any>> = {},
@@ -284,38 +284,40 @@ function createRoute(creatorOptions: RouteOptions) {
         THash extends THashString[] | HashType<any> = [],
         TComposedTypes extends BaseRoute[] = [],
         TChildren = void
-    >(
-        path: SanitizedPath<TPath>,
-        types?: {
-            compose?: [...TComposedTypes];
-            params?: TPathTypes;
-            searchParams?: TSearchTypes;
-            state?: TStateTypes;
-            hash?: THash;
-        },
-        children?: SanitizedChildren<TChildren>
-    ): Route<
+    >(opts: {
+        path?: SanitizedPath<TPath>;
+        compose?: [...TComposedTypes];
+        params?: TPathTypes;
+        searchParams?: TSearchTypes;
+        state?: TStateTypes;
+        hash?: THash;
+        children?: SanitizedChildren<TChildren>;
+    }): Route<
         TPath,
         ComposedTypesMap<[DefaultTypes<TPath>, ...TComposedTypes, Types<TPathTypes, TSearchTypes, TStateTypes, THash>]>,
         TChildren
     > {
+        const path = opts.path ?? ("" as SanitizedPath<TPath>);
+
         const defaultTypes = getDefaultTypes(path);
 
-        const composedTypes = types?.compose ?? ([] as unknown as [...TComposedTypes]);
+        const composedTypes = opts?.compose ?? ([] as unknown as [...TComposedTypes]);
 
         const ownTypes = {
-            params: types?.params ?? {},
-            searchParams: types?.searchParams ?? {},
-            state: types?.state ?? {},
-            hash: types?.hash ?? [],
+            params: opts?.params ?? {},
+            searchParams: opts?.searchParams ?? {},
+            state: opts?.state ?? {},
+            hash: opts?.hash ?? [],
         } as Types<TPathTypes, TSearchTypes, TStateTypes, THash>;
 
         const resolvedTypes = mergeTypes([defaultTypes, ...composedTypes, ownTypes]);
 
+        const resolvedChildren = opts.children;
+
         return {
-            ...decorateChildren(path, resolvedTypes, creatorOptions, children, false),
+            ...decorateChildren(path, resolvedTypes, creatorOptions, resolvedChildren, false),
             ...getRoute(path, resolvedTypes, creatorOptions),
-            $: decorateChildren(path, resolvedTypes, creatorOptions, children, true),
+            $: decorateChildren(path, resolvedTypes, creatorOptions, resolvedChildren, true),
         } as unknown as Route<
             TPath,
             ComposedTypesMap<
@@ -363,7 +365,7 @@ function isHashType<T extends HashType<any>>(value: T | string[] | undefined): v
 function decorateChildren<TPath extends string, TTypes extends Types, TChildren, TExcludePath extends boolean>(
     path: SanitizedPath<TPath>,
     typesObj: TTypes,
-    creatorOptions: RouteOptions,
+    creatorOptions: CreateRouteOptions,
     children: TChildren | undefined,
     excludePath: TExcludePath
 ): Children<TPath, TTypes, TChildren, TExcludePath> {
@@ -397,7 +399,7 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren,
 function getRoute<TPath extends string, TTypes extends Types>(
     path: SanitizedPath<TPath>,
     types: TTypes,
-    creatorOptions: RouteOptions
+    creatorOptions: CreateRouteOptions
 ): BaseRoute<TPath, TTypes> {
     const keys = getKeys(path);
     const relativePath = removeIntermediateStars(path);
@@ -700,7 +702,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export {
     createRoute,
-    RouteOptions,
+    CreateRouteOptions,
     Route,
     BaseRoute,
     Children,
