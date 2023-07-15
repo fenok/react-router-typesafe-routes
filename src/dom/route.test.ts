@@ -943,36 +943,31 @@ it("allows types composition", () => {
     const STATE = route("", { state: { fromList: boolean() } });
     const HASH = route("", { hash: ["about", "more"] });
 
-    const ROUTE = route(":id/:subId", [
-        {
-            params: {
-                subId: number(),
-            },
-            searchParams: {
-                ordered: boolean(),
-                page: boolean(), // This should be overridden
-            },
-            state: {
-                hidden: boolean(),
-            },
-            hash: ["info"],
+    const ROUTE = route(":id/:subId", {
+        compose: [PATH, SEARCH, STATE, HASH],
+        params: {
+            subId: number(),
         },
-        PATH,
-        SEARCH,
-        STATE,
-        HASH,
-    ]);
+        searchParams: {
+            ordered: boolean(),
+            page: boolean(),
+        },
+        state: {
+            hidden: boolean(),
+        },
+        hash: ["info"],
+    });
 
     assert<IsExact<Parameters<typeof ROUTE.buildPath>[0], { id: number; subId: number }>>(true);
 
-    assert<IsExact<Parameters<typeof ROUTE.buildPath>[1], { page?: number; ordered?: boolean } | undefined>>(true);
+    assert<IsExact<Parameters<typeof ROUTE.buildPath>[1], { page?: boolean; ordered?: boolean } | undefined>>(true);
 
     assert<IsExact<Parameters<typeof ROUTE.buildPath>[2], "about" | "more" | "info" | undefined>>(true);
 
     assert<IsExact<Parameters<typeof ROUTE.buildState>[0], { fromList?: boolean; hidden?: boolean }>>(true);
 
-    expect(ROUTE.buildPath({ id: 1, subId: 2 }, { page: 1, ordered: true }, "info")).toStrictEqual(
-        "/1/2?page=1&ordered=true#info"
+    expect(ROUTE.buildPath({ id: 1, subId: 2 }, { page: true, ordered: true }, "info")).toStrictEqual(
+        "/1/2?page=true&ordered=true#info"
     );
 
     expect(ROUTE.buildState({ fromList: true, hidden: true })).toStrictEqual({ fromList: true, hidden: true });
@@ -1556,14 +1551,12 @@ it("generates correct paths when the first segment is optional", () => {
 it("provides a base type that any route is assignable to", () => {
     const TEST_ROUTE = route(
         "test/:a/:b/:c?",
-        [
-            {
-                params: { a: number() },
-                searchParams: { q: string() },
-                state: { s: boolean() },
-                hash: ["hash1", "hash2"],
-            },
-        ],
+        {
+            params: { a: number() },
+            searchParams: { q: string() },
+            state: { s: boolean() },
+            hash: ["hash1", "hash2"],
+        },
         {
             CHILD: route(":d", {
                 params: { d: number() },
