@@ -12,10 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Route composition API:
 
     ```typescript
-    const FRAGMENT = route("", { searchParams: { page: number() } });
+    const FRAGMENT = route({ searchParams: { page: number() } });
 
     // Instead of types(FRAGMENT)({searchParams: { query: string() }})
-    const ROUTE = route("", {
+    const ROUTE = route({
         compose: [FRAGMENT],
         searchParams: { query: string() },
     });
@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Breaking**: Array types like `string().array()` now filter `undefined` values upon parsing. The previous behavior broke a common pattern of changing a subset of search parameters:
 
     ```typescript
-    const FRAGMENT = route("", { searchParams: { pages: number().array(), query: string() } });
+    const FRAGMENT = route({ searchParams: { pages: number().array(), query: string() } });
 
     const [{ pages, query }, setTypedSearchParams] = useTypedSearchParams(FRAGMENT);
 
@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Breaking**: Removed all deprecated features.
 -   **Breaking**: Removed `hashValues()`. Pass an array of strings or a type instead.
 -   **Breaking**: Removed `types()`. Use composition API instead.
--   **Breaking**: Removed `types` field of a route object. Use route object directly instead.
+-   ~~**Breaking**: Removed `types` field of a route object. Use route object directly instead.~~
 
 ## [1.2.2] - 2024-04-21
 

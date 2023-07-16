@@ -65,7 +65,8 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, 
     buildSearch: (params: InSearchParams<TTypes["searchParams"]>) => string;
     buildHash: (hash: InHash<TTypes["hash"]>) => string;
     buildState: (state: InStateParams<TTypes["state"]>) => Record<string, unknown>;
-} & TTypes;
+    types: TTypes;
+};
 
 type InParams<TPath extends string, TPathTypes> = IsAny<TPathTypes> extends true
     ? any
@@ -274,6 +275,10 @@ function getDefaultTypes<T extends string>(path: T): DefaultTypes<T> {
     } as DefaultTypes<T>;
 }
 
+type ExtractTypes<Tuple extends [...BaseRoute[]]> = {
+    [Index in keyof Tuple]: Tuple[Index]["types"];
+};
+
 function createRoute(creatorOptions: CreateRouteOptions) {
     function route<
         TPath extends string = "",
@@ -282,11 +287,11 @@ function createRoute(creatorOptions: CreateRouteOptions) {
         TStateTypes extends Record<string, StateParamType<any>> = {},
         THashString extends string = string,
         THash extends THashString[] | HashType<any> = [],
-        TComposedTypes extends BaseRoute[] = [],
+        TComposedRoutes extends [...BaseRoute[]] = [],
         TChildren = void
     >(opts: {
         path?: SanitizedPath<TPath>;
-        compose?: [...TComposedTypes];
+        compose?: [...TComposedRoutes];
         params?: TPathTypes;
         searchParams?: TSearchTypes;
         state?: TStateTypes;
@@ -294,14 +299,16 @@ function createRoute(creatorOptions: CreateRouteOptions) {
         children?: SanitizedChildren<TChildren>;
     }): Route<
         TPath,
-        ComposedTypesMap<[DefaultTypes<TPath>, ...TComposedTypes, Types<TPathTypes, TSearchTypes, TStateTypes, THash>]>,
+        ComposedTypesMap<
+            [DefaultTypes<TPath>, ...ExtractTypes<TComposedRoutes>, Types<TPathTypes, TSearchTypes, TStateTypes, THash>]
+        >,
         TChildren
     > {
         const path = opts.path ?? ("" as SanitizedPath<TPath>);
 
         const defaultTypes = getDefaultTypes(path);
 
-        const composedTypes = opts?.compose ?? ([] as unknown as [...TComposedTypes]);
+        const composedTypes = (opts.compose ?? []).map(({ types }) => types) as ExtractTypes<TComposedRoutes>;
 
         const ownTypes = {
             params: opts?.params ?? {},
@@ -321,7 +328,11 @@ function createRoute(creatorOptions: CreateRouteOptions) {
         } as unknown as Route<
             TPath,
             ComposedTypesMap<
-                [DefaultTypes<TPath>, ...TComposedTypes, Types<TPathTypes, TSearchTypes, TStateTypes, THash>]
+                [
+                    DefaultTypes<TPath>,
+                    ...ExtractTypes<TComposedRoutes>,
+                    Types<TPathTypes, TSearchTypes, TStateTypes, THash>
+                ]
             >,
             TChildren
         >;
@@ -384,7 +395,7 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren,
                               : value.path === "/"
                               ? path
                               : `${path}${value.path}`,
-                          mergeTypes([excludePath ? { ...typesObj, params: undefined } : typesObj, value]),
+                          mergeTypes([excludePath ? { ...typesObj, params: undefined } : typesObj, value.types]),
                           creatorOptions
                       ),
                       $: decorateChildren(path, typesObj, creatorOptions, value.$, true),
@@ -538,7 +549,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
         getUntypedState,
         getPlainParams,
         getPlainSearchParams,
-        ...types,
+        types,
     };
 }
 
