@@ -20,13 +20,13 @@ function useTypedSearchParams<TPath extends string, TTypesMap extends Types>(
     ) => void
 ] {
     const defaultInit = useMemo(
-        () => (typedDefaultInit ? route.getPlainSearchParams(typedDefaultInit) : undefined),
+        () => (typedDefaultInit ? route.$getPlainSearchParams(typedDefaultInit) : undefined),
         [route, typedDefaultInit]
     );
 
     const [searchParams, setSearchParams] = useSearchParams(defaultInit);
 
-    const typedSearchParams = useMemo(() => route.getTypedSearchParams(searchParams), [route, searchParams]);
+    const typedSearchParams = useMemo(() => route.$getTypedSearchParams(searchParams), [route, searchParams]);
 
     const setTypedSearchParams = useCallback(
         (
@@ -44,17 +44,17 @@ function useTypedSearchParams<TPath extends string, TTypesMap extends Types>(
             setSearchParams(
                 (prevParams) => {
                     const nextParams = createSearchParams(
-                        route.getPlainSearchParams(
-                            typeof params === "function" ? params(route.getTypedSearchParams(prevParams)) : params
+                        route.$getPlainSearchParams(
+                            typeof params === "function" ? params(route.$getTypedSearchParams(prevParams)) : params
                         )
                     );
 
-                    if (preserveUntyped) appendSearchParams(nextParams, route.getUntypedSearchParams(prevParams));
+                    if (preserveUntyped) appendSearchParams(nextParams, route.$getUntypedSearchParams(prevParams));
 
                     return nextParams;
                 },
                 {
-                    ...(state ? { state: route.buildState(state) } : {}),
+                    ...(state ? { state: route.$buildState(state) } : {}),
                     ...restNavigateOptions,
                 }
             );

@@ -7,5 +7,5 @@ export function useTypedHash<TPath extends string, TTypesMap extends Types>(
 ): OutHash<TTypesMap["hash"]> {
     const location = useLocation();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return useMemo(() => route.getTypedHash(location.hash), [route, location.hash]);
+    return useMemo(() => route.$getTypedHash(location.hash), [route, location.hash]);
 }

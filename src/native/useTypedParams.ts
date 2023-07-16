@@ -4,7 +4,7 @@ import { useMemo } from "react";
 
 export function useTypedParams<TPath extends string, TTypesMap extends Types>(
     route: BaseRoute<TPath, TTypesMap>
-): OutParams<TPath, TTypesMap["params"]> {
+): OutParams<TTypesMap["params"]> {
     const params = useParams();
-    return useMemo(() => route.getTypedParams(params), [route, params]);
+    return useMemo(() => route.$getTypedParams(params), [route, params]);
 }

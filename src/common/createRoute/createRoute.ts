@@ -41,31 +41,31 @@ type Children<
 };
 
 type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, any, any>> = {
-    path: `/${SanitizedPath<TPath>}`;
-    relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
-    getPlainParams: (params: InParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
-    getPlainSearchParams: (params: InSearchParams<TTypes["searchParams"]>) => Record<string, string | string[]>;
-    getTypedParams: (params: Record<string, string | undefined>) => OutParams<TTypes["params"]>;
-    getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TTypes["searchParams"]>;
-    getTypedHash: (hash: string) => OutHash<TTypes["hash"]>;
-    getTypedState: (state: unknown) => OutStateParams<TTypes["state"]>;
-    getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
-    getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
-    getUntypedState: (state: unknown) => Record<string, unknown>;
-    buildPath: (
+    $path: `/${SanitizedPath<TPath>}`;
+    $relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
+    $getPlainParams: (params: InParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
+    $getPlainSearchParams: (params: InSearchParams<TTypes["searchParams"]>) => Record<string, string | string[]>;
+    $getTypedParams: (params: Record<string, string | undefined>) => OutParams<TTypes["params"]>;
+    $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TTypes["searchParams"]>;
+    $getTypedHash: (hash: string) => OutHash<TTypes["hash"]>;
+    $getTypedState: (state: unknown) => OutStateParams<TTypes["state"]>;
+    $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
+    $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
+    $getUntypedState: (state: unknown) => Record<string, unknown>;
+    $buildPath: (
         params: InParams<TPath, TTypes["params"]>,
         searchParams?: InSearchParams<TTypes["searchParams"]>,
         hash?: InHash<TTypes["hash"]>
     ) => string;
-    buildRelativePath: (
+    $buildRelativePath: (
         params: InParams<TPath, TTypes["params"]>,
         searchParams?: InSearchParams<TTypes["searchParams"]>,
         hash?: InHash<TTypes["hash"]>
     ) => string;
-    buildSearch: (params: InSearchParams<TTypes["searchParams"]>) => string;
-    buildHash: (hash: InHash<TTypes["hash"]>) => string;
-    buildState: (state: InStateParams<TTypes["state"]>) => Record<string, unknown>;
-    types: TTypes;
+    $buildSearch: (params: InSearchParams<TTypes["searchParams"]>) => string;
+    $buildHash: (hash: InHash<TTypes["hash"]>) => string;
+    $buildState: (state: InStateParams<TTypes["state"]>) => Record<string, unknown>;
+    $types: TTypes;
 };
 
 type InParams<TPath extends string, TPathTypes> = IsAny<TPathTypes> extends true
@@ -276,7 +276,7 @@ function getDefaultTypes<T extends string>(path: T): DefaultTypes<T> {
 }
 
 type ExtractTypes<Tuple extends [...BaseRoute[]]> = {
-    [Index in keyof Tuple]: Tuple[Index]["types"];
+    [Index in keyof Tuple]: Tuple[Index]["$types"];
 };
 
 function createRoute(creatorOptions: CreateRouteOptions) {
@@ -308,7 +308,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
 
         const defaultTypes = getDefaultTypes(path);
 
-        const composedTypes = (opts.compose ?? []).map(({ types }) => types) as ExtractTypes<TComposedRoutes>;
+        const composedTypes = (opts.compose ?? []).map(({ $types }) => $types) as ExtractTypes<TComposedRoutes>;
 
         const ownTypes = {
             params: opts?.params ?? {},
@@ -391,11 +391,11 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren,
                       ...decorateChildren(path, typesObj, creatorOptions, value, excludePath),
                       ...getRoute(
                           excludePath || path === ""
-                              ? value.path.substring(1)
-                              : value.path === "/"
+                              ? value.$path.substring(1)
+                              : value.$path === "/"
                               ? path
-                              : `${path}${value.path}`,
-                          mergeTypes([excludePath ? { ...typesObj, params: undefined } : typesObj, value.types]),
+                              : `${path}${value.$path}`,
+                          mergeTypes([excludePath ? { ...typesObj, params: undefined } : typesObj, value.$types]),
                           creatorOptions
                       ),
                       $: decorateChildren(path, typesObj, creatorOptions, value.$, true),
@@ -533,23 +533,23 @@ function getRoute<TPath extends string, TTypes extends Types>(
     }
 
     return {
-        path: `/${path}`,
-        relativePath,
-        buildPath,
-        buildRelativePath,
-        buildSearch,
-        buildHash,
-        buildState,
-        getTypedParams,
-        getTypedSearchParams,
-        getTypedHash,
-        getTypedState,
-        getUntypedParams,
-        getUntypedSearchParams,
-        getUntypedState,
-        getPlainParams,
-        getPlainSearchParams,
-        types,
+        $path: `/${path}`,
+        $relativePath: relativePath,
+        $buildPath: buildPath,
+        $buildRelativePath: buildRelativePath,
+        $buildSearch: buildSearch,
+        $buildHash: buildHash,
+        $buildState: buildState,
+        $getTypedParams: getTypedParams,
+        $getTypedSearchParams: getTypedSearchParams,
+        $getTypedHash: getTypedHash,
+        $getTypedState: getTypedState,
+        $getUntypedParams: getUntypedParams,
+        $getUntypedSearchParams: getUntypedSearchParams,
+        $getUntypedState: getUntypedState,
+        $getPlainParams: getPlainParams,
+        $getPlainSearchParams: getPlainSearchParams,
+        $types: types,
     };
 }
 
@@ -704,7 +704,7 @@ function removeIntermediateStars<TPath extends string>(path: TPath): PathWithout
 }
 
 function isRoute(value: unknown): value is Route<string, Types, unknown> {
-    return Boolean(value && typeof value === "object" && "path" in value);
+    return Boolean(value && typeof value === "object" && "$path" in value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
