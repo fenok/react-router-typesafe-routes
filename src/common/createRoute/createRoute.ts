@@ -10,7 +10,7 @@ type Readable<T> = Identity<{
 
 type ErrorMessage<T extends string> = T & { __brand: ErrorMessage<T> };
 
-type Route<TPath extends string = string, TTypes extends Types = Types<any, any, any>, TChildren = void> = Children<
+type Route<TPath extends string = string, TTypes extends Types = Types<any, any, any>, TChildren = {}> = Children<
     TPath,
     TTypes,
     TChildren
@@ -22,7 +22,7 @@ type Route<TPath extends string = string, TTypes extends Types = Types<any, any,
 type Children<
     TPath extends string = string,
     TTypes extends Types = Types,
-    TChildren = void,
+    TChildren = {},
     TExcludePath extends boolean = false
 > = {
     [TKey in keyof TChildren]: TChildren[TKey] extends Route<infer TChildPath, infer TChildTypes, infer TChildChildren>
@@ -167,11 +167,13 @@ type PathWithoutIntermediateStars<T extends string> = T extends `${infer TStart}
 
 type SanitizedChildren<T> = T extends Record<infer TKey, unknown>
     ? [TKey] extends [string]
-        ? TKey extends Capitalize<TKey>
+        ? TKey extends Omit$<TKey>
             ? T
-            : ErrorMessage<"Route children have to start with an uppercase letter">
+            : ErrorMessage<"Children names can't start with $">
         : T
     : T;
+
+type Omit$<T extends string> = T extends `$${infer TValid}` ? TValid : T;
 
 type SanitizedPathParam<
     TRawParam extends string,
@@ -288,7 +290,9 @@ function createRoute(creatorOptions: CreateRouteOptions) {
         THashString extends string = string,
         THash extends THashString[] | HashType<any> = [],
         TComposedRoutes extends [...BaseRoute[]] = [],
-        TChildren = void
+        // This should be restricted to Record<string, BaseRoute>, but it breaks types for nested routes,
+        // even without names validity check
+        TChildren = {}
     >(opts: {
         path?: SanitizedPath<TPath>;
         compose?: [...TComposedRoutes];

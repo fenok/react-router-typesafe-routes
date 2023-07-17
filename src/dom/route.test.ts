@@ -2145,13 +2145,13 @@ it("checks that leading and trailing slashes are forbidden", () => {
     ).toBeTruthy();
 });
 
-it("checks that route children start with an uppercase letter", () => {
+it("checks that route children don't start with a $", () => {
     expect(
         route({
             path: "",
             // @ts-expect-error Checking single invalid child
             children: {
-                child: route({
+                $child: route({
                     path: "",
                 }),
             },
@@ -2163,10 +2163,10 @@ it("checks that route children start with an uppercase letter", () => {
             path: "",
             // @ts-expect-error Checking mix of valid and invalid children
             children: {
-                VALID: route({
+                valid: route({
                     path: "",
                 }),
-                child: route({
+                $child: route({
                     path: "",
                 }),
             },
