@@ -2,13 +2,15 @@ import { ParamType, SearchParamType, StateParamType, HashType, Type, DefType, st
 
 type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
 
-type Identity<T> = T;
-
 type Readable<T> = Identity<{
     [K in keyof T]: T[K];
 }>;
 
-type ErrorMessage<T extends string> = T & { __brand: ErrorMessage<T> };
+type Identity<T> = T;
+
+type ErrorMessage<T extends string> = T & { [brand]: ErrorMessage<T> };
+
+declare const brand: unique symbol;
 
 type Route<TPath extends string = string, TTypes extends Types = Types<any, any, any>, TChildren = {}> = Children<
     TPath,
