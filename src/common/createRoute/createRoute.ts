@@ -51,13 +51,13 @@ type InParams<TPath extends string, TPathTypes extends PathTypesConstraint> = Is
     ? any
     : Merge<
           PickWithFallback<
-              Readable<RawParams<TPathTypes, "in">>,
+              RawParams<TPathTypes, "in">,
               PathParam<PathWithoutIntermediateStars<TPath>, "all", "in">,
               never
           >,
           Partial<
               PickWithFallback<
-                  Readable<RawParams<TPathTypes, "in">>,
+                  RawParams<TPathTypes, "in">,
                   PathParam<PathWithoutIntermediateStars<TPath>, "optional", "in">,
                   never
               >
