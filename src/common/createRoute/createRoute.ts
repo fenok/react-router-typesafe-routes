@@ -188,9 +188,9 @@ type StateTypesConstraint = Record<string, StateParamType<any>>;
 type HashTypesConstraint<T extends string = string> = T[] | HashType<any>;
 
 interface Types<
-    TPathTypes extends PathTypesConstraint = {},
-    TSearchTypes extends SearchTypesConstraint = {},
-    TStateTypes extends StateTypesConstraint = {},
+    TPathTypes extends PathTypesConstraint = PathTypesConstraint,
+    TSearchTypes extends SearchTypesConstraint = SearchTypesConstraint,
+    TStateTypes extends StateTypesConstraint = StateTypesConstraint,
     THash extends HashTypesConstraint = HashTypesConstraint
 > {
     params: TPathTypes;
