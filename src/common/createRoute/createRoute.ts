@@ -1,17 +1,5 @@
 import { ParamType, SearchParamType, StateParamType, HashType, Type, DefType, string } from "../types/index.js";
 
-type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
-
-type Readable<T> = Identity<{
-    [K in keyof T]: T[K];
-}>;
-
-type Identity<T> = T;
-
-type ErrorMessage<T extends string> = T & { [brand]: ErrorMessage<T> };
-
-declare const brand: unique symbol;
-
 type Route<
     TPath extends string = string,
     TTypes extends Types = Types<any, any, any>,
@@ -20,10 +8,6 @@ type Route<
     BaseRoute<TPath, TTypes> & {
         $: DecoratedChildren<"", OmitPathTypes<TTypes>, TChildren>;
     };
-
-type OmitPathTypes<T> = T extends Types<infer TPathTypes, infer TSearchTypes, infer TStateTypes, infer THash>
-    ? Types<{}, TSearchTypes, TStateTypes, THash>
-    : never;
 
 type DecoratedChildren<TPath extends string, TTypes extends Types, TChildren> = {
     [TKey in keyof TChildren]: TChildren[TKey] extends Route<infer TChildPath, infer TChildTypes, infer TChildChildren>
@@ -63,7 +47,7 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, 
     $types: TTypes;
 };
 
-type InParams<TPath extends string, TPathTypes> = IsAny<TPathTypes> extends true
+type InParams<TPath extends string, TPathTypes extends PathTypesConstraint> = IsAny<TPathTypes> extends true
     ? any
     : Merge<
           PickWithFallback<
@@ -80,23 +64,27 @@ type InParams<TPath extends string, TPathTypes> = IsAny<TPathTypes> extends true
           >
       >;
 
-type OutParams<TPathTypes> = Readable<PartialUndefined<RawParams<TPathTypes, "out">>>;
+type OutParams<TPathTypes extends PathTypesConstraint> = Readable<PartialUndefined<RawParams<TPathTypes, "out">>>;
 
-type InSearchParams<TSearchTypes> = IsAny<TSearchTypes> extends true
+type InSearchParams<TSearchTypes extends SearchTypesConstraint> = IsAny<TSearchTypes> extends true
     ? any
     : Readable<Partial<RawSearchParams<TSearchTypes, "in">>>;
 
-type OutSearchParams<TSearchTypes> = Readable<PartialUndefined<RawSearchParams<TSearchTypes, "out">>>;
+type OutSearchParams<TSearchTypes extends SearchTypesConstraint> = Readable<
+    PartialUndefined<RawSearchParams<TSearchTypes, "out">>
+>;
 
-type InStateParams<TStateTypes> = IsAny<TStateTypes> extends true
+type InStateParams<TStateTypes extends StateTypesConstraint> = IsAny<TStateTypes> extends true
     ? any
     : Readable<Partial<RawStateParams<TStateTypes, "in">>>;
 
-type OutStateParams<TStateTypes> = Readable<PartialUndefined<RawStateParams<TStateTypes, "out">>>;
+type OutStateParams<TStateTypes extends StateTypesConstraint> = Readable<
+    PartialUndefined<RawStateParams<TStateTypes, "out">>
+>;
 
-type InHash<THash> = NeverToUndefined<RawHash<THash, "in">>;
+type InHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash, "in">>;
 
-type OutHash<THash> = NeverToUndefined<RawHash<THash, "out">>;
+type OutHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash, "out">>;
 
 type RawParams<TTypes, TMode extends "in" | "out"> = {
     [TKey in keyof TTypes]: RawParam<TTypes[TKey], TMode>;
@@ -110,12 +98,6 @@ type RawParam<TType, TMode extends "in" | "out"> = TType extends ParamType<infer
 
 type RawSearchParams<TTypes, TMode extends "in" | "out"> = {
     [TKey in keyof TTypes]: RawSearchParam<TTypes[TKey], TMode>;
-};
-
-type PartialUndefined<T> = Undefined<T> & Omit<T, keyof Undefined<T>>;
-
-type Undefined<T> = {
-    [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
 };
 
 type RawSearchParam<TType, TMode extends "in" | "out"> = TType extends SearchParamType<infer TOut, infer TIn>
@@ -143,8 +125,6 @@ type RawHash<THash, TMode extends "in" | "out"> = THash extends string[]
         ? Exclude<TIn, undefined>
         : TOut
     : never;
-
-type NeverToUndefined<T> = [T] extends [never] ? undefined : T;
 
 type PickWithFallback<T, K extends string, F> = { [P in K]: P extends keyof T ? T[P] : F };
 
@@ -205,13 +185,19 @@ interface CreateRouteOptions {
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
-type IsAny<T> = 0 extends 1 & T ? true : false;
+type PathTypesConstraint = Record<string, ParamType<any>>;
+
+type SearchTypesConstraint = Record<string, SearchParamType<any>>;
+
+type StateTypesConstraint = Record<string, StateParamType<any>>;
+
+type HashTypesConstraint<T extends string = string> = T[] | HashType<any>;
 
 interface Types<
-    TPathTypes extends Record<string, ParamType<any>> = {},
-    TSearchTypes extends Record<string, SearchParamType<any>> = {},
-    TStateTypes extends Record<string, StateParamType<any>> = {},
-    THash extends string[] | HashType<any> = string[] | HashType<any>
+    TPathTypes extends PathTypesConstraint = {},
+    TSearchTypes extends SearchTypesConstraint = {},
+    TStateTypes extends StateTypesConstraint = {},
+    THash extends HashTypesConstraint = HashTypesConstraint
 > {
     params: TPathTypes;
     searchParams: TSearchTypes;
@@ -221,12 +207,16 @@ interface Types<
 
 type DefaultTypes<T> = T extends Partial<Types<infer TPathTypes, infer TSearchTypes, infer TState, infer THash>>
     ? Types<
-          Record<string, ParamType<any>> extends TPathTypes ? {} : TPathTypes,
-          Record<string, SearchParamType<any>> extends TSearchTypes ? {} : TSearchTypes,
-          Record<string, StateParamType<any>> extends TState ? {} : TState,
-          string[] | HashType<any> extends THash ? [] : THash
+          PathTypesConstraint extends TPathTypes ? {} : TPathTypes,
+          SearchTypesConstraint extends TSearchTypes ? {} : TSearchTypes,
+          StateTypesConstraint extends TState ? {} : TState,
+          HashTypesConstraint extends THash ? [] : THash
       >
     : never;
+
+type ExtractTypes<Tuple extends [...BaseRoute[]]> = {
+    [Index in keyof Tuple]: Tuple[Index]["$types"];
+};
 
 type MergedTypes<T> = T extends [infer TFirst, infer TSecond, ...infer TRest]
     ? MergedTypes<[MergedTypesPair<DefaultTypes<TFirst>, DefaultTypes<TSecond>>, ...TRest]>
@@ -249,6 +239,37 @@ type DefaultPathTypes<T extends string> = {
     params: Merge<Record<PathParam<T>, DefType<string>>, Record<PathParam<T, "optional">, Type<string>>>;
 };
 
+type OmitPathTypes<T extends Types> = T extends Types<
+    infer TPathTypes,
+    infer TSearchTypes,
+    infer TStateTypes,
+    infer THash
+>
+    ? Types<{}, TSearchTypes, TStateTypes, THash>
+    : never;
+
+type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
+
+type Readable<T> = Identity<{
+    [K in keyof T]: T[K];
+}>;
+
+type Identity<T> = T;
+
+type ErrorMessage<T extends string> = T & { [brand]: ErrorMessage<T> };
+
+type IsAny<T> = 0 extends 1 & T ? true : false;
+
+type PartialUndefined<T> = Undefined<T> & Omit<T, keyof Undefined<T>>;
+
+type Undefined<T> = {
+    [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
+};
+
+type NeverToUndefined<T> = [T] extends [never] ? undefined : T;
+
+declare const brand: unique symbol;
+
 function getDefaultTypes<T extends string>(path: T): DefaultPathTypes<T> {
     const [allKeys, optionalKeys] = getKeys(path);
 
@@ -264,18 +285,14 @@ function getDefaultTypes<T extends string>(path: T): DefaultPathTypes<T> {
     } as DefaultPathTypes<T>;
 }
 
-type ExtractTypes<Tuple extends [...BaseRoute[]]> = {
-    [Index in keyof Tuple]: Tuple[Index]["$types"];
-};
-
 function createRoute(creatorOptions: CreateRouteOptions) {
     function route<
         TPath extends string = "",
-        TPathTypes extends Record<string, ParamType<any>> = {},
-        TSearchTypes extends Record<string, SearchParamType<any>> = {},
-        TStateTypes extends Record<string, StateParamType<any>> = {},
+        TPathTypes extends PathTypesConstraint = {},
+        TSearchTypes extends SearchTypesConstraint = {},
+        TStateTypes extends StateTypesConstraint = {},
         THashString extends string = string,
-        THash extends THashString[] | HashType<any> = [],
+        THash extends HashTypesConstraint<THashString> = [],
         TComposedRoutes extends [...BaseRoute[]] = [],
         // This should be restricted to Record<string, BaseRoute>, but it breaks types for nested routes,
         // even without names validity check
@@ -599,7 +616,7 @@ function getPlainStateParamsByTypes(
     return result;
 }
 
-function getTypedParamsByTypes<TPathTypes extends Partial<Record<string, ParamType<unknown, never>>>>(
+function getTypedParamsByTypes<TPathTypes extends PathTypesConstraint>(
     params: Record<string, string | undefined>,
     types: TPathTypes
 ): OutParams<TPathTypes> {
@@ -619,7 +636,7 @@ function getTypedParamsByTypes<TPathTypes extends Partial<Record<string, ParamTy
     return result as OutParams<TPathTypes>;
 }
 
-function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string, SearchParamType<unknown, never>>>>(
+function getTypedSearchParamsByTypes<TSearchTypes extends SearchTypesConstraint>(
     searchParams: URLSearchParams,
     types: TSearchTypes
 ): OutSearchParams<TSearchTypes> {
@@ -639,7 +656,7 @@ function getTypedSearchParamsByTypes<TSearchTypes extends Partial<Record<string,
     return result as OutSearchParams<TSearchTypes>;
 }
 
-function getTypedStateByTypes<TStateTypes extends Partial<Record<string, StateParamType<unknown, never>>>>(
+function getTypedStateByTypes<TStateTypes extends StateTypesConstraint>(
     state: unknown,
     types: TStateTypes
 ): OutStateParams<TStateTypes> {
