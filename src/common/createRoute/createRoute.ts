@@ -50,18 +50,8 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, 
 type InParams<TPath extends string, TPathTypes extends PathTypesConstraint> = IsAny<TPathTypes> extends true
     ? any
     : Merge<
-          PickWithFallback<
-              RawParams<TPathTypes, "in">,
-              PathParam<PathWithoutIntermediateStars<TPath>, "all", "in">,
-              never
-          >,
-          Partial<
-              PickWithFallback<
-                  RawParams<TPathTypes, "in">,
-                  PathParam<PathWithoutIntermediateStars<TPath>, "optional", "in">,
-                  never
-              >
-          >
+          Pick<RawParams<TPathTypes, "in">, PathParam<PathWithoutIntermediateStars<TPath>, "all", "in">>,
+          Partial<Pick<RawParams<TPathTypes, "in">, PathParam<PathWithoutIntermediateStars<TPath>, "optional", "in">>>
       >;
 
 type OutParams<TPathTypes extends PathTypesConstraint> = Readable<PartialUndefined<RawParams<TPathTypes, "out">>>;
@@ -119,8 +109,6 @@ type RawHash<THash, TMode extends "in" | "out"> = THash extends string[]
         ? Exclude<TIn, undefined>
         : TOut
     : never;
-
-type PickWithFallback<T, K extends string, F> = { [P in K]: P extends keyof T ? T[P] : F };
 
 type SanitizedPath<T> = T extends `/${string}`
     ? ErrorMessage<"Leading slashes are forbidden">
