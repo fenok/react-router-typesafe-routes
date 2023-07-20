@@ -18,20 +18,18 @@ type Route<
     TChildren = {}
 > = DecoratedChildren<TPath, TTypes, TChildren> &
     BaseRoute<TPath, TTypes> & {
-        $: DecoratedChildren<TPath, TTypes, TChildren, true>;
+        $: DecoratedChildren<"", OmitPathTypes<TTypes>, TChildren>;
     };
 
-type DecoratedChildren<TPath extends string, TTypes extends Types, TChildren, TExcludePath extends boolean = false> = {
+type OmitPathTypes<T> = T extends Types<infer TPathTypes, infer TSearchTypes, infer TStateTypes, infer THash>
+    ? Types<{}, TSearchTypes, TStateTypes, THash>
+    : never;
+
+type DecoratedChildren<TPath extends string, TTypes extends Types, TChildren> = {
     [TKey in keyof TChildren]: TChildren[TKey] extends Route<infer TChildPath, infer TChildTypes, infer TChildChildren>
         ? Route<
-              TExcludePath extends true
-                  ? TChildPath
-                  : TPath extends ""
-                  ? TChildPath
-                  : TChildPath extends ""
-                  ? TPath
-                  : `${TPath}/${TChildPath}`,
-              MergedTypes<[TTypes, TChildTypes], TExcludePath>,
+              TPath extends "" ? TChildPath : TChildPath extends "" ? TPath : `${TPath}/${TChildPath}`,
+              MergedTypes<[TTypes, TChildTypes]>,
               TChildChildren
           >
         : TChildren[TKey];
@@ -230,21 +228,16 @@ type DefaultTypes<T> = T extends Partial<Types<infer TPathTypes, infer TSearchTy
       >
     : never;
 
-type MergedTypes<T, TExcludePath extends boolean = false> = T extends [infer TFirst, infer TSecond, ...infer TRest]
-    ? MergedTypes<[MergedTypesPair<DefaultTypes<TFirst>, DefaultTypes<TSecond>, TExcludePath>, ...TRest], TExcludePath>
+type MergedTypes<T> = T extends [infer TFirst, infer TSecond, ...infer TRest]
+    ? MergedTypes<[MergedTypesPair<DefaultTypes<TFirst>, DefaultTypes<TSecond>>, ...TRest]>
     : T extends [infer TFirst]
     ? DefaultTypes<TFirst>
     : DefaultTypes<T>;
 
-type MergedTypesPair<T, U, TExcludePath extends boolean = false> = T extends Types<
-    infer TPathTypes,
-    infer TSearchTypes,
-    infer TState,
-    infer THash
->
+type MergedTypesPair<T, U> = T extends Types<infer TPathTypes, infer TSearchTypes, infer TState, infer THash>
     ? U extends Types<infer TChildPathTypes, infer TChildSearchTypes, infer TChildState, infer TChildHash>
         ? Types<
-              TExcludePath extends true ? TChildPathTypes : Merge<TPathTypes, TChildPathTypes>,
+              Merge<TPathTypes, TChildPathTypes>,
               Merge<TSearchTypes, TChildSearchTypes>,
               Merge<TState, TChildState>,
               TChildHash extends string[] ? (THash extends string[] ? [...THash, ...TChildHash] : THash) : TChildHash
@@ -324,9 +317,9 @@ function createRoute(creatorOptions: CreateRouteOptions) {
         const resolvedChildren = opts.children;
 
         return {
-            ...decorateChildren(path, resolvedTypes, creatorOptions, resolvedChildren, false),
+            ...decorateChildren(path, resolvedTypes, creatorOptions, resolvedChildren),
             ...getRoute(path, resolvedTypes, creatorOptions),
-            $: decorateChildren(path, resolvedTypes, creatorOptions, resolvedChildren, true),
+            $: decorateChildren("", { ...resolvedTypes, params: {} }, creatorOptions, resolvedChildren),
         } as unknown as Route<
             TPath,
             MergedTypes<
@@ -375,13 +368,12 @@ function isHashType<T extends HashType<any>>(value: T | string[] | undefined): v
     return Boolean(value) && !Array.isArray(value);
 }
 
-function decorateChildren<TPath extends string, TTypes extends Types, TChildren, TExcludePath extends boolean>(
+function decorateChildren<TPath extends string, TTypes extends Types, TChildren>(
     path: SanitizedPath<TPath>,
     typesObj: TTypes,
     creatorOptions: CreateRouteOptions,
-    children: TChildren | undefined,
-    excludePath: TExcludePath
-): DecoratedChildren<TPath, TTypes, TChildren, TExcludePath> {
+    children: TChildren | undefined
+): DecoratedChildren<TPath, TTypes, TChildren> {
     const result: Record<string, unknown> = {};
 
     if (children) {
@@ -390,23 +382,19 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren,
 
             result[key] = isRoute(value)
                 ? {
-                      ...decorateChildren(path, typesObj, creatorOptions, value, excludePath),
+                      ...decorateChildren(path, typesObj, creatorOptions, value),
                       ...getRoute(
-                          excludePath || path === ""
-                              ? value.$path.substring(1)
-                              : value.$path === "/"
-                              ? path
-                              : `${path}${value.$path}`,
-                          mergeTypes([excludePath ? { ...typesObj, params: undefined } : typesObj, value.$types]),
+                          path === "" ? value.$path.substring(1) : value.$path === "/" ? path : `${path}${value.$path}`,
+                          mergeTypes([typesObj, value.$types]),
                           creatorOptions
                       ),
-                      $: decorateChildren(path, typesObj, creatorOptions, value.$, true),
+                      $: decorateChildren("", { ...typesObj, params: {} }, creatorOptions, value.$),
                   }
                 : value;
         });
     }
 
-    return result as DecoratedChildren<TPath, TTypes, TChildren, TExcludePath>;
+    return result as DecoratedChildren<TPath, TTypes, TChildren>;
 }
 
 function getRoute<TPath extends string, TTypes extends Types>(
