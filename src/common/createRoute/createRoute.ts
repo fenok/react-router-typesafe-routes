@@ -187,24 +187,19 @@ interface Types<
     hash: THash;
 }
 
-type DefaultTypes<T> = T extends Partial<Types<infer TPathTypes, infer TSearchTypes, infer TState, infer THash>>
-    ? Types<
-          PathTypesConstraint extends TPathTypes ? {} : TPathTypes,
-          SearchTypesConstraint extends TSearchTypes ? {} : TSearchTypes,
-          StateTypesConstraint extends TState ? {} : TState,
-          HashTypesConstraint extends THash ? [] : THash
-      >
-    : never;
-
 type ExtractTypes<Tuple extends [...BaseRoute[]]> = {
     [Index in keyof Tuple]: Tuple[Index]["$types"];
 };
 
-type MergedTypes<T> = T extends [infer TFirst, infer TSecond, ...infer TRest]
-    ? MergedTypes<[MergedTypesPair<DefaultTypes<TFirst>, DefaultTypes<TSecond>>, ...TRest]>
+type MergedTypes<T extends Types[]> = T extends [infer TFirst, infer TSecond, ...infer TRest]
+    ? TRest extends Types[]
+        ? MergedTypes<[MergedTypesPair<TFirst, TSecond>, ...TRest]>
+        : never
     : T extends [infer TFirst]
-    ? DefaultTypes<TFirst>
-    : DefaultTypes<T>;
+    ? TFirst extends Types
+        ? TFirst
+        : Types
+    : never;
 
 type MergedTypesPair<T, U> = T extends Types<infer TPathTypes, infer TSearchTypes, infer TState, infer THash>
     ? U extends Types<infer TChildPathTypes, infer TChildSearchTypes, infer TChildState, infer TChildHash>
@@ -217,9 +212,12 @@ type MergedTypesPair<T, U> = T extends Types<infer TPathTypes, infer TSearchType
         : never
     : never;
 
-type DefaultPathTypes<T extends string> = {
-    params: Merge<Record<PathParam<T>, DefType<string>>, Record<PathParam<T, "optional">, Type<string>>>;
-};
+type DefaultPathTypes<T extends string> = Types<
+    Merge<Record<PathParam<T>, DefType<string>>, Record<PathParam<T, "optional">, Type<string>>>,
+    {},
+    {},
+    []
+>;
 
 type OmitPathTypes<T extends Types> = T extends Types<
     infer TPathTypes,
@@ -264,6 +262,9 @@ function getDefaultTypes<T extends string>(path: T): DefaultPathTypes<T> {
 
     return {
         params: { ...requiredParams, ...optionalParams },
+        searchParams: {},
+        state: {},
+        hash: [],
     } as DefaultPathTypes<T>;
 }
 
@@ -335,32 +336,19 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     return route;
 }
 
-function mergeTypes<T extends Partial<Types>[]>(value: [...T]): MergedTypes<T>;
-function mergeTypes<T extends Partial<Types>>(value: T): MergedTypes<T>;
-function mergeTypes<T extends Partial<Types>[] | Partial<Types>>(value: T): MergedTypes<T>;
-function mergeTypes<T extends Partial<Types>[] | Partial<Types>>(value: T): MergedTypes<T> {
-    const arr = (Array.isArray(value) ? value : [value]) as Partial<Types>[];
-
-    return arr.reduce(
-        (acc, item) => {
-            return {
-                params: { ...acc.params, ...item.params },
-                searchParams: { ...acc.searchParams, ...item.searchParams },
-                hash: isHashType(item.hash)
-                    ? item.hash
-                    : isHashType(acc.hash)
-                    ? acc.hash
-                    : [...(acc.hash || []), ...(item.hash || [])],
-                state: { ...acc.state, ...item.state },
-            };
-        },
-        {
-            params: {},
-            searchParams: {},
-            hash: [],
-            state: {},
-        }
-    ) as MergedTypes<T>;
+function mergeTypes<T extends [...Types[]]>(typesArray: [...T]): MergedTypes<T> {
+    return typesArray.reduce((acc, item) => {
+        return {
+            params: { ...acc.params, ...item.params },
+            searchParams: { ...acc.searchParams, ...item.searchParams },
+            hash: isHashType(item.hash)
+                ? item.hash
+                : isHashType(acc.hash)
+                ? acc.hash
+                : [...(acc.hash || []), ...(item.hash || [])],
+            state: { ...acc.state, ...item.state },
+        };
+    }) as MergedTypes<T>;
 }
 
 function isHashType<T extends HashType<any>>(value: T | string[] | undefined): value is T {
