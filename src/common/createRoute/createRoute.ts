@@ -86,35 +86,29 @@ type InHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash,
 
 type OutHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash, "out">>;
 
-type RawParams<TTypes, TMode extends "in" | "out"> = {
-    [TKey in keyof TTypes]: RawParam<TTypes[TKey], TMode>;
+type RawParams<TTypes extends PathTypesConstraint, TMode extends "in" | "out"> = {
+    [TKey in keyof TTypes]: TTypes[TKey] extends ParamType<infer TOut, infer TIn>
+        ? TMode extends "in"
+            ? Exclude<TIn, undefined>
+            : TOut
+        : never;
 };
 
-type RawParam<TType, TMode extends "in" | "out"> = TType extends ParamType<infer TOut, infer TIn>
-    ? TMode extends "in"
-        ? Exclude<TIn, undefined>
-        : TOut
-    : never;
-
-type RawSearchParams<TTypes, TMode extends "in" | "out"> = {
-    [TKey in keyof TTypes]: RawSearchParam<TTypes[TKey], TMode>;
+type RawSearchParams<TTypes extends SearchTypesConstraint, TMode extends "in" | "out"> = {
+    [TKey in keyof TTypes]: TTypes[TKey] extends SearchParamType<infer TOut, infer TIn>
+        ? TMode extends "in"
+            ? Exclude<TIn, undefined>
+            : TOut
+        : never;
 };
 
-type RawSearchParam<TType, TMode extends "in" | "out"> = TType extends SearchParamType<infer TOut, infer TIn>
-    ? TMode extends "in"
-        ? Exclude<TIn, undefined>
-        : TOut
-    : never;
-
-type RawStateParams<TTypes, TMode extends "in" | "out"> = {
-    [TKey in keyof TTypes]: RawStateParam<TTypes[TKey], TMode>;
+type RawStateParams<TTypes extends StateTypesConstraint, TMode extends "in" | "out"> = {
+    [TKey in keyof TTypes]: TTypes[TKey] extends StateParamType<infer TOut, infer TIn>
+        ? TMode extends "in"
+            ? Exclude<TIn, undefined>
+            : TOut
+        : never;
 };
-
-type RawStateParam<TType, TMode extends "in" | "out"> = TType extends StateParamType<infer TOut, infer TIn>
-    ? TMode extends "in"
-        ? Exclude<TIn, undefined>
-        : TOut
-    : never;
 
 type RawHash<THash, TMode extends "in" | "out"> = THash extends string[]
     ? TMode extends "in"
