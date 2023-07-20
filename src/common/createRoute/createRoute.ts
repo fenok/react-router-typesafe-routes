@@ -198,7 +198,7 @@ type MergedTypes<T extends Types[]> = T extends [infer TFirst, infer TSecond, ..
     : T extends [infer TFirst]
     ? TFirst extends Types
         ? TFirst
-        : Types
+        : never
     : never;
 
 type MergedTypesPair<T, U> = T extends Types<infer TPathTypes, infer TSearchTypes, infer TState, infer THash>
@@ -319,7 +319,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
         return {
             ...decorateChildren(path, resolvedTypes, creatorOptions, resolvedChildren),
             ...getRoute(path, resolvedTypes, creatorOptions),
-            $: decorateChildren("", { ...resolvedTypes, params: {} }, creatorOptions, resolvedChildren),
+            $: decorateChildren("", omitPathTypes(resolvedTypes), creatorOptions, resolvedChildren),
         } as unknown as Route<
             TPath,
             MergedTypes<
@@ -334,6 +334,10 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     }
 
     return route;
+}
+
+function omitPathTypes<T extends Types>(types: T): OmitPathTypes<T> {
+    return { ...types, params: {} } as unknown as OmitPathTypes<T>;
 }
 
 function mergeTypes<T extends [...Types[]]>(typesArray: [...T]): MergedTypes<T> {
@@ -375,7 +379,7 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren>
                           mergeTypes([typesObj, value.$types]),
                           creatorOptions
                       ),
-                      $: decorateChildren("", { ...typesObj, params: {} }, creatorOptions, value.$),
+                      $: decorateChildren("", omitPathTypes(typesObj), creatorOptions, value.$),
                   }
                 : value;
         });
