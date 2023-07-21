@@ -1,5 +1,7 @@
 import { ParamType, SearchParamType, StateParamType, HashType, Type, DefType, string } from "../types/index.js";
 
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any */
+
 type Route<
     TPath extends string = string,
     TTypes extends Types = Types<any, any, any>,
@@ -398,11 +400,11 @@ function getRoute<TPath extends string, TTypes extends Types>(
     types: TTypes,
     creatorOptions: CreateRouteOptions
 ): BaseRoute<TPath, TTypes> {
-    const keys = getPathParams(path);
+    const [allPathParams] = getPathParams(path);
     const relativePath = removeIntermediateStars(path);
 
     function getPlainParams(params: InParams<TPath, TTypes["params"]>) {
-        return getPlainParamsByTypes(keys, params, types.params);
+        return getPlainParamsByTypes(allPathParams, params, types.params);
     }
 
     function getPlainSearchParams(params: InSearchParams<TTypes["searchParams"]>) {
@@ -457,7 +459,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
     function getUntypedParams(params: Record<string, string | undefined>) {
         const result: Record<string, string | undefined> = {};
 
-        const typedKeys: string[] = keys[0];
+        const typedKeys: string[] = allPathParams;
 
         Object.keys(params).forEach((key) => {
             if (typedKeys.indexOf(key) === -1) {
@@ -540,7 +542,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
 }
 
 function getPlainParamsByTypes(
-    keys: [string[], string[]],
+    keys: string[],
     params: Record<string, unknown>,
     types: Partial<Record<string, ParamType<unknown, never>>>
 ): Record<string, string> {
@@ -550,7 +552,7 @@ function getPlainParamsByTypes(
         const type = types[key];
         const value = params[key];
 
-        if (type && keys[0].indexOf(key) !== -1 && value !== undefined) {
+        if (type && keys.indexOf(key) !== -1 && value !== undefined) {
             result[key] = type.getPlainParam(value as never);
         } else if (typeof value === "string") {
             result[key] = value;
