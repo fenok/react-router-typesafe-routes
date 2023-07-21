@@ -250,18 +250,23 @@ type NeverToUndefined<T> = [T] extends [never] ? undefined : T;
 
 declare const brand: unique symbol;
 
-function getDefaultTypes<T extends string>(path: T): DefaultPathTypes<T> {
-    const [allKeys, optionalKeys] = getKeys(path);
+function getDefaultPathTypes<T extends string>(path: T): DefaultPathTypes<T> {
+    const [allPathParams, optionalPathParams] = getPathParams(path);
 
-    const requiredKeys = allKeys.filter(
-        (key) => !optionalKeys.includes(key as unknown as (typeof optionalKeys)[number])
-    );
+    const params: Record<string, ParamType<any>> = {};
 
-    const requiredParams = Object.fromEntries(requiredKeys.map((key) => [key, string().defined()]));
-    const optionalParams = Object.fromEntries(optionalKeys.map((key) => [key, string()]));
+    optionalPathParams.forEach((optionalParam) => {
+        params[optionalParam] = string();
+    });
+
+    allPathParams.forEach((param) => {
+        if (!params[param]) {
+            params[param] = string().defined();
+        }
+    });
 
     return {
-        params: { ...requiredParams, ...optionalParams },
+        params,
         searchParams: {},
         state: {},
         hash: [],
@@ -301,7 +306,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     > {
         const path = opts.path ?? ("" as SanitizedPath<TPath>);
 
-        const defaultTypes = getDefaultTypes(path);
+        const defaultTypes = getDefaultPathTypes(path);
 
         const composedTypes = (opts.compose ?? []).map(({ $types }) => $types) as ExtractTypes<TComposedRoutes>;
 
@@ -393,7 +398,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
     types: TTypes,
     creatorOptions: CreateRouteOptions
 ): BaseRoute<TPath, TTypes> {
-    const keys = getKeys(path);
+    const keys = getPathParams(path);
     const relativePath = removeIntermediateStars(path);
 
     function getPlainParams(params: InParams<TPath, TTypes["params"]>) {
@@ -652,7 +657,7 @@ function getTypedStateByTypes<TStateTypes extends StateTypesConstraint>(
     return result as OutStateParams<TStateTypes>;
 }
 
-function getKeys<TPath extends string>(path: TPath): [PathParam<TPath>[], PathParam<TPath, "optional">[]] {
+function getPathParams<TPath extends string>(path: TPath): [PathParam<TPath>[], PathParam<TPath, "optional">[]] {
     const allParams = [];
     const optionalParams = [];
 
