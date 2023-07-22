@@ -2166,3 +2166,31 @@ it("checks that route children don't start with a $", () => {
         })
     );
 });
+
+it("allows to type state as a whole", () => {
+    const TEST_ROUTE = route({ state: string(), children: { CHILD: route({ state: number() }) } });
+
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.$getTypedState>, string | undefined>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$getTypedState>, number | undefined>>(true);
+
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.$getUntypedState>, undefined>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$getUntypedState>, undefined>>(true);
+
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.$buildState>, unknown>>(true);
+    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$buildState>, unknown>>(true);
+
+    assert<IsExact<Parameters<typeof TEST_ROUTE.$buildState>[0], string>>(true);
+    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildState>[0], number>>(true);
+
+    expect(TEST_ROUTE.$getTypedState("foo")).toStrictEqual("foo");
+    expect(TEST_ROUTE.CHILD.$getTypedState(1)).toStrictEqual(1);
+
+    expect(TEST_ROUTE.$getTypedState(1)).toStrictEqual(undefined);
+    expect(TEST_ROUTE.CHILD.$getTypedState("foo")).toStrictEqual(undefined);
+
+    expect(TEST_ROUTE.$getUntypedState("foo")).toStrictEqual(undefined);
+    expect(TEST_ROUTE.CHILD.$getUntypedState(1)).toStrictEqual(undefined);
+
+    expect(TEST_ROUTE.$buildState("foo")).toStrictEqual("foo");
+    expect(TEST_ROUTE.CHILD.$buildState(1)).toStrictEqual(1);
+});
