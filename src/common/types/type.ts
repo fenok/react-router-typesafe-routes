@@ -1,16 +1,16 @@
 import { parser as defaultParser, Parser } from "./parser.js";
 
-interface ParamType<TOut, TIn = TOut> {
+interface PathnameType<TOut, TIn = TOut> {
     getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
     getTypedParam: (plainValue: string | undefined) => TOut;
 }
 
-interface SearchParamType<TOut, TIn = TOut> {
+interface SearchType<TOut, TIn = TOut> {
     getPlainSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
     getTypedSearchParam: (plainValue: string[]) => TOut;
 }
 
-interface StateParamType<TOut, TIn = TOut> {
+interface StateType<TOut, TIn = TOut> {
     getPlainStateParam: (originalValue: Exclude<TIn, undefined>) => unknown;
     getTypedStateParam: (plainValue: unknown) => TOut;
 }
@@ -20,12 +20,12 @@ interface HashType<TOut, TIn = TOut> {
     getTypedHash: (plainValue: string) => TOut;
 }
 
-type AnyType<TOut, TIn = TOut> = ParamType<TOut, TIn> &
-    SearchParamType<TOut, TIn> &
-    StateParamType<TOut, TIn> &
+type AnyType<TOut, TIn = TOut> = PathnameType<TOut, TIn> &
+    SearchType<TOut, TIn> &
+    StateType<TOut, TIn> &
     HashType<TOut, TIn>;
 
-type ArrayType<TOut> = SearchParamType<TOut[]> & StateParamType<TOut[]>;
+type ArrayType<TOut> = SearchType<TOut[]> & StateType<TOut[]>;
 
 type Type<TOut> = DefType<TOut | undefined> & {
     default: (def: Exclude<TOut, undefined>) => DefType<Exclude<TOut, undefined>>;
@@ -186,4 +186,4 @@ function validateDef<T>(validator: Validator<T>, def: unknown): Exclude<T, undef
     return validDef as Exclude<T, undefined>;
 }
 
-export { type, Type, DefType, Validator, ParamType, SearchParamType, StateParamType, HashType };
+export { type, Type, DefType, Validator, PathnameType, SearchType, StateType, HashType };
