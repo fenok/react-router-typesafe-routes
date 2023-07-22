@@ -32,12 +32,12 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, 
     $getTypedState: (state: unknown) => OutState<TTypes["state"]>;
     $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
     $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
-    $getUntypedState: (state: unknown) => PlainState<TTypes["state"], undefined>;
+    $getUntypedState: (state: unknown) => UntypedPlainState<TTypes["state"]>;
     $buildPath: (params: InParams<TPath, TTypes>, opts?: PathnameBuilderOptions) => string;
     $buildPathname: (params: InPathnameParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
     $buildSearch: (params: InSearchParams<TTypes["searchParams"]>) => string;
     $buildHash: (hash: InHash<TTypes["hash"]>) => string;
-    $buildState: (state: InState<TTypes["state"]>) => PlainState<TTypes["state"], unknown>;
+    $buildState: (state: InState<TTypes["state"]>) => PlainState<TTypes["state"]>;
     $types: TTypes;
 };
 
@@ -45,9 +45,13 @@ interface PathnameBuilderOptions {
     relative: boolean;
 }
 
-type PlainState<TStateTypes extends StateTypesConstraint, T> = TStateTypes extends StateTypesObjectConstraint
+type PlainState<TStateTypes extends StateTypesConstraint> = TStateTypes extends StateTypesObjectConstraint
     ? Record<string, unknown>
-    : T;
+    : unknown;
+
+type UntypedPlainState<TStateTypes extends StateTypesConstraint> = TStateTypes extends StateTypesObjectConstraint
+    ? Record<string, unknown>
+    : undefined;
 
 type InParams<TPath extends string, TTypes extends Types> = Readable<
     InPathnameParams<TPath, TTypes["params"]> &
@@ -473,7 +477,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
             isStateType(types.state)
                 ? getPlainStateByType(params, types.state)
                 : getPlainStateParamsByTypes(params, types.state)
-        ) as PlainState<TTypes["state"], unknown>;
+        ) as PlainState<TTypes["state"]>;
     }
 
     function buildPath(params: InParams<TPath, TTypes>, opts?: PathnameBuilderOptions) {
@@ -523,7 +527,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
     }
 
     function getUntypedState(state: unknown) {
-        const result = (isStateType(types.state) ? undefined : {}) as PlainState<TTypes["state"], undefined>;
+        const result = (isStateType(types.state) ? undefined : {}) as UntypedPlainState<TTypes["state"]>;
 
         if (!isRecord(state) || !result) return result;
 
