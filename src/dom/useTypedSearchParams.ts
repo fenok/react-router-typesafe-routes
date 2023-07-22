@@ -1,4 +1,4 @@
-import { BaseRoute, InSearchParams, OutSearchParams, InStateParams, Types } from "../common/index.js";
+import { BaseRoute, InSearchParams, OutSearchParams, InState, Types } from "../common/index.js";
 import { useSearchParams, NavigateOptions, createSearchParams } from "react-router-dom";
 import { useMemo, useCallback } from "react";
 
@@ -16,7 +16,7 @@ function useTypedSearchParams<TPath extends string, TTypesMap extends Types>(
         searchParams:
             | InSearchParams<TTypesMap["searchParams"]>
             | ((prevParams: OutSearchParams<TTypesMap["searchParams"]>) => InSearchParams<TTypesMap["searchParams"]>),
-        navigateOptions?: TypedNavigateOptions<InStateParams<TTypesMap["state"]>>
+        navigateOptions?: TypedNavigateOptions<InState<TTypesMap["state"]>>
     ) => void
 ] {
     const defaultInit = useMemo(
@@ -35,11 +35,7 @@ function useTypedSearchParams<TPath extends string, TTypesMap extends Types>(
                 | ((
                       prevParams: OutSearchParams<TTypesMap["searchParams"]>
                   ) => InSearchParams<TTypesMap["searchParams"]>),
-            {
-                state,
-                preserveUntyped,
-                ...restNavigateOptions
-            }: TypedNavigateOptions<InStateParams<TTypesMap["state"]>> = {}
+            { state, preserveUntyped, ...restNavigateOptions }: TypedNavigateOptions<InState<TTypesMap["state"]>> = {}
         ) => {
             setSearchParams(
                 (prevParams) => {
