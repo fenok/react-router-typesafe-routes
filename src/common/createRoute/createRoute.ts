@@ -8,7 +8,7 @@ type Route<
     TChildren = {}
 > = DecoratedChildren<TPath, TTypes, TChildren> &
     BaseRoute<TPath, TTypes> & {
-        $: DecoratedChildren<"", OmitPathTypes<TTypes>, TChildren>;
+        $: DecoratedChildren<"", OmiTPathnameTypes<TTypes>, TChildren>;
     };
 
 type DecoratedChildren<TPath extends string, TTypes extends Types, TChildren> = {
@@ -24,23 +24,17 @@ type DecoratedChildren<TPath extends string, TTypes extends Types, TChildren> = 
 type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, any, any>> = {
     $path: `/${SanitizedPath<TPath>}`;
     $relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
-    $getPlainParams: (params: InParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
+    $getPlainParams: (params: InPathnameParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
     $getPlainSearchParams: (params: InSearchParams<TTypes["searchParams"]>) => Record<string, string | string[]>;
-    $getTypedParams: (params: Record<string, string | undefined>) => OutParams<TTypes["params"]>;
+    $getTypedParams: (params: Record<string, string | undefined>) => OutPathnameParams<TTypes["params"]>;
     $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TTypes["searchParams"]>;
     $getTypedHash: (hash: string) => OutHash<TTypes["hash"]>;
     $getTypedState: (state: unknown) => OutStateParams<TTypes["state"]>;
     $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
     $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     $getUntypedState: (state: unknown) => Record<string, unknown>;
-    $buildPath: (
-        params: Readable<
-            InParams<TPath, TTypes["params"]> &
-                InSearchParams<TTypes["searchParams"]> & { hash?: InHash<TTypes["hash"]> }
-        >,
-        opts?: PathnameBuilderOptions
-    ) => string;
-    $buildPathname: (params: InParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
+    $buildPath: (params: InParams<TPath, TTypes>, opts?: PathnameBuilderOptions) => string;
+    $buildPathname: (params: InPathnameParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
     $buildSearch: (params: InSearchParams<TTypes["searchParams"]>) => string;
     $buildHash: (hash: InHash<TTypes["hash"]>) => string;
     $buildState: (state: InStateParams<TTypes["state"]>) => Record<string, unknown>;
@@ -51,14 +45,26 @@ interface PathnameBuilderOptions {
     relative: boolean;
 }
 
-type InParams<TPath extends string, TPathTypes extends PathTypesConstraint> = IsAny<TPathTypes> extends true
+type InParams<TPath extends string, TTypes extends Types> = Readable<
+    InPathnameParams<TPath, TTypes["params"]> &
+        InSearchParams<TTypes["searchParams"]> & { hash?: InHash<TTypes["hash"]> }
+>;
+
+type InPathnameParams<
+    TPath extends string,
+    TPathnameTypes extends PathnameTypesConstraint
+> = IsAny<TPathnameTypes> extends true
     ? any
     : Merge<
-          Pick<RawParams<TPathTypes, "in">, PathParam<PathWithoutIntermediateStars<TPath>, "all", "in">>,
-          Partial<Pick<RawParams<TPathTypes, "in">, PathParam<PathWithoutIntermediateStars<TPath>, "optional", "in">>>
+          Pick<RawParams<TPathnameTypes, "in">, PathParam<PathWithoutIntermediateStars<TPath>, "all", "in">>,
+          Partial<
+              Pick<RawParams<TPathnameTypes, "in">, PathParam<PathWithoutIntermediateStars<TPath>, "optional", "in">>
+          >
       >;
 
-type OutParams<TPathTypes extends PathTypesConstraint> = Readable<PartialUndefined<RawParams<TPathTypes, "out">>>;
+type OutPathnameParams<TPathnameTypes extends PathnameTypesConstraint> = Readable<
+    PartialUndefined<RawParams<TPathnameTypes, "out">>
+>;
 
 type InSearchParams<TSearchTypes extends SearchTypesConstraint> = IsAny<TSearchTypes> extends true
     ? any
@@ -80,7 +86,7 @@ type InHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash,
 
 type OutHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash, "out">>;
 
-type RawParams<TTypes extends PathTypesConstraint, TMode extends "in" | "out"> = {
+type RawParams<TTypes extends PathnameTypesConstraint, TMode extends "in" | "out"> = {
     [TKey in keyof TTypes]: TTypes[TKey] extends ParamType<infer TOut, infer TIn>
         ? TMode extends "in"
             ? Exclude<TIn, undefined>
@@ -171,7 +177,7 @@ interface CreateRouteOptions {
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
-type PathTypesConstraint = Record<string, ParamType<any>>;
+type PathnameTypesConstraint = Record<string, ParamType<any>>;
 
 type SearchTypesConstraint = Record<string, SearchParamType<any>>;
 
@@ -180,12 +186,12 @@ type StateTypesConstraint = Record<string, StateParamType<any>>;
 type HashTypesConstraint<T extends string = string> = T[] | HashType<any>;
 
 interface Types<
-    TPathTypes extends PathTypesConstraint = PathTypesConstraint,
+    TPathnameTypes extends PathnameTypesConstraint = PathnameTypesConstraint,
     TSearchTypes extends SearchTypesConstraint = SearchTypesConstraint,
     TStateTypes extends StateTypesConstraint = StateTypesConstraint,
     THash extends HashTypesConstraint = HashTypesConstraint
 > {
-    params: TPathTypes;
+    params: TPathnameTypes;
     searchParams: TSearchTypes;
     state: TStateTypes;
     hash: THash;
@@ -205,10 +211,10 @@ type MergedTypes<T extends Types[]> = T extends [infer TFirst, infer TSecond, ..
         : never
     : never;
 
-type MergedTypesPair<T, U> = T extends Types<infer TPathTypes, infer TSearchTypes, infer TState, infer THash>
+type MergedTypesPair<T, U> = T extends Types<infer TPathnameTypes, infer TSearchTypes, infer TState, infer THash>
     ? U extends Types<infer TChildPathTypes, infer TChildSearchTypes, infer TChildState, infer TChildHash>
         ? Types<
-              Merge<TPathTypes, TChildPathTypes>,
+              Merge<TPathnameTypes, TChildPathTypes>,
               Merge<TSearchTypes, TChildSearchTypes>,
               Merge<TState, TChildState>,
               TChildHash extends string[] ? (THash extends string[] ? [...THash, ...TChildHash] : THash) : TChildHash
@@ -216,15 +222,15 @@ type MergedTypesPair<T, U> = T extends Types<infer TPathTypes, infer TSearchType
         : never
     : never;
 
-type DefaultPathTypes<T extends string> = Types<
+type DefaulTPathnameTypes<T extends string> = Types<
     Merge<Record<PathParam<T>, DefType<string>>, Record<PathParam<T, "optional">, Type<string>>>,
     {},
     {},
     []
 >;
 
-type OmitPathTypes<T extends Types> = T extends Types<
-    infer TPathTypes,
+type OmiTPathnameTypes<T extends Types> = T extends Types<
+    infer TPathnameTypes,
     infer TSearchTypes,
     infer TStateTypes,
     infer THash
@@ -256,7 +262,7 @@ type NeverToUndefined<T> = [T] extends [never] ? undefined : T;
 
 declare const brand: unique symbol;
 
-function getDefaultPathTypes<T extends string>(path: T): DefaultPathTypes<T> {
+function getDefaulTPathnameTypes<T extends string>(path: T): DefaulTPathnameTypes<T> {
     const [allPathParams, optionalPathParams] = getPathParams(path);
 
     const params: Record<string, ParamType<any>> = {};
@@ -276,13 +282,13 @@ function getDefaultPathTypes<T extends string>(path: T): DefaultPathTypes<T> {
         searchParams: {},
         state: {},
         hash: [],
-    } as DefaultPathTypes<T>;
+    } as DefaulTPathnameTypes<T>;
 }
 
 function createRoute(creatorOptions: CreateRouteOptions) {
     function route<
         TPath extends string = "",
-        TPathTypes extends PathTypesConstraint = {},
+        TPathnameTypes extends PathnameTypesConstraint = {},
         TSearchTypes extends SearchTypesConstraint = {},
         TStateTypes extends StateTypesConstraint = {},
         THashString extends string = string,
@@ -294,7 +300,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     >(opts: {
         path?: SanitizedPath<TPath>;
         compose?: [...TComposedRoutes];
-        params?: TPathTypes;
+        params?: TPathnameTypes;
         searchParams?: TSearchTypes;
         state?: TStateTypes;
         hash?: THash;
@@ -303,16 +309,16 @@ function createRoute(creatorOptions: CreateRouteOptions) {
         TPath,
         MergedTypes<
             [
-                DefaultPathTypes<TPath>,
+                DefaulTPathnameTypes<TPath>,
                 ...ExtractTypes<TComposedRoutes>,
-                Types<TPathTypes, TSearchTypes, TStateTypes, THash>
+                Types<TPathnameTypes, TSearchTypes, TStateTypes, THash>
             ]
         >,
         TChildren
     > {
         const path = opts.path ?? ("" as SanitizedPath<TPath>);
 
-        const defaultTypes = getDefaultPathTypes(path);
+        const defaultTypes = getDefaulTPathnameTypes(path);
 
         const composedTypes = (opts.compose ?? []).map(({ $types }) => $types) as ExtractTypes<TComposedRoutes>;
 
@@ -321,7 +327,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
             searchParams: opts?.searchParams ?? {},
             state: opts?.state ?? {},
             hash: opts?.hash ?? [],
-        } as Types<TPathTypes, TSearchTypes, TStateTypes, THash>;
+        } as Types<TPathnameTypes, TSearchTypes, TStateTypes, THash>;
 
         const resolvedTypes = mergeTypes([defaultTypes, ...composedTypes, ownTypes]);
 
@@ -330,14 +336,14 @@ function createRoute(creatorOptions: CreateRouteOptions) {
         return {
             ...decorateChildren(path, resolvedTypes, creatorOptions, resolvedChildren),
             ...getRoute(path, resolvedTypes, creatorOptions),
-            $: decorateChildren("", omitPathTypes(resolvedTypes), creatorOptions, resolvedChildren),
+            $: decorateChildren("", omiTPathnameTypes(resolvedTypes), creatorOptions, resolvedChildren),
         } as unknown as Route<
             TPath,
             MergedTypes<
                 [
-                    DefaultPathTypes<TPath>,
+                    DefaulTPathnameTypes<TPath>,
                     ...ExtractTypes<TComposedRoutes>,
-                    Types<TPathTypes, TSearchTypes, TStateTypes, THash>
+                    Types<TPathnameTypes, TSearchTypes, TStateTypes, THash>
                 ]
             >,
             TChildren
@@ -347,8 +353,8 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     return route;
 }
 
-function omitPathTypes<T extends Types>(types: T): OmitPathTypes<T> {
-    return { ...types, params: {} } as unknown as OmitPathTypes<T>;
+function omiTPathnameTypes<T extends Types>(types: T): OmiTPathnameTypes<T> {
+    return { ...types, params: {} } as unknown as OmiTPathnameTypes<T>;
 }
 
 function mergeTypes<T extends [...Types[]]>(typesArray: [...T]): MergedTypes<T> {
@@ -390,7 +396,7 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren>
                           mergeTypes([typesObj, value.$types]),
                           creatorOptions
                       ),
-                      $: decorateChildren("", omitPathTypes(typesObj), creatorOptions, value.$),
+                      $: decorateChildren("", omiTPathnameTypes(typesObj), creatorOptions, value.$),
                   }
                 : value;
         });
@@ -407,7 +413,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
     const [allPathParams] = getPathParams(path);
     const relativePath = removeIntermediateStars(path);
 
-    function getPlainParams(params: InParams<TPath, TTypes["params"]>) {
+    function getPlainParams(params: InPathnameParams<TPath, TTypes["params"]>) {
         return getPlainParamsByTypes(allPathParams, params, types.params);
     }
 
@@ -415,7 +421,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
         return getPlainSearchParamsByTypes(params, types.searchParams);
     }
 
-    function buildPathname(params: InParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) {
+    function buildPathname(params: InPathnameParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) {
         const rawBuiltPath = creatorOptions.generatePath(relativePath, getPlainParams(params));
         const relativePathname = rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
 
@@ -439,15 +445,8 @@ function getRoute<TPath extends string, TTypes extends Types>(
         return getPlainStateParamsByTypes(params, types.state);
     }
 
-    function buildPath(
-        params: Readable<
-            InParams<TPath, TTypes["params"]> &
-                InSearchParams<TTypes["searchParams"]> & { hash?: InHash<TTypes["hash"]> }
-        >,
-
-        opts?: PathnameBuilderOptions
-    ) {
-        return `${buildPathname(params as InParams<TPath, TTypes["params"]>, opts)}${buildSearch(params)}${
+    function buildPath(params: InParams<TPath, TTypes>, opts?: PathnameBuilderOptions) {
+        return `${buildPathname(params as InPathnameParams<TPath, TTypes["params"]>, opts)}${buildSearch(params)}${
             params.hash !== undefined ? buildHash(params.hash as InHash<TTypes["hash"]>) : ""
         }`;
     }
@@ -597,10 +596,10 @@ function getPlainStateParamsByTypes(
     return result;
 }
 
-function getTypedParamsByTypes<TPathTypes extends PathTypesConstraint>(
+function getTypedParamsByTypes<TPathnameTypes extends PathnameTypesConstraint>(
     params: Record<string, string | undefined>,
-    types: TPathTypes
-): OutParams<TPathTypes> {
+    types: TPathnameTypes
+): OutPathnameParams<TPathnameTypes> {
     const result: Record<string, unknown> = {};
 
     Object.keys(types).forEach((key) => {
@@ -614,7 +613,7 @@ function getTypedParamsByTypes<TPathTypes extends PathTypesConstraint>(
         }
     });
 
-    return result as OutParams<TPathTypes>;
+    return result as OutPathnameParams<TPathnameTypes>;
 }
 
 function getTypedSearchParamsByTypes<TSearchTypes extends SearchTypesConstraint>(
@@ -710,7 +709,8 @@ export {
     SanitizedPath,
     SanitizedChildren,
     InParams,
-    OutParams,
+    InPathnameParams,
+    OutPathnameParams,
     InSearchParams,
     OutSearchParams,
     InStateParams,
