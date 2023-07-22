@@ -34,20 +34,20 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, 
     $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     $getUntypedState: (state: unknown) => Record<string, unknown>;
     $buildPath: (
-        params: InParams<TPath, TTypes["params"]>,
-        searchParams?: InSearchParams<TTypes["searchParams"]>,
-        hash?: InHash<TTypes["hash"]>
+        params: InParams<TPath, TTypes["params"]> &
+            InSearchParams<TTypes["searchParams"]> & { hash?: InHash<TTypes["hash"]> },
+        opts?: PathnameBuilderOptions
     ) => string;
-    $buildRelativePath: (
-        params: InParams<TPath, TTypes["params"]>,
-        searchParams?: InSearchParams<TTypes["searchParams"]>,
-        hash?: InHash<TTypes["hash"]>
-    ) => string;
+    $buildPathname: (params: InParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
     $buildSearch: (params: InSearchParams<TTypes["searchParams"]>) => string;
     $buildHash: (hash: InHash<TTypes["hash"]>) => string;
     $buildState: (state: InStateParams<TTypes["state"]>) => Record<string, unknown>;
     $types: TTypes;
 };
+
+interface PathnameBuilderOptions {
+    relative: boolean;
+}
 
 type InParams<TPath extends string, TPathTypes extends PathTypesConstraint> = IsAny<TPathTypes> extends true
     ? any
@@ -411,10 +411,11 @@ function getRoute<TPath extends string, TTypes extends Types>(
         return getPlainSearchParamsByTypes(params, types.searchParams);
     }
 
-    function buildRelativePathname(params: InParams<TPath, TTypes["params"]>) {
+    function buildPathname(params: InParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) {
         const rawBuiltPath = creatorOptions.generatePath(relativePath, getPlainParams(params));
+        const relativePathname = rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
 
-        return rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
+        return `${opts?.relative ? "" : "/"}${relativePathname}`;
     }
 
     function buildSearch(params: InSearchParams<TTypes["searchParams"]>) {
@@ -434,22 +435,15 @@ function getRoute<TPath extends string, TTypes extends Types>(
         return getPlainStateParamsByTypes(params, types.state);
     }
 
-    function buildRelativePath(
-        params: InParams<TPath, TTypes["params"]>,
-        searchParams?: InSearchParams<TTypes["searchParams"]>,
-        hash?: InHash<TTypes["hash"]>
-    ) {
-        return `${buildRelativePathname(params)}${searchParams !== undefined ? buildSearch(searchParams) : ""}${
-            hash !== undefined ? buildHash(hash) : ""
-        }`;
-    }
-
     function buildPath(
-        params: InParams<TPath, TTypes["params"]>,
-        searchParams?: InSearchParams<TTypes["searchParams"]>,
-        hash?: InHash<TTypes["hash"]>
+        params: InParams<TPath, TTypes["params"]> &
+            InSearchParams<TTypes["searchParams"]> & { hash?: InHash<TTypes["hash"]> },
+
+        opts?: PathnameBuilderOptions
     ) {
-        return `/${buildRelativePath(params, searchParams, hash)}`;
+        return `${buildPathname(params, opts)}${buildSearch(params)}${
+            params.hash !== undefined ? buildHash(params.hash) : ""
+        }`;
     }
 
     function getTypedParams(params: Record<string, string | undefined>) {
@@ -524,7 +518,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
         $path: `/${path}`,
         $relativePath: relativePath,
         $buildPath: buildPath,
-        $buildRelativePath: buildRelativePath,
+        $buildPathname: buildPathname,
         $buildSearch: buildSearch,
         $buildHash: buildHash,
         $buildState: buildState,
