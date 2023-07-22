@@ -23,6 +23,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+-   State can now optionally be typed as a whole, so non-object states can now be typed.
+-   **Breaking**: Pathname params will now be parsed solely basing on the provided types, which makes pathname params composition easier. Path (pathname) building is unaffected.
+
+    ```typescript
+    // Previously, you would also need to specify ':id' in the path argument,
+    // which doesn't really make sense for a fragment.
+    const FRAGMENT = route({ params: { id: number() } });
+
+    const ROUTE = route({
+        path: "some-path/:id",
+        compose: [FRAGMENT],
+    });
+    ```
+
+-   **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
+-   **Breaking**: Path generation API is changed. `$buildPath` (formerly `buildPath`) now accepts all params as a single argument (hash uses a `hash` param). `buildRelativePath` is removed, and instead `$buildPath` now accepts a second argument with options, one of which is `relative`. If you have params with the same name between pathname, search, and hash, which you can't refactor away, you can build a React Router `Path` object instead, using `$buildSearch`, `$buildHash`, and newly added `$buildPathname`, which also can be made `relative`.
+-   **Breaking**: `route` API is changed. It now accepts only a single argument with optional types, path, composed routes and children.
 -   **Breaking**: Hash should now be specified as an array of strings or a type. Empty array now means "nothing" instead of "any string". For example:
     -   `hashValues('about', 'info')` => `['about', 'info']`
     -   `hashValues()` => `string()`
