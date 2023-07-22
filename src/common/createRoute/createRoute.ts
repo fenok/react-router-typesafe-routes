@@ -32,18 +32,22 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, 
     $getTypedState: (state: unknown) => OutState<TTypes["state"]>;
     $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
     $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
-    $getUntypedState: (state: unknown) => Record<string, unknown>;
+    $getUntypedState: (state: unknown) => PlainState<TTypes["state"], undefined>;
     $buildPath: (params: InParams<TPath, TTypes>, opts?: PathnameBuilderOptions) => string;
     $buildPathname: (params: InPathnameParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
     $buildSearch: (params: InSearchParams<TTypes["searchParams"]>) => string;
     $buildHash: (hash: InHash<TTypes["hash"]>) => string;
-    $buildState: (state: InState<TTypes["state"]>) => Record<string, unknown>;
+    $buildState: (state: InState<TTypes["state"]>) => PlainState<TTypes["state"], unknown>;
     $types: TTypes;
 };
 
 interface PathnameBuilderOptions {
     relative: boolean;
 }
+
+type PlainState<TStateTypes extends StateTypesConstraint, T> = TStateTypes extends StateTypesObjectConstraint
+    ? Record<string, unknown>
+    : T;
 
 type InParams<TPath extends string, TTypes extends Types> = Readable<
     InPathnameParams<TPath, TTypes["params"]> &
@@ -76,11 +80,17 @@ type OutSearchParams<TSearchTypes extends SearchTypesConstraint> = Readable<
 
 type InState<TStateTypes extends StateTypesConstraint> = IsAny<TStateTypes> extends true
     ? any
-    : Readable<Partial<RawStateParams<TStateTypes, "in">>>;
+    : TStateTypes extends StateTypesObjectConstraint
+    ? Readable<Partial<RawStateParams<TStateTypes, "in">>>
+    : TStateTypes extends StateTypesUnknownConstraint
+    ? RawState<TStateTypes, "in">
+    : never;
 
-type OutState<TStateTypes extends StateTypesConstraint> = Readable<
-    PartialUndefined<RawStateParams<TStateTypes, "out">>
->;
+type OutState<TStateTypes extends StateTypesConstraint> = TStateTypes extends StateTypesObjectConstraint
+    ? Readable<PartialUndefined<RawStateParams<TStateTypes, "out">>>
+    : TStateTypes extends StateTypesUnknownConstraint
+    ? RawState<TStateTypes, "out">
+    : never;
 
 type InHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash, "in">>;
 
@@ -102,7 +112,16 @@ type RawSearchParams<TTypes extends SearchTypesConstraint, TMode extends "in" | 
         : never;
 };
 
-type RawStateParams<TTypes extends StateTypesConstraint, TMode extends "in" | "out"> = {
+type RawState<TTypes extends StateTypesUnknownConstraint, TMode extends "in" | "out"> = TTypes extends StateType<
+    infer TOut,
+    infer TIn
+>
+    ? TMode extends "in"
+        ? Exclude<TIn, undefined>
+        : TOut
+    : never;
+
+type RawStateParams<TTypes extends StateTypesObjectConstraint, TMode extends "in" | "out"> = {
     [TKey in keyof TTypes]: TTypes[TKey] extends StateType<infer TOut, infer TIn>
         ? TMode extends "in"
             ? Exclude<TIn, undefined>
@@ -181,7 +200,11 @@ type PathnameTypesConstraint = Record<string, PathnameType<any>>;
 
 type SearchTypesConstraint = Record<string, SearchType<any>>;
 
-type StateTypesConstraint = Record<string, StateType<any>>;
+type StateTypesConstraint = StateTypesObjectConstraint | StateTypesUnknownConstraint;
+
+type StateTypesObjectConstraint = Record<string, StateType<any>>;
+
+type StateTypesUnknownConstraint = StateType<any>;
 
 type HashTypesConstraint<T extends string = string> = T[] | HashType<any>;
 
@@ -216,7 +239,11 @@ type MergedTypesPair<T, U> = T extends Types<infer TPathnameTypes, infer TSearch
         ? Types<
               Merge<TPathnameTypes, TChildPathTypes>,
               Merge<TSearchTypes, TChildSearchTypes>,
-              Merge<TState, TChildState>,
+              TChildState extends StateTypesObjectConstraint
+                  ? TState extends StateTypesObjectConstraint
+                      ? Merge<TState, TChildState>
+                      : TState
+                  : TChildState,
               TChildHash extends string[] ? (THash extends string[] ? [...THash, ...TChildHash] : THash) : TChildHash
           >
         : never
@@ -442,7 +469,11 @@ function getRoute<TPath extends string, TTypes extends Types>(
     }
 
     function buildState(params: InState<TTypes["state"]>) {
-        return getPlainStateParamsByTypes(params, types.state);
+        return (
+            isStateType(types.state)
+                ? getPlainStateByType(params, types.state)
+                : getPlainStateParamsByTypes(params, types.state)
+        ) as PlainState<TTypes["state"], unknown>;
     }
 
     function buildPath(params: InParams<TPath, TTypes>, opts?: PathnameBuilderOptions) {
@@ -486,13 +517,15 @@ function getRoute<TPath extends string, TTypes extends Types>(
     }
 
     function getTypedState(state: unknown) {
-        return getTypedStateByTypes(state, types.state as TTypes["state"]);
+        return isStateType(types.state)
+            ? getTypedStateByType(state, types.state)
+            : getTypedStateByTypes(state, types.state);
     }
 
     function getUntypedState(state: unknown) {
-        const result: Record<string, unknown> = {};
+        const result = (isStateType(types.state) ? undefined : {}) as PlainState<TTypes["state"], undefined>;
 
-        if (!isRecord(state)) return result;
+        if (!isRecord(state) || !result) return result;
 
         const typedKeys = types.state ? Object.keys(types.state) : [];
 
@@ -596,6 +629,10 @@ function getPlainStateParamsByTypes(
     return result;
 }
 
+function getPlainStateByType(state: unknown, type: StateType<any>): unknown {
+    return type.getPlainStateParam(state);
+}
+
 function getTypedParamsByTypes<TPathnameTypes extends PathnameTypesConstraint>(
     params: Record<string, string | undefined>,
     types: TPathnameTypes
@@ -636,7 +673,7 @@ function getTypedSearchParamsByTypes<TSearchTypes extends SearchTypesConstraint>
     return result as OutSearchParams<TSearchTypes>;
 }
 
-function getTypedStateByTypes<TStateTypes extends StateTypesConstraint>(
+function getTypedStateByTypes<TStateTypes extends StateTypesObjectConstraint>(
     state: unknown,
     types: TStateTypes
 ): OutState<TStateTypes> {
@@ -656,6 +693,13 @@ function getTypedStateByTypes<TStateTypes extends StateTypesConstraint>(
     }
 
     return result as OutState<TStateTypes>;
+}
+
+function getTypedStateByType<TStateTypes extends StateTypesUnknownConstraint>(
+    state: unknown,
+    type: TStateTypes
+): OutState<TStateTypes> {
+    return type.getTypedStateParam(state);
 }
 
 function getPathParams<TPath extends string>(path: TPath): [PathParam<TPath>[], PathParam<TPath, "optional">[]] {
@@ -696,6 +740,10 @@ function isRoute(value: unknown): value is Route<string, Types, unknown> {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value && typeof value === "object");
+}
+
+function isStateType<T extends StateType<any>>(value: T | Record<string, StateType<any>>): value is T {
+    return typeof (value as StateType<any>).getPlainStateParam === "function";
 }
 
 export {
