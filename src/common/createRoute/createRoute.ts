@@ -34,8 +34,10 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, 
     $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     $getUntypedState: (state: unknown) => Record<string, unknown>;
     $buildPath: (
-        params: InParams<TPath, TTypes["params"]> &
-            InSearchParams<TTypes["searchParams"]> & { hash?: InHash<TTypes["hash"]> },
+        params: Readable<
+            InParams<TPath, TTypes["params"]> &
+                InSearchParams<TTypes["searchParams"]> & { hash?: InHash<TTypes["hash"]> }
+        >,
         opts?: PathnameBuilderOptions
     ) => string;
     $buildPathname: (params: InParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
@@ -232,9 +234,11 @@ type OmitPathTypes<T extends Types> = T extends Types<
 
 type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
 
-type Readable<T> = Identity<{
-    [K in keyof T]: T[K];
-}>;
+type Readable<T> = T extends Record<string, any>
+    ? Identity<{
+          [K in keyof T]: T[K];
+      }>
+    : T;
 
 type Identity<T> = T;
 
@@ -436,13 +440,15 @@ function getRoute<TPath extends string, TTypes extends Types>(
     }
 
     function buildPath(
-        params: InParams<TPath, TTypes["params"]> &
-            InSearchParams<TTypes["searchParams"]> & { hash?: InHash<TTypes["hash"]> },
+        params: Readable<
+            InParams<TPath, TTypes["params"]> &
+                InSearchParams<TTypes["searchParams"]> & { hash?: InHash<TTypes["hash"]> }
+        >,
 
         opts?: PathnameBuilderOptions
     ) {
-        return `${buildPathname(params, opts)}${buildSearch(params)}${
-            params.hash !== undefined ? buildHash(params.hash) : ""
+        return `${buildPathname(params as InParams<TPath, TTypes["params"]>, opts)}${buildSearch(params)}${
+            params.hash !== undefined ? buildHash(params.hash as InHash<TTypes["hash"]>) : ""
         }`;
     }
 
