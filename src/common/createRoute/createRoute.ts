@@ -1,4 +1,4 @@
-import { ParamType, SearchParamType, StateParamType, HashType, Type, DefType, string } from "../types/index.js";
+import { PathnameType, SearchType, StateType, HashType, Type, DefType, string } from "../types/index.js";
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any */
 
@@ -87,7 +87,7 @@ type InHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash,
 type OutHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash, "out">>;
 
 type RawParams<TTypes extends PathnameTypesConstraint, TMode extends "in" | "out"> = {
-    [TKey in keyof TTypes]: TTypes[TKey] extends ParamType<infer TOut, infer TIn>
+    [TKey in keyof TTypes]: TTypes[TKey] extends PathnameType<infer TOut, infer TIn>
         ? TMode extends "in"
             ? Exclude<TIn, undefined>
             : TOut
@@ -95,7 +95,7 @@ type RawParams<TTypes extends PathnameTypesConstraint, TMode extends "in" | "out
 };
 
 type RawSearchParams<TTypes extends SearchTypesConstraint, TMode extends "in" | "out"> = {
-    [TKey in keyof TTypes]: TTypes[TKey] extends SearchParamType<infer TOut, infer TIn>
+    [TKey in keyof TTypes]: TTypes[TKey] extends SearchType<infer TOut, infer TIn>
         ? TMode extends "in"
             ? Exclude<TIn, undefined>
             : TOut
@@ -103,7 +103,7 @@ type RawSearchParams<TTypes extends SearchTypesConstraint, TMode extends "in" | 
 };
 
 type RawStateParams<TTypes extends StateTypesConstraint, TMode extends "in" | "out"> = {
-    [TKey in keyof TTypes]: TTypes[TKey] extends StateParamType<infer TOut, infer TIn>
+    [TKey in keyof TTypes]: TTypes[TKey] extends StateType<infer TOut, infer TIn>
         ? TMode extends "in"
             ? Exclude<TIn, undefined>
             : TOut
@@ -177,11 +177,11 @@ interface CreateRouteOptions {
     generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
 
-type PathnameTypesConstraint = Record<string, ParamType<any>>;
+type PathnameTypesConstraint = Record<string, PathnameType<any>>;
 
-type SearchTypesConstraint = Record<string, SearchParamType<any>>;
+type SearchTypesConstraint = Record<string, SearchType<any>>;
 
-type StateTypesConstraint = Record<string, StateParamType<any>>;
+type StateTypesConstraint = Record<string, StateType<any>>;
 
 type HashTypesConstraint<T extends string = string> = T[] | HashType<any>;
 
@@ -265,7 +265,7 @@ declare const brand: unique symbol;
 function getDefaulTPathnameTypes<T extends string>(path: T): DefaulTPathnameTypes<T> {
     const [allPathParams, optionalPathParams] = getPathParams(path);
 
-    const params: Record<string, ParamType<any>> = {};
+    const params: Record<string, PathnameType<any>> = {};
 
     optionalPathParams.forEach((optionalParam) => {
         params[optionalParam] = string();
@@ -543,7 +543,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
 function getPlainParamsByTypes(
     keys: string[],
     params: Record<string, unknown>,
-    types: Partial<Record<string, ParamType<unknown, never>>>
+    types: Partial<Record<string, PathnameType<unknown, never>>>
 ): Record<string, string> {
     const result: Record<string, string> = {};
 
@@ -563,7 +563,7 @@ function getPlainParamsByTypes(
 
 function getPlainSearchParamsByTypes(
     params: Record<string, unknown>,
-    types: Partial<Record<string, SearchParamType<unknown, never>>>
+    types: Partial<Record<string, SearchType<unknown, never>>>
 ): Record<string, string | string[]> {
     const result: Record<string, string | string[]> = {};
 
@@ -580,7 +580,7 @@ function getPlainSearchParamsByTypes(
 
 function getPlainStateParamsByTypes(
     params: Record<string, unknown>,
-    types: Partial<Record<string, StateParamType<unknown, never>>>
+    types: Partial<Record<string, StateType<unknown, never>>>
 ): Record<string, unknown> {
     const result: Record<string, unknown> = {};
 

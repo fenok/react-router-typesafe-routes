@@ -7,9 +7,9 @@ import {
     date,
     type,
     union,
-    ParamType,
-    SearchParamType,
-    StateParamType,
+    PathnameType,
+    SearchType,
+    StateType,
     BaseRoute,
 } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
@@ -1993,7 +1993,7 @@ it("allows to use unions", () => {
 });
 
 it("allows to define different types for different route parts", () => {
-    const testType: ParamType<string, number> & SearchParamType<number, string> & StateParamType<boolean, Date> = {
+    const testType: PathnameType<string, number> & SearchType<number, string> & StateType<boolean, Date> = {
         getPlainParam: (value) => "path plain",
         getTypedParam: (value) => "path typed",
         getPlainSearchParam: (value) => "search plain",
