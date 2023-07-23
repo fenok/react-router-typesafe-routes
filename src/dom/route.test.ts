@@ -2194,3 +2194,36 @@ it("allows to type state as a whole", () => {
     expect(TEST_ROUTE.$buildState("foo")).toStrictEqual("foo");
     expect(TEST_ROUTE.CHILD.$buildState(1)).toStrictEqual(1);
 });
+
+it("allows to preserve untyped search params on path/query building", () => {
+    const TEST_ROUTE = route({ path: "test", searchParams: { typed: number(), typedUnused: boolean() } });
+
+    const testSearchParams = createSearchParams({ typed: "1", typedUnused: "true", untyped: "foo" });
+
+    expect(TEST_ROUTE.$buildPath({ typed: 42 }, { preserveUntyped: testSearchParams })).toStrictEqual(
+        "/test?typed=42&untyped=foo"
+    );
+
+    expect(TEST_ROUTE.$buildSearch({ typed: 42 }, { preserveUntyped: testSearchParams })).toStrictEqual(
+        "?typed=42&untyped=foo"
+    );
+});
+
+it("allows to preserve untyped state on state building", () => {
+    const TEST_ROUTE = route({ path: "test", state: { typed: number(), typedUnused: boolean() } });
+
+    const testState = { typed: "1", typedUnused: "true", untyped: "foo" };
+
+    expect(TEST_ROUTE.$buildState({ typed: 42 }, { preserveUntyped: testState })).toStrictEqual({
+        typed: 42,
+        untyped: "foo",
+    });
+});
+
+it("ignores preserveUntyped option when state is typed as a whole", () => {
+    const TEST_ROUTE = route({ path: "test", state: number() });
+
+    const testState = { untyped: "foo" };
+
+    expect(TEST_ROUTE.$buildState(42, { preserveUntyped: testState })).toStrictEqual(42);
+});

@@ -33,16 +33,26 @@ type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, 
     $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
     $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     $getUntypedState: (state: unknown) => UntypedPlainState<TTypes["state"]>;
-    $buildPath: (params: InParams<TPath, TTypes>, opts?: PathnameBuilderOptions) => string;
+    $buildPath: (params: InParams<TPath, TTypes>, opts?: PathBuilderOptions) => string;
     $buildPathname: (params: InPathnameParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
-    $buildSearch: (params: InSearchParams<TTypes["searchParams"]>) => string;
+    $buildSearch: (params: InSearchParams<TTypes["searchParams"]>, opts?: SearchBuilderOptions) => string;
     $buildHash: (hash: InHash<TTypes["hash"]>) => string;
-    $buildState: (state: InState<TTypes["state"]>) => PlainState<TTypes["state"]>;
+    $buildState: (state: InState<TTypes["state"]>, opts?: StateBuilderOptions) => PlainState<TTypes["state"]>;
     $types: TTypes;
 };
 
+interface PathBuilderOptions extends PathnameBuilderOptions, SearchBuilderOptions {}
+
 interface PathnameBuilderOptions {
-    relative: boolean;
+    relative?: boolean;
+}
+
+interface SearchBuilderOptions {
+    preserveUntyped?: URLSearchParams;
+}
+
+interface StateBuilderOptions {
+    preserveUntyped?: unknown;
 }
 
 type PlainState<TStateTypes extends StateTypesConstraint> = TStateTypes extends StateTypesObjectConstraint
@@ -459,8 +469,14 @@ function getRoute<TPath extends string, TTypes extends Types>(
         return `${opts?.relative ? "" : "/"}${relativePathname}`;
     }
 
-    function buildSearch(params: InSearchParams<TTypes["searchParams"]>) {
-        const searchString = creatorOptions.createSearchParams(getPlainSearchParams(params)).toString();
+    function buildSearch(params: InSearchParams<TTypes["searchParams"]>, opts?: SearchBuilderOptions) {
+        const typedSearchParams = creatorOptions.createSearchParams(getPlainSearchParams(params));
+
+        if (opts?.preserveUntyped) {
+            appendSearchParams(typedSearchParams, getUntypedSearchParams(opts?.preserveUntyped));
+        }
+
+        const searchString = typedSearchParams.toString();
 
         return searchString ? `?${searchString}` : "";
     }
@@ -472,18 +488,19 @@ function getRoute<TPath extends string, TTypes extends Types>(
         return `#${String(hash)}`;
     }
 
-    function buildState(params: InState<TTypes["state"]>) {
+    function buildState(params: InState<TTypes["state"]>, opts?: StateBuilderOptions) {
         return (
             isStateType(types.state)
                 ? getPlainStateByType(params, types.state)
-                : getPlainStateParamsByTypes(params, types.state)
+                : Object.assign(getPlainStateParamsByTypes(params, types.state), getUntypedState(opts?.preserveUntyped))
         ) as PlainState<TTypes["state"]>;
     }
 
-    function buildPath(params: InParams<TPath, TTypes>, opts?: PathnameBuilderOptions) {
-        return `${buildPathname(params as InPathnameParams<TPath, TTypes["params"]>, opts)}${buildSearch(params)}${
-            params.hash !== undefined ? buildHash(params.hash as InHash<TTypes["hash"]>) : ""
-        }`;
+    function buildPath(params: InParams<TPath, TTypes>, opts?: PathBuilderOptions) {
+        return `${buildPathname(params as InPathnameParams<TPath, TTypes["params"]>, opts)}${buildSearch(
+            params,
+            opts
+        )}${params.hash !== undefined ? buildHash(params.hash as InHash<TTypes["hash"]>) : ""}`;
     }
 
     function getTypedParams(params: Record<string, string | undefined>) {
@@ -748,6 +765,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isStateType<T extends StateType<any>>(value: T | Record<string, StateType<any>>): value is T {
     return typeof (value as StateType<any>).getPlainStateParam === "function";
+}
+
+function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {
+    for (const [key, val] of source.entries()) {
+        target.append(key, val);
+    }
+
+    return target;
 }
 
 export {
