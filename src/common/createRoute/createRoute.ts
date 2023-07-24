@@ -353,7 +353,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
                 ? TPathnameTypes[TKey] extends undefined
                     ? PathnameType<any>
                     : TPathnameTypes[TKey]
-                : never;
+                : ErrorMessage<"There are params in path, and this param is not one of them">;
         };
         searchParams?: TSearchTypes;
         state?: TStateTypes;
