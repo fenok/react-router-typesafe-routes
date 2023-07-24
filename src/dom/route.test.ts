@@ -1421,19 +1421,15 @@ it("throws upon specifying a default value that validates to undefined", () => {
 
 it("allows types composition", () => {
     const PATH = route({
-        path: ":id",
         params: { id: number() },
     });
     const SEARCH = route({
-        path: "",
         searchParams: { page: number() },
     });
     const STATE = route({
-        path: "",
         state: { fromList: boolean() },
     });
     const HASH = route({
-        path: "",
         hash: ["about", "more"],
     });
 
