@@ -301,6 +301,12 @@ type Undefined<T> = {
 
 type NeverToUndefined<T> = [T] extends [never] ? undefined : T;
 
+type RequiredWithoutUndefined<T> = {
+    [P in keyof T]-?: Exclude<T[P], undefined>;
+};
+
+type NonNeverPathParam<TPath extends string> = [PathParam<TPath>] extends [never] ? string : PathParam<TPath>;
+
 declare const brand: unique symbol;
 
 function getDefaulTPathnameTypes<T extends string>(path: T): DefaulTPathnameTypes<T> {
@@ -329,7 +335,7 @@ function getDefaulTPathnameTypes<T extends string>(path: T): DefaulTPathnameType
 function createRoute(creatorOptions: CreateRouteOptions) {
     function route<
         TPath extends string = "",
-        TPathnameTypes extends PathnameTypesConstraint = {},
+        TPathnameTypes extends Partial<Record<NonNeverPathParam<TPath>, PathnameType<any>>> = {},
         TSearchTypes extends SearchTypesConstraint = {},
         TStateTypes extends StateTypesConstraint = {},
         THashString extends string = string,
@@ -341,7 +347,14 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     >(opts: {
         path?: SanitizedPath<TPath>;
         compose?: [...TComposedRoutes];
-        params?: TPathnameTypes;
+        // Forbid undefined values and non-existent keys (if there are params in path)
+        params?: {
+            [TKey in keyof TPathnameTypes]: TKey extends NonNeverPathParam<TPath>
+                ? TPathnameTypes[TKey] extends undefined
+                    ? PathnameType<any>
+                    : TPathnameTypes[TKey]
+                : never;
+        };
         searchParams?: TSearchTypes;
         state?: TStateTypes;
         hash?: THash;
@@ -352,7 +365,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
             [
                 DefaulTPathnameTypes<TPath>,
                 ...ExtractTypes<TComposedRoutes>,
-                Types<TPathnameTypes, TSearchTypes, TStateTypes, THash>
+                Types<RequiredWithoutUndefined<TPathnameTypes>, TSearchTypes, TStateTypes, THash>
             ]
         >,
         TChildren
@@ -368,7 +381,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
             searchParams: opts?.searchParams ?? {},
             state: opts?.state ?? {},
             hash: opts?.hash ?? [],
-        } as Types<TPathnameTypes, TSearchTypes, TStateTypes, THash>;
+        } as Types<RequiredWithoutUndefined<TPathnameTypes>, TSearchTypes, TStateTypes, THash>;
 
         const resolvedTypes = mergeTypes([defaultTypes, ...composedTypes, ownTypes]);
 
@@ -384,7 +397,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
                 [
                     DefaulTPathnameTypes<TPath>,
                     ...ExtractTypes<TComposedRoutes>,
-                    Types<TPathnameTypes, TSearchTypes, TStateTypes, THash>
+                    Types<RequiredWithoutUndefined<TPathnameTypes>, TSearchTypes, TStateTypes, THash>
                 ]
             >,
             TChildren
