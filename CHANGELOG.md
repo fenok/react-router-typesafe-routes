@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+-   **Breaking**: Types for pathname `params` are now stricter and don't allow params which are not specified in the path pattern (the only exception is empty path pattern, in which case anything is allowed). This also fixes autocomplete for such params.
 -   State can now optionally be typed as a whole, so non-object states can now be typed.
 -   **Breaking**: Pathname params will now be parsed solely basing on the provided types, which makes pathname params composition easier. Path (pathname) building is unaffected.
 
