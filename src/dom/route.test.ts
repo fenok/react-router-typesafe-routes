@@ -2246,3 +2246,22 @@ it("ignores preserveUntyped option when state is typed as a whole", () => {
 
     expect(TEST_ROUTE.$buildState(42, { preserveUntyped: testState })).toStrictEqual(42);
 });
+
+it("ties pathname params with path pattern", () => {
+    // If path is empty, anything is allowed
+    expect(route({ path: "", params: { something: string() } })).toBeTruthy();
+    expect(route({ params: { something: string() } })).toBeTruthy();
+
+    // If path has params, non-existent params are forbidden
+    // @ts-expect-error Unknown param
+    expect(route({ path: ":id/:test", params: { something: string() } })).toBeTruthy();
+
+    // If path has params, it's possible to override only some of them
+    expect(route({ path: ":id/:test", params: { id: string() } })).toBeTruthy();
+
+    // Undefined is always forbidden
+    // @ts-expect-error Undefined is forbidden
+    expect(route({ path: ":id/:test", params: { id: undefined } })).toBeTruthy();
+    // @ts-expect-error Undefined is forbidden
+    expect(route({ params: { something: undefined } })).toBeTruthy();
+});
