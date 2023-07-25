@@ -816,4 +816,5 @@ export {
     OutState,
     InHash,
     OutHash,
+    ErrorMessage,
 };
