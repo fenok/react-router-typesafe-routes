@@ -165,15 +165,15 @@ type PathWithoutIntermediateStars<T extends string> = T extends `${infer TStart}
     ? PathWithoutIntermediateStars<`${TStart}${TEnd}`>
     : T;
 
-type SanitizedChildren<T> = T extends Record<infer TKey, unknown>
-    ? [TKey] extends [string]
-        ? TKey extends Omit$<TKey>
-            ? T
-            : ErrorMessage<"Children names can't start with $">
-        : T
-    : T;
+type SanitizedChildren<T> = {
+    [TKey in keyof T]: TKey extends Omit$<TKey>
+        ? T[TKey] extends BaseRoute
+            ? T[TKey]
+            : BaseRoute
+        : ErrorMessage<"Name can't start with $">;
+};
 
-type Omit$<T extends string> = T extends `$${infer TValid}` ? TValid : T;
+type Omit$<T> = T extends `$${infer TValid}` ? TValid : T;
 
 type SanitizedPathParam<
     TRawParam extends string,

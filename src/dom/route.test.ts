@@ -2134,33 +2134,56 @@ it("checks that leading and trailing slashes are forbidden", () => {
     ).toBeTruthy();
 });
 
-it("checks that route children don't start with a $", () => {
+it("checks that route children are valid", () => {
     expect(
         route({
             path: "",
-            // @ts-expect-error Checking single invalid child
             children: {
+                // @ts-expect-error Checking single invalid child name
                 $child: route({
                     path: "",
                 }),
             },
         })
-    );
+    ).toBeTruthy();
 
     expect(
         route({
             path: "",
-            // @ts-expect-error Checking mix of valid and invalid children
             children: {
                 valid: route({
                     path: "",
                 }),
+                // @ts-expect-error Checking mix of valid and invalid children names
                 $child: route({
                     path: "",
                 }),
             },
         })
-    );
+    ).toBeTruthy();
+
+    expect(
+        route({
+            path: "",
+            children: {
+                // @ts-expect-error Checking single invalid child value
+                child: 1,
+            },
+        })
+    ).toBeTruthy();
+
+    expect(
+        route({
+            path: "",
+            children: {
+                valid: route({
+                    path: "",
+                }),
+                // @ts-expect-error Checking mix of valid and invalid children values
+                child: 1,
+            },
+        })
+    ).toBeTruthy();
 });
 
 it("allows to type state as a whole", () => {
