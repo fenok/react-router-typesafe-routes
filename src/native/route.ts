@@ -1,6 +1,6 @@
 import { createSearchParams, generatePath } from "react-router-native";
 import { createRoute } from "../common/index.js";
 
-const route = createRoute({ createSearchParams, generatePath });
+const { route, fragment } = createRoute({ createSearchParams, generatePath });
 
-export { route };
+export { route, fragment };
