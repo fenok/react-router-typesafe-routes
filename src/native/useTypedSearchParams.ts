@@ -1,4 +1,4 @@
-import { BaseRoute, InSearchParams, OutSearchParams, InState, Types } from "../common/index.js";
+import { RouteFragment, Types, InSearchParams, OutSearchParams, InState } from "../common/index.js";
 import { useSearchParams, NavigateOptions, createSearchParams } from "react-router-native";
 import { useMemo, useCallback } from "react";
 
@@ -7,8 +7,8 @@ interface TypedNavigateOptions<T> extends NavigateOptions {
     preserveUntyped?: boolean;
 }
 
-function useTypedSearchParams<TPath extends string, TTypesMap extends Types>(
-    route: BaseRoute<TPath, TTypesMap>,
+function useTypedSearchParams<TTypesMap extends Types>(
+    route: RouteFragment<TTypesMap>,
     typedDefaultInit?: InSearchParams<TTypesMap["searchParams"]>
 ): [
     OutSearchParams<TTypesMap["searchParams"]>,

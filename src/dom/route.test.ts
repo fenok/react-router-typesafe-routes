@@ -1,4 +1,4 @@
-import { route } from "./route.js";
+import { route, fragment } from "./route.js";
 import { createSearchParams } from "react-router-dom";
 import {
     number,
@@ -1420,16 +1420,16 @@ it("throws upon specifying a default value that validates to undefined", () => {
 });
 
 it("allows types composition", () => {
-    const PATH = route({
+    const PATH = fragment({
         params: { id: number() },
     });
-    const SEARCH = route({
+    const SEARCH = fragment({
         searchParams: { page: number() },
     });
-    const STATE = route({
+    const STATE = fragment({
         state: { fromList: boolean() },
     });
-    const HASH = route({
+    const HASH = fragment({
         hash: ["about", "more"],
     });
 
@@ -2248,9 +2248,11 @@ it("ignores preserveUntyped option when state is typed as a whole", () => {
 });
 
 it("ties pathname params with path pattern", () => {
-    // If path is empty, anything is allowed
-    expect(route({ path: "", params: { something: string() } })).toBeTruthy();
-    expect(route({ params: { something: string() } })).toBeTruthy();
+    // If path is empty, nothing is allowed
+    // @ts-expect-error No params allowed
+    expect(route({ path: "", params: { "": string() } })).toBeTruthy();
+    // @ts-expect-error No params allowed
+    expect(route({ params: { "": string() } })).toBeTruthy();
 
     // If path has params, non-existent params are forbidden
     // @ts-expect-error Unknown param
