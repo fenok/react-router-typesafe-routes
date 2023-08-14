@@ -9,42 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--   Route composition API:
+-   Add `fragment` helper and fragment composition API. Fragments are essentially routes without path building API (though they can be used to parse pathname params), and they can be used to share common params between routes. They can be used in React hooks, too.
 
     ```typescript
-    const FRAGMENT = route({ searchParams: { page: number() } });
+    // Instead of route(':id', { params: { id: number() }, searchParams: { page: number() } })
+    const FRAGMENT = fragment({ params: { id: number() }, searchParams: { page: number() } });
 
     // Instead of types(FRAGMENT)({searchParams: { query: string() }})
-    const ROUTE = route({
+    const MY_ROUTE = route({
+        path: "my-path/:id",
         compose: [FRAGMENT],
         searchParams: { query: string() },
     });
+
+    const { id } = useTypedParams(FRAGMENT);
+    const [{ page }] = useTypedSearchParams(FRAGMENT);
     ```
 
 ### Changed
 
--   **Breaking**: Types for pathname `params` are now stricter and don't allow params which are not specified in the path pattern (the only exception is empty path pattern, in which case anything is allowed). This also fixes autocomplete for such params.
+-   **Breaking**: Types for pathname `params` are now stricter and don't allow params which are not specified in the path pattern. This also fixes autocomplete for such params.
 -   State can now optionally be typed as a whole, so non-object states can now be typed.
--   **Breaking**: Pathname params will now be parsed solely basing on the provided types, which makes pathname params composition easier. Path (pathname) building is unaffected.
-
-    ```typescript
-    // Previously, you would also need to specify ':id' in the path argument,
-    // which doesn't really make sense for a fragment.
-    const FRAGMENT = route({ params: { id: number() } });
-
-    const ROUTE = route({
-        path: "some-path/:id",
-        compose: [FRAGMENT],
-    });
-    ```
-
+-   **Breaking**: Pathname params will now be parsed solely basing on the provided types, which makes fragments for pathname params possible. Path (pathname) building is unaffected.
 -   **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
 -   **Breaking**: Path and state generation API is changed.
     -   `$buildPath` (formerly `buildPath`) now accepts all params as a single argument (hash uses a `hash` param).
     -   `buildRelativePath` is removed, and instead `$buildPath` now accepts a second argument with options, one of which is `relative`.
     -   If you have params with the same name between pathname, search, and hash, which you can't refactor away, you can build a React Router `Path` object instead, using `$buildSearch`, `$buildHash`, and newly added `$buildPathname`, which also can be made `relative`.
     -   `$buildPath`/`$buildSearch` and `$buildState` now accept a `preserveUntyped` option in the second argument, which is a `URLSearchParams` instance and a state respectively. When provided, the corresponding untyped parts will be added to the resulting path (the search part) or state.
--   **Breaking**: `route` API is changed. It now accepts only a single argument with optional types, path, composed routes and children.
+-   **Breaking**: `route` API is changed. It now accepts only a single argument with optional types, path, composed routes and children. By default, path is empty string.
 -   **Breaking**: Hash should now be specified as an array of strings or a type. Empty array now means "nothing" instead of "any string". For example:
     -   `hashValues('about', 'info')` => `['about', 'info']`
     -   `hashValues()` => `string()`
@@ -53,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Breaking**: Array types like `string().array()` now filter `undefined` values upon parsing. The previous behavior broke a common pattern of changing a subset of search parameters:
 
     ```typescript
-    const FRAGMENT = route({ searchParams: { pages: number().array(), query: string() } });
+    const FRAGMENT = fragment({ searchParams: { pages: number().array(), query: string() } });
 
     const [{ pages, query }, setTypedSearchParams] = useTypedSearchParams(FRAGMENT);
 
