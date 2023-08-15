@@ -720,7 +720,7 @@ it("allows implicit hash params", () => {
 
     expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
     expect(TEST_ROUTE.CHILD.$buildPath({})).toStrictEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "my-id" })).toStrictEqual("/test/child/grand#my-id");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ $hash: "my-id" })).toStrictEqual("/test/child/grand#my-id");
 });
 
 it("allows explicit hash params", () => {
@@ -743,7 +743,7 @@ it("allows explicit hash params", () => {
 
     expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
     expect(TEST_ROUTE.CHILD.$buildPath({})).toStrictEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "foo" })).toStrictEqual("/test/child/grand#foo");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ $hash: "foo" })).toStrictEqual("/test/child/grand#foo");
 });
 
 it("allows mixing explicit hash params across multiple routes", () => {
@@ -766,8 +766,8 @@ it("allows mixing explicit hash params across multiple routes", () => {
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildHash>[0], "baz" | "foo" | "bar">>(true);
 
     expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
-    expect(TEST_ROUTE.CHILD.$buildPath({ hash: "baz" })).toStrictEqual("/test/child#baz");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "baz" })).toStrictEqual("/test/child/grand#baz");
+    expect(TEST_ROUTE.CHILD.$buildPath({ $hash: "baz" })).toStrictEqual("/test/child#baz");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ $hash: "baz" })).toStrictEqual("/test/child/grand#baz");
 });
 
 it("allows mixing explicit and implicit hash params across multiple routes", () => {
@@ -790,8 +790,8 @@ it("allows mixing explicit and implicit hash params across multiple routes", () 
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildHash>[0], string>>(true);
 
     expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
-    expect(TEST_ROUTE.CHILD.$buildPath({ hash: "baz" })).toStrictEqual("/test/child#baz");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "anything" })).toStrictEqual("/test/child/grand#anything");
+    expect(TEST_ROUTE.CHILD.$buildPath({ $hash: "baz" })).toStrictEqual("/test/child#baz");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ $hash: "anything" })).toStrictEqual("/test/child/grand#anything");
 });
 
 it("allows state params", () => {
@@ -1461,7 +1461,7 @@ it("allows types composition", () => {
 
     assert<IsExact<Parameters<typeof ROUTE.$buildState>[0], { fromList?: boolean; hidden?: boolean }>>(true);
 
-    expect(ROUTE.$buildPath({ id: 1, subId: 2, page: true, ordered: true, hash: "info" })).toStrictEqual(
+    expect(ROUTE.$buildPath({ id: 1, subId: 2, page: true, ordered: true, $hash: "info" })).toStrictEqual(
         "/1/2?page=true&ordered=true#info"
     );
 
@@ -1544,15 +1544,15 @@ it("allows to inherit non-path params in trimmed children", () => {
         true
     );
 
-    expect(TEST_ROUTE.$buildPath({ foo: 1, hash: "hashFoo" })).toStrictEqual("/test?foo=1#hashFoo");
-    expect(TEST_ROUTE.$.CHILD.$buildPath({ foo: 1, bar: "test", hash: "hashBar" })).toStrictEqual(
+    expect(TEST_ROUTE.$buildPath({ foo: 1, $hash: "hashFoo" })).toStrictEqual("/test?foo=1#hashFoo");
+    expect(TEST_ROUTE.$.CHILD.$buildPath({ foo: 1, bar: "test", $hash: "hashBar" })).toStrictEqual(
         "/child?foo=1&bar=test#hashBar"
     );
     expect(
-        TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPath({ foo: 1, bar: "test", baz: false, hash: "hashBaz" })
+        TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPath({ foo: 1, bar: "test", baz: false, $hash: "hashBaz" })
     ).toStrictEqual("/grand?foo=1&bar=test&baz=false#hashBaz");
     expect(
-        TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPath({ foo: 1, bar: "test", baz: false, hash: "hashBaz" })
+        TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPath({ foo: 1, bar: "test", baz: false, $hash: "hashBaz" })
     ).toStrictEqual("/child/grand?foo=1&bar=test&baz=false#hashBaz");
 
     const testSearchParams = createSearchParams({ foo: "1", bar: "test", baz: "false" });

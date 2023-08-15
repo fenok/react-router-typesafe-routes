@@ -24,7 +24,7 @@ type DecoratedChildren<TPath extends string, TTypes extends Types, TChildren> = 
 type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, any, any>> = {
     $path: `/${SanitizedPath<TPath>}`;
     $relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
-    $buildPath: (params: InParams<TPath, TTypes>, opts?: PathBuilderOptions) => string;
+    $buildPath: (params: InPathParams<TPath, TTypes>, opts?: PathBuilderOptions) => string;
     $buildPathname: (params: InPathnameParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
     $getPlainParams: (params: InPathnameParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
 } & RouteFragment<TTypes>;
@@ -66,9 +66,9 @@ type UntypedPlainState<TStateTypes extends StateTypesConstraint> = TStateTypes e
     ? Record<string, unknown>
     : undefined;
 
-type InParams<TPath extends string, TTypes extends Types> = Readable<
+type InPathParams<TPath extends string, TTypes extends Types> = Readable<
     InPathnameParams<TPath, TTypes["params"]> &
-        InSearchParams<TTypes["searchParams"]> & { hash?: InHash<TTypes["hash"]> }
+        InSearchParams<TTypes["searchParams"]> & { $hash?: InHash<TTypes["hash"]> }
 >;
 
 type InPathnameParams<
@@ -520,11 +520,11 @@ function getRoute<TPath extends string, TTypes extends Types>(
         return `${opts?.relative ? "" : "/"}${relativePathname}`;
     }
 
-    function buildPath(params: InParams<TPath, TTypes>, opts?: PathBuilderOptions) {
+    function buildPath(params: InPathParams<TPath, TTypes>, opts?: PathBuilderOptions) {
         return `${buildPathname(params as InPathnameParams<TPath, TTypes["params"]>, opts)}${routeFragment.$buildSearch(
             params,
             opts
-        )}${params.hash !== undefined ? routeFragment.$buildHash(params.hash as InHash<TTypes["hash"]>) : ""}`;
+        )}${params.$hash !== undefined ? routeFragment.$buildHash(params.$hash as InHash<TTypes["hash"]>) : ""}`;
     }
 
     return {
@@ -848,7 +848,7 @@ export {
     PathParam,
     SanitizedPath,
     SanitizedChildren,
-    InParams,
+    InPathParams,
     InPathnameParams,
     OutPathnameParams,
     InSearchParams,
