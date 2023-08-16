@@ -708,7 +708,7 @@ function getPlainStateParamsByTypes(
         const value = params[key];
 
         if (type && value !== undefined) {
-            result[key] = type.getPlainStateParam(value as never);
+            result[key] = type.getPlainState(value as never);
         }
     });
 
@@ -716,7 +716,7 @@ function getPlainStateParamsByTypes(
 }
 
 function getPlainStateByType(state: unknown, type: StateType<any>): unknown {
-    return type.getPlainStateParam(state);
+    return type.getPlainState(state);
 }
 
 function getTypedParamsByTypes<TPathnameTypes extends PathnameTypesConstraint>(
@@ -770,7 +770,7 @@ function getTypedStateByTypes<TStateTypes extends StateTypesObjectConstraint>(
             const type = types[key];
 
             if (type) {
-                const typedStateParam = type.getTypedStateParam(state[key]);
+                const typedStateParam = type.getTypedState(state[key]);
                 if (typedStateParam !== undefined) {
                     result[key] = typedStateParam;
                 }
@@ -785,7 +785,7 @@ function getTypedStateByType<TStateTypes extends StateTypesUnknownConstraint>(
     state: unknown,
     type: TStateTypes
 ): OutState<TStateTypes> {
-    return type.getTypedStateParam(state);
+    return type.getTypedState(state);
 }
 
 function getPathParams<TPath extends string>(path: TPath): [PathParam<TPath>[], PathParam<TPath, "optional">[]] {
@@ -829,7 +829,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isStateType<T extends StateType<any>>(value: T | Record<string, StateType<any>>): value is T {
-    return typeof (value as StateType<any>).getPlainStateParam === "function";
+    return typeof (value as StateType<any>).getPlainState === "function";
 }
 
 function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {

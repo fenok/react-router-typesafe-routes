@@ -11,8 +11,8 @@ interface SearchType<TOut, TIn = TOut> {
 }
 
 interface StateType<TOut, TIn = TOut> {
-    getPlainStateParam: (originalValue: Exclude<TIn, undefined>) => unknown;
-    getTypedStateParam: (plainValue: unknown) => TOut;
+    getPlainState: (originalValue: Exclude<TIn, undefined>) => unknown;
+    getTypedState: (plainValue: unknown) => TOut;
 }
 
 interface HashType<TOut, TIn = TOut> {
@@ -47,8 +47,8 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
     const getPlainSearchParam = (value: Exclude<T, undefined>) => parser.stringify(value);
     const getTypedSearchParam = (value: string[]) =>
         validator(typeof value[0] === "undefined" ? value[0] : parser.parse(value[0]));
-    const getPlainStateParam = (value: T) => value;
-    const getTypedStateParam = (value: unknown) => validator(value);
+    const getPlainState = (value: T) => value;
+    const getTypedState = (value: unknown) => validator(value);
     const getPlainHash = (value: Exclude<T, undefined>) => parser.stringify(value);
     const getTypedHash = (value: string | undefined) =>
         validator(typeof value === "undefined" ? value : parser.parse(value));
@@ -60,8 +60,8 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
             getTypedParam: ensureNoError(getTypedParam),
             getPlainSearchParam,
             getTypedSearchParam: ensureNoError(getTypedSearchParam),
-            getPlainStateParam,
-            getTypedStateParam: ensureNoError(getTypedStateParam),
+            getPlainState: getPlainState,
+            getTypedState: ensureNoError(getTypedState),
             getPlainHash,
             getTypedHash: ensureNoError(getTypedHash),
         },
@@ -82,8 +82,8 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                         getTypedParam: ensureNoUndefined(ensureNoError(getTypedParam), validDef),
                         getPlainSearchParam,
                         getTypedSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validDef),
-                        getPlainStateParam,
-                        getTypedStateParam: ensureNoUndefined(ensureNoError(getTypedStateParam), validDef),
+                        getPlainState: getPlainState,
+                        getTypedState: ensureNoUndefined(ensureNoError(getTypedState), validDef),
                         getPlainHash,
                         getTypedHash: ensureNoUndefined(ensureNoError(getTypedHash), validDef),
                     },
@@ -103,8 +103,8 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
                         getTypedParam: ensureNoUndefined(getTypedParam),
                         getPlainSearchParam,
                         getTypedSearchParam: ensureNoUndefined(getTypedSearchParam),
-                        getPlainStateParam,
-                        getTypedStateParam: ensureNoUndefined(getTypedStateParam),
+                        getPlainState: getPlainState,
+                        getTypedState: ensureNoUndefined(getTypedState),
                         getPlainHash,
                         getTypedHash: ensureNoUndefined(getTypedHash),
                     },
@@ -126,15 +126,15 @@ const getArrayParamTypeBuilder =
         const getPlainSearchParam = (values: T[]) => values.filter(isDefined).map((value) => parser.stringify(value));
         const getTypedSearchParam = (values: string[]) =>
             values.map((item) => validator(parser.parse(item))).filter(isDefined);
-        const getPlainStateParam = (values: T[]) => values;
-        const getTypedStateParam = (values: unknown) =>
+        const getPlainState = (values: T[]) => values;
+        const getTypedState = (values: unknown) =>
             (Array.isArray(values) ? values : []).map((item) => validator(item)).filter(isDefined);
 
         return {
             getPlainSearchParam,
             getTypedSearchParam,
-            getPlainStateParam,
-            getTypedStateParam,
+            getPlainState: getPlainState,
+            getTypedState: getTypedState,
         };
     };
 

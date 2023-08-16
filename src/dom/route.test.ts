@@ -1994,8 +1994,8 @@ it("allows to define different types for different route parts", () => {
         getTypedParam: (value) => "path typed",
         getPlainSearchParam: (value) => "search plain",
         getTypedSearchParam: (value) => -1,
-        getPlainStateParam: (value) => "state",
-        getTypedStateParam: (value) => false,
+        getPlainState: (value) => "state",
+        getTypedState: (value) => false,
     };
 
     const TEST_ROUTE = route({
