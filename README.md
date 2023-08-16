@@ -14,7 +14,7 @@ If you need more control, you can build completely custom types, which means tha
 
 The library doesn't restrict or alter React Router API in any way, including nested routes and relative links. It's also gradually adoptable.
 
-> ⚠ Migrating to universal types? Check out this [small guide](docs/migrating-to-universal-types.md).
+> ⚠ Migrating to `v2.0.0`? Check out this [migration guide](docs/migrating-to-universal-types.md).
 
 ## Installation
 
