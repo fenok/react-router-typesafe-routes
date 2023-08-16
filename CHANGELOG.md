@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   **Breaking**: Types for pathname `params` are now stricter and don't allow params which are not specified in the path pattern. This also fixes autocomplete for such params.
 -   State can now optionally be typed as a whole, so non-object states can now be typed.
+-   **Breaking**: Functions in state type object are renamed to `getPlainState` and `getTypedState`.
 -   **Breaking**: Pathname params will now be parsed solely basing on the provided types, which makes fragments for pathname params possible. Path (pathname) building is unaffected.
 -   **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
 -   **Breaking**: Path and state generation API is changed.
