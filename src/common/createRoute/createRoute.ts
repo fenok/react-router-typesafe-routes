@@ -483,7 +483,8 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren>
 
     if (children) {
         Object.keys(children).forEach((key) => {
-            const value = children[key as keyof typeof children];
+            // Explicit unknown is required for the type guard to work in TS 5.1 for some reason
+            const value: unknown = children[key as keyof typeof children];
 
             result[key] = isRoute(value)
                 ? {
