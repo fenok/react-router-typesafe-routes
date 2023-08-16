@@ -2247,7 +2247,7 @@ it("ignores preserveUntyped option when state is typed as a whole", () => {
     expect(TEST_ROUTE.$buildState(42, { preserveUntyped: testState })).toStrictEqual(42);
 });
 
-it("ties pathname params with path pattern", () => {
+it("ties pathname params to path pattern", () => {
     // If path is empty, nothing is allowed
     // @ts-expect-error No params allowed
     expect(route({ path: "", params: { "": string() } })).toBeTruthy();
