@@ -38,7 +38,10 @@ type RouteFragment<TTypes extends Types = Types<any, any, any>> = {
     $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
     $getUntypedState: (state: unknown) => UntypedPlainState<TTypes["state"]>;
     $buildSearch: (params: InSearchParams<TTypes["searchParams"]>, opts?: SearchBuilderOptions) => string;
-    $getPlainSearchParams: (params: InSearchParams<TTypes["searchParams"]>) => Record<string, string | string[]>;
+    $getPlainSearchParams: (
+        params: InSearchParams<TTypes["searchParams"]>,
+        opts?: SearchBuilderOptions
+    ) => URLSearchParams;
     $buildHash: (hash: InHash<TTypes["hash"]>) => string;
     $buildState: (state: InState<TTypes["state"]>, opts?: StateBuilderOptions) => PlainState<TTypes["state"]>;
     $types: TTypes;
@@ -541,18 +544,18 @@ function getRouteFragment<TTypes extends Types>(
     types: TTypes,
     creatorOptions: CreateRouteOptions
 ): RouteFragment<TTypes> {
-    function getPlainSearchParams(params: InSearchParams<TTypes["searchParams"]>) {
-        return getPlainSearchParamsByTypes(params, types.searchParams);
+    function getPlainSearchParams(params: InSearchParams<TTypes["searchParams"]>, opts?: SearchBuilderOptions) {
+        const plainParams = creatorOptions.createSearchParams(getPlainSearchParamsByTypes(params, types.searchParams));
+
+        if (opts?.preserveUntyped) {
+            appendSearchParams(plainParams, getUntypedSearchParams(opts?.preserveUntyped));
+        }
+
+        return plainParams;
     }
 
     function buildSearch(params: InSearchParams<TTypes["searchParams"]>, opts?: SearchBuilderOptions) {
-        const typedSearchParams = creatorOptions.createSearchParams(getPlainSearchParams(params));
-
-        if (opts?.preserveUntyped) {
-            appendSearchParams(typedSearchParams, getUntypedSearchParams(opts?.preserveUntyped));
-        }
-
-        const searchString = typedSearchParams.toString();
+        const searchString = creatorOptions.createSearchParams(getPlainSearchParams(params, opts)).toString();
 
         return searchString ? `?${searchString}` : "";
     }

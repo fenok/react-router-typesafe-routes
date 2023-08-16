@@ -1,5 +1,5 @@
 import { RouteFragment, Types, InSearchParams, OutSearchParams, InState } from "../common/index.js";
-import { useSearchParams, NavigateOptions, createSearchParams } from "react-router-dom";
+import { useSearchParams, NavigateOptions } from "react-router-dom";
 import { useMemo, useCallback } from "react";
 
 interface TypedNavigateOptions<T> extends NavigateOptions {
@@ -39,15 +39,10 @@ function useTypedSearchParams<TTypesMap extends Types>(
         ) => {
             setSearchParams(
                 (prevParams) => {
-                    const nextParams = createSearchParams(
-                        route.$getPlainSearchParams(
-                            typeof params === "function" ? params(route.$getTypedSearchParams(prevParams)) : params
-                        )
+                    return route.$getPlainSearchParams(
+                        typeof params === "function" ? params(route.$getTypedSearchParams(prevParams)) : params,
+                        { preserveUntyped: preserveUntyped ? prevParams : undefined }
                     );
-
-                    if (preserveUntyped) appendSearchParams(nextParams, route.$getUntypedSearchParams(prevParams));
-
-                    return nextParams;
                 },
                 {
                     ...(state ? { state: route.$buildState(state) } : {}),
@@ -59,14 +54,6 @@ function useTypedSearchParams<TTypesMap extends Types>(
     );
 
     return [typedSearchParams, setTypedSearchParams];
-}
-
-function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {
-    for (const [key, val] of source.entries()) {
-        target.append(key, val);
-    }
-
-    return target;
 }
 
 export { useTypedSearchParams, TypedNavigateOptions };

@@ -1813,7 +1813,7 @@ it("allows to use zod", () => {
         g: { d: testDate },
     });
 
-    expect(plainSearchParams).toStrictEqual({
+    expect(urlSearchParamsToRecord(plainSearchParams)).toStrictEqual({
         a: "test",
         b: "0",
         c: "false",
@@ -1823,7 +1823,7 @@ it("allows to use zod", () => {
         g: JSON.stringify({ d: testDate }),
     });
 
-    expect(TEST_ROUTE.$getTypedSearchParams(createSearchParams(plainSearchParams))).toStrictEqual({
+    expect(TEST_ROUTE.$getTypedSearchParams(plainSearchParams)).toStrictEqual({
         a: "test",
         b: 0,
         c: false,
@@ -1876,7 +1876,7 @@ it("allows to use yup", () => {
         g: { d: testDate },
     });
 
-    expect(plainSearchParams).toStrictEqual({
+    expect(urlSearchParamsToRecord(plainSearchParams)).toStrictEqual({
         a: "test",
         b: "0",
         c: "false",
@@ -1886,7 +1886,7 @@ it("allows to use yup", () => {
         g: JSON.stringify({ d: testDate }),
     });
 
-    expect(TEST_ROUTE.$getTypedSearchParams(createSearchParams(plainSearchParams))).toStrictEqual({
+    expect(TEST_ROUTE.$getTypedSearchParams(plainSearchParams)).toStrictEqual({
         a: "test",
         b: 0,
         c: false,
@@ -1975,13 +1975,13 @@ it("allows to use unions", () => {
         c: true,
     });
 
-    expect(plainSearchParams).toStrictEqual({
+    expect(urlSearchParamsToRecord(plainSearchParams)).toStrictEqual({
         a: "test",
         b: "1",
         c: "true",
     });
 
-    expect(TEST_ROUTE.$getTypedSearchParams(createSearchParams(plainSearchParams))).toStrictEqual({
+    expect(TEST_ROUTE.$getTypedSearchParams(plainSearchParams)).toStrictEqual({
         a: "test",
         b: 1,
         c: true,
@@ -2061,7 +2061,7 @@ it("allows to define different types for different route parts", () => {
 
     expect(TEST_ROUTE.$getPlainParams({ id: 1 })).toStrictEqual({ id: "path plain" });
     expect(TEST_ROUTE.$getTypedParams({ id: "" })).toStrictEqual({ id: "path typed" });
-    expect(TEST_ROUTE.$getPlainSearchParams({ id: "" })).toStrictEqual({ id: "search plain" });
+    expect(urlSearchParamsToRecord(TEST_ROUTE.$getPlainSearchParams({ id: "" }))).toStrictEqual({ id: "search plain" });
     expect(TEST_ROUTE.$getTypedSearchParams(createSearchParams({ id: "" }))).toStrictEqual({ id: -1 });
     expect(TEST_ROUTE.$buildState({ id: new Date() })).toStrictEqual({ id: "state" });
     expect(TEST_ROUTE.$getTypedState({ id: false })).toStrictEqual({ id: false });
@@ -2267,3 +2267,21 @@ it("ties pathname params with path pattern", () => {
     // @ts-expect-error Undefined is forbidden
     expect(route({ params: { something: undefined } })).toBeTruthy();
 });
+
+function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {
+    const result: Record<string, string | string[]> = {};
+
+    for (const [key, value] of params.entries()) {
+        if (result[key] === undefined) {
+            result[key] = value;
+        } else {
+            if (typeof result[key] === "string") {
+                result[key] = [result[key] as string];
+            }
+
+            (result[key] as string[]).push(value);
+        }
+    }
+
+    return result;
+}
