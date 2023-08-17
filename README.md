@@ -24,13 +24,13 @@ yarn add react-router-typesafe-routes
 
 You'll need to use one of platform-specific entry points, each of which requires `react` as a peer dependency:
 
--   `react-router-typesafe-routes/dom` for web, `react-router-dom` is a peer dependency;
--   `react-router-typesafe-routes/native` for React Native, `react-router-native` is a peer dependency.
+- `react-router-typesafe-routes/dom` for web, `react-router-dom` is a peer dependency;
+- `react-router-typesafe-routes/native` for React Native, `react-router-native` is a peer dependency.
 
 Additionally, there are optional entry points for types based on third-party validation libraries:
 
--   `react-router-typesafe-routes/zod` exports `zod` type, `zod` is a peer dependency;
--   `react-router-typesafe-routes/yup` exports `yup` type, `yup` is a peer dependency;
+- `react-router-typesafe-routes/zod` exports `zod` type, `zod` is a peer dependency;
+- `react-router-typesafe-routes/yup` exports `yup` type, `yup` is a peer dependency;
 
 The library is targeting ES6 (ES2015). ESM is used by default, and CommonJS is only usable in environments that support the `exports` field in `package.json`.
 
@@ -38,9 +38,9 @@ The minimal required version of TypeScript is `5.0` and `strict` mode must be en
 
 ## Limitations & Caveats
 
--   Since React Router only considers pathname on route matching, search parameters, state fields, and hash are considered optional upon URL or state building.
--   For convenience, absent and invalid params are considered virtually the same by built-in types (but you have full control with custom types).
--   To emphasize that route relativity is governed by the library, leading slashes in path patterns are forbidden. Trailing slashes are also forbidden due to being purely cosmetic.
+- Since React Router only considers pathname on route matching, search parameters, state fields, and hash are considered optional upon URL or state building.
+- For convenience, absent and invalid params are considered virtually the same by built-in types (but you have full control with custom types).
+- To emphasize that route relativity is governed by the library, leading slashes in path patterns are forbidden. Trailing slashes are also forbidden due to being purely cosmetic.
 
 ## How is it different from existing solutions?
 
@@ -60,14 +60,14 @@ The minimal required version of TypeScript is `5.0` and `strict` mode must be en
 
 Other libraries that I was able to find are outdated and not really suitable for React Router v6:
 
--   [typesafe-react-router](https://github.com/AveroLLC/typesafe-react-router)
--   [react-typesafe-routes](https://github.com/innFactory/react-typesafe-routes) (this one is currently being updated for React Router v6)
+- [typesafe-react-router](https://github.com/AveroLLC/typesafe-react-router)
+- [react-typesafe-routes](https://github.com/innFactory/react-typesafe-routes) (this one is currently being updated for React Router v6)
 
 You might also want to use some other router with built-in type safety:
 
--   [TanStack Router](https://github.com/tanstack/router)
--   [Type Route](https://github.com/zilch/type-route)
--   [Chicane](https://github.com/swan-io/chicane)
+- [TanStack Router](https://github.com/tanstack/router)
+- [Type Route](https://github.com/zilch/type-route)
+- [Chicane](https://github.com/swan-io/chicane)
 
 ## Quick usage example
 
@@ -77,29 +77,29 @@ Define routes:
 import { route, number, boolean, union } from "react-router-typesafe-routes/dom"; // Or /native
 
 const ROUTES = {
-    USER: route({
-        // This is a normal path (pathname) pattern, but without leading or trailing slashes.
-        // Pathname params are inferred from the pattern. By default, required params use the 'string().defined()' type.
-        // The .defined() modifier means that, upon parsing, an absent/invalid param will lead to an error.
-        path: "user/:id",
-        // We can override some or all pathname params. Params existence is checked on a type level.
-        // Note that .defined() modifier is not required.
-        params: { id: number().defined() },
-        // Here we define search params. By default, there are no search params.
-        // The '.default()' modifier allows to specify a value to use in case of an absent/invalid param.
-        searchParams: { infoVisible: boolean().default(false) },
-        // Here we define state. By default, there is no state.
-        // Without modifiers, 'undefined' is returned in case of an absent/invalid param.
-        state: { fromUserList: boolean() },
-        // Here we define hash. By default, there is no hash. To allow any hash, define it as 'string()'.
-        // Note that 'union()' is just another type, and all types can be used anywhere with different modifiers.
-        hash: union("info", "comments"),
-        children: {
-            // This is a child route, which inherits all parent params.
-            // By default, optional pathanme params use the 'string()' type.
-            DETAILS: route("details/:lang?"),
-        },
-    }),
+  USER: route({
+    // This is a normal path (pathname) pattern, but without leading or trailing slashes.
+    // Pathname params are inferred from the pattern. By default, required params use the 'string().defined()' type.
+    // The .defined() modifier means that, upon parsing, an absent/invalid param will lead to an error.
+    path: "user/:id",
+    // We can override some or all pathname params. Params existence is checked on a type level.
+    // Note that .defined() modifier is not required.
+    params: { id: number().defined() },
+    // Here we define search params. By default, there are no search params.
+    // The '.default()' modifier allows to specify a value to use in case of an absent/invalid param.
+    searchParams: { infoVisible: boolean().default(false) },
+    // Here we define state. By default, there is no state.
+    // Without modifiers, 'undefined' is returned in case of an absent/invalid param.
+    state: { fromUserList: boolean() },
+    // Here we define hash. By default, there is no hash. To allow any hash, define it as 'string()'.
+    // Note that 'union()' is just another type, and all types can be used anywhere with different modifiers.
+    hash: union("info", "comments"),
+    children: {
+      // This is a child route, which inherits all parent params.
+      // By default, optional pathanme params use the 'string()' type.
+      DETAILS: route("details/:lang?"),
+    },
+  }),
 };
 ```
 
@@ -111,21 +111,21 @@ import { ROUTES } from "./path/to/routes";
 
 // Absolute paths
 <Routes>
-    {/* /user/:id */}
-    <Route path={ROUTES.USER.path} element={<User />}>
-        {/* /user/:id/details/:lang? */}
-        <Route path={ROUTES.USER.DETAILS.path} element={<UserDetails />} />
-    </Route>
+  {/* /user/:id */}
+  <Route path={ROUTES.USER.path} element={<User />}>
+    {/* /user/:id/details/:lang? */}
+    <Route path={ROUTES.USER.DETAILS.path} element={<UserDetails />} />
+  </Route>
 </Routes>;
 
 // Relative paths
 <Routes>
-    {/* user/:id */}
-    <Route path={ROUTES.USER.relativePath} element={<User />}>
-        {/* details/:lang? */}
-        {/* $ effectively defines path pattern start. */}
-        <Route path={ROUTES.USER.$.DETAILS.relativePath} element={<UserDetails />} />
-    </Route>
+  {/* user/:id */}
+  <Route path={ROUTES.USER.relativePath} element={<User />}>
+    {/* details/:lang? */}
+    {/* $ effectively defines path pattern start. */}
+    <Route path={ROUTES.USER.$.DETAILS.relativePath} element={<UserDetails />} />
+  </Route>
 </Routes>;
 ```
 
@@ -137,27 +137,35 @@ import { ROUTES } from "./path/to/routes";
 
 // Absolute link
 <Link
-    // Params are squashed together, so they should all be unique.
-    // In rare cases where it's impossible, there is an escape hatch (see advanced examples).
-    // Path params: { id: number; lang?: string } -- optionality is governed by the path pattern.
-    // Search params: { infoVisible?: boolean } -- all params are optional.
-    // State fields: { fromUserList?: boolean } -- all fields are optional.
-    // Hash: "info" | "comments" | undefined
-    to={ROUTES.USER.DETAILS.$buildPath({ id: 1, lang: "en", infoVisible: false, $hash: "comments" })}
-    state={ROUTES.USER.DETAILS.$buildState({ fromUserList: true })}
+  // Params are squashed together, so they should all be unique.
+  // In rare cases where it's impossible, there is an escape hatch (see advanced examples).
+  // Path params: { id: number; lang?: string } -- optionality is governed by the path pattern.
+  // Search params: { infoVisible?: boolean } -- all params are optional.
+  // State fields: { fromUserList?: boolean } -- all fields are optional.
+  // Hash: "info" | "comments" | undefined
+  to={ROUTES.USER.DETAILS.$buildPath({
+    id: 1,
+    lang: "en",
+    infoVisible: false,
+    $hash: "comments",
+  })}
+  state={ROUTES.USER.DETAILS.$buildState({ fromUserList: true })}
 >
-    /user/1/details/en?infoVisible=false#comments
+  /user/1/details/en?infoVisible=false#comments
 </Link>;
 
 // Relative link
 <Link
-    // Path params: { lang?: string } -- optionality is governed by the path pattern.
-    // Other params remain the same.
-    // $ effectively defines path pattern start.
-    to={ROUTES.USER.$.DETAILS.$buildPath({ lang: "en", infoVisible: true, $hash: "info" }, { relative: true })}
-    state={ROUTES.USER.DETAILS.$buildState({ fromUserList: false })}
+  // Path params: { lang?: string } -- optionality is governed by the path pattern.
+  // Other params remain the same.
+  // $ effectively defines path pattern start.
+  to={ROUTES.USER.$.DETAILS.$buildPath(
+    { lang: "en", infoVisible: true, $hash: "info" },
+    { relative: true },
+  )}
+  state={ROUTES.USER.DETAILS.$buildState({ fromUserList: false })}
 >
-    details/en?infoVisible=true#info
+  details/en?infoVisible=true#info
 </Link>;
 ```
 
@@ -212,29 +220,38 @@ Define arrays:
 import { route, union, number } from "react-router-typesafe-routes/dom"; // Or /native
 
 const ROUTE = route("", {
-    searchParams: {
-        // Every built-in type can be used to create an array type.
-        // Arrays can only be used for search params and state fields.
-        // As expected, we can use '.default()' and '.defined()' for items.
-        // If items are '.defined()', an absent/invalid param will fail the whole array.
-        selectedIds: number().default(-1).array(),
-    },
+  searchParams: {
+    // Every built-in type can be used to create an array type.
+    // Arrays can only be used for search params and state fields.
+    // As expected, we can use '.default()' and '.defined()' for items.
+    // If items are '.defined()', an absent/invalid param will fail the whole array.
+    selectedIds: number().default(-1).array(),
+  },
 });
 ```
 
 Reuse types across routes:
 
 ```tsx
-import { route, fragment, number, useTypedParams, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
+import {
+  route,
+  fragment,
+  number,
+  useTypedParams,
+  useTypedSearchParams,
+} from "react-router-typesafe-routes/dom"; // Or /native
 
 // Fragments are essentially routes without pathname building API. There is no path pattern or children.
-const FRAGMENT = fragment({ params: { id: number() }, searchParams: { page: number() } });
+const FRAGMENT = fragment({
+  params: { id: number() },
+  searchParams: { page: number() },
+});
 
 // Note that types allow to compose a fragment that has additional pathname params.
 // In such cases, only params parsing is affected (i.e. additional params are simply ignored upon path building).
 const ROUTES = {
-    USER: route({ path: "user/:id", compose: [FRAGMENT] }),
-    POST: route({ path: "post/:id", compose: [FRAGMENT] }),
+  USER: route({ path: "user/:id", compose: [FRAGMENT] }),
+  POST: route({ path: "post/:id", compose: [FRAGMENT] }),
 };
 
 // We can build helpers that are reusable between routes:
@@ -250,27 +267,27 @@ import { route, string, number } from "react-router-typesafe-routes/dom"; // Or 
 // Note that we don't need to check that value is a number.
 // This is possible because number() helper has this check built-it.
 const integer = (value: number) => {
-    if (!Number.isInteger(value)) {
-        throw new Error(`Expected ${value} to be integer.`);
-    }
+  if (!Number.isInteger(value)) {
+    throw new Error(`Expected ${value} to be integer.`);
+  }
 
-    return value;
+  return value;
 };
 
 // We can construct validators however we want.
 const regExp = (regExp: RegExp) => (value: string) => {
-    if (value.match(regExp)?.[0] !== value) {
-        throw new Error(`"${value}" does not match ${String(regExp)}`);
-    }
+  if (value.match(regExp)?.[0] !== value) {
+    throw new Error(`"${value}" does not match ${String(regExp)}`);
+  }
 
-    return value;
+  return value;
 };
 
 const ROUTE = route(":id", {
-    // string() only accepts validators that return strings.
-    params: { id: string(regExp(/\d+/)) },
-    // number() only accepts validators that return numbers.
-    searchParams: { page: number(integer) },
+  // string() only accepts validators that return strings.
+  params: { id: string(regExp(/\d+/)) },
+  // number() only accepts validators that return numbers.
+  searchParams: { page: number(integer) },
 });
 ```
 
@@ -282,8 +299,8 @@ import { zod } from "react-router-typesafe-routes/zod";
 import { z } from "zod";
 
 const ROUTE = route(":id", {
-    // Wrapping quotes in serialized values are omitted where possible.
-    params: { id: zod(z.string().uuid()) },
+  // Wrapping quotes in serialized values are omitted where possible.
+  params: { id: zod(z.string().uuid()) },
 });
 ```
 
@@ -297,8 +314,8 @@ import { yup } from "react-router-typesafe-routes/yup";
 import { string } from "yup";
 
 const ROUTE = route(":id", {
-    // Wrapping quotes in serialized values are omitted where possible.
-    params: { id: yup(string().uuid()) },
+  // Wrapping quotes in serialized values are omitted where possible.
+  params: { id: yup(string().uuid()) },
 });
 ```
 
@@ -310,25 +327,25 @@ import { type, parser, UniversalType, ParserHint } from "react-router-typesafe-r
 import { v, Schema } from "third-party-library";
 
 function valid<T>(schema: Schema<T>): UniversalType<T> {
-    return type(
-        // We use library-specific validation logic.
-        (value: unknown) => schema.validate(value),
-        // We can optionally provide a parser.
-        // Built-in parser is used to remove wrapping quotes where possible.
-        // We could also supply a custom parser.
-        parser(getTypeHint(schema))
-    );
+  return type(
+    // We use library-specific validation logic.
+    (value: unknown) => schema.validate(value),
+    // We can optionally provide a parser.
+    // Built-in parser is used to remove wrapping quotes where possible.
+    // We could also supply a custom parser.
+    parser(getTypeHint(schema)),
+  );
 }
 
 function getTypeHint(schema: Schema): ParserHint {
-    // We determine if the schema type is assignable to 'string' or 'date'.
-    // If so, we return the corresponding hint, and 'unknown' otherwise.
-    // The type can also be optional, e.g. 'string | undefined' should use 'string' hint.
-    return schema.type;
+  // We determine if the schema type is assignable to 'string' or 'date'.
+  // If so, we return the corresponding hint, and 'unknown' otherwise.
+  // The type can also be optional, e.g. 'string | undefined' should use 'string' hint.
+  return schema.type;
 }
 
 const ROUTE = route(":id", {
-    params: { id: valid(v.string().uuid()) },
+  params: { id: valid(v.string().uuid()) },
 });
 ```
 
@@ -341,22 +358,22 @@ import { route, ParamType } from "react-router-typesafe-routes/dom"; // Or /nati
 // We only implement ParamType interface, so this type can only be used for path params.
 // For other params, we would need to implement SearchParamType and StateParamType.
 const looseString: ParamType<string, string | number | boolean> = {
-    getPlainParam(value) {
-        // It's always guaranteed that value is not 'undefined' here.
-        return String(value);
-    },
-    getTypedParam(value) {
-        // We could treat 'undefined' in a special way to distinguish absent and invalid params.
-        if (typeof value !== "string") {
-            throw new Error("Expected string");
-        }
+  getPlainParam(value) {
+    // It's always guaranteed that value is not 'undefined' here.
+    return String(value);
+  },
+  getTypedParam(value) {
+    // We could treat 'undefined' in a special way to distinguish absent and invalid params.
+    if (typeof value !== "string") {
+      throw new Error("Expected string");
+    }
 
-        return value;
-    },
+    return value;
+  },
 };
 
 const ROUTE = route(":id", {
-    params: { id: looseString },
+  params: { id: looseString },
 });
 ```
 
@@ -406,11 +423,11 @@ Routes structure _usually_ corresponds to the structure of `<Route />` component
 import { Route, Routes } from "react-router-dom"; // Or -native
 
 <Routes>
-    {/* '/user/:id' */}
-    <Route path={USER.path} element={<User />}>
-        {/* '/user/:id/details' */}
-        <Route path={USER.DETAILS.path} element={<UserDetails />} />
-    </Route>
+  {/* '/user/:id' */}
+  <Route path={USER.path} element={<User />}>
+    {/* '/user/:id/details' */}
+    <Route path={USER.DETAILS.path} element={<UserDetails />} />
+  </Route>
 </Routes>;
 ```
 
@@ -430,11 +447,11 @@ Relative paths can be used like this:
 import { Route, Routes } from "react-router-dom"; // Or -native
 
 <Routes>
-    {/* 'user/:id' */}
-    <Route path={USER.relativePath} element={<User />}>
-        {/* 'details' */}
-        <Route path={USER.$.DETAILS.relativePath} element={<UserDetails />} />
-    </Route>
+  {/* 'user/:id' */}
+  <Route path={USER.relativePath} element={<User />}>
+    {/* 'details' */}
+    <Route path={USER.$.DETAILS.relativePath} element={<UserDetails />} />
+  </Route>
 </Routes>;
 ```
 
@@ -453,14 +470,14 @@ import { route } from "react-router-typesafe-routes/dom"; // Or /native
 const USER = route("user/:id/*", {}, { DETAILS: route("details") });
 
 <Routes>
-    {/* '/user/:id/*' */}
-    <Route path={USER.path} element={<User />} />
+  {/* '/user/:id/*' */}
+  <Route path={USER.path} element={<User />} />
 </Routes>;
 
 // Somewhere inside <User />
 <Routes>
-    {/* '/details' */}
-    <Route path={USER.$.DETAILS.path} element={<UserDetails />} />
+  {/* '/details' */}
+  <Route path={USER.$.DETAILS.path} element={<UserDetails />} />
 </Routes>;
 ```
 
@@ -477,20 +494,20 @@ Path params, search params, and state fields serializing, parsing, validation, a
 ```typescript
 // Can be used for path params
 interface ParamType<TOut, TIn = TOut> {
-    getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
-    getTypedParam: (plainValue: string | undefined) => TOut;
+  getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
+  getTypedParam: (plainValue: string | undefined) => TOut;
 }
 
 // Can be used for search params
 interface SearchParamType<TOut, TIn = TOut> {
-    getPlainSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
-    getTypedSearchParam: (plainValue: string[]) => TOut;
+  getPlainSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
+  getTypedSearchParam: (plainValue: string[]) => TOut;
 }
 
 // Can be used for state fields
 interface StateParamType<TOut, TIn = TOut> {
-    getPlainStateParam: (originalValue: Exclude<TIn, undefined>) => unknown;
-    getTypedStateParam: (plainValue: unknown) => TOut;
+  getPlainStateParam: (originalValue: Exclude<TIn, undefined>) => unknown;
+  getTypedStateParam: (plainValue: unknown) => TOut;
 }
 ```
 
@@ -502,11 +519,11 @@ These interfaces allow to express pretty much anything, though normally you shou
 
 To make type objects construction and usage easier, we impose a set of reasonable restrictions / design choices:
 
--   `TIn` and `TOut` are the same, for all params.
--   Type objects for arrays are constructed based on helpers for individual values. Array params can never be parsed/validated into `undefined`.
--   By default, parsing/validation errors result in `undefined`. We can also opt in to returning a default value or throwing an error in case of an absent/invalid param.
--   State params are only validated and not transformed in any way.
--   Type objects for individual values can be used for any param. Type objects for arrays can only be used for search params and state fields.
+- `TIn` and `TOut` are the same, for all params.
+- Type objects for arrays are constructed based on helpers for individual values. Array params can never be parsed/validated into `undefined`.
+- By default, parsing/validation errors result in `undefined`. We can also opt in to returning a default value or throwing an error in case of an absent/invalid param.
+- State params are only validated and not transformed in any way.
+- Type objects for individual values can be used for any param. Type objects for arrays can only be used for search params and state fields.
 
 With this in mind, we can think about type objects in terms of parsers and validators.
 
@@ -516,10 +533,10 @@ Parser is simply a group of functions for transforming a value to `string` and b
 
 ```typescript
 interface Parser<T> {
-    stringify: (value: T) => string;
-    // There are edge cases when this value can be different from T.
-    // We always validate this value anyway.
-    parse: (value: string) => unknown;
+  stringify: (value: T) => string;
+  // There are edge cases when this value can be different from T.
+  // We always validate this value anyway.
+  parse: (value: string) => unknown;
 }
 ```
 
@@ -531,7 +548,7 @@ Validator is simply a function for validating values:
 
 ```typescript
 interface Validator<T, TPrev = unknown> {
-    (value: TPrev): T;
+  (value: TPrev): T;
 }
 ```
 
@@ -547,11 +564,11 @@ The `type()` helper is used for creating all kinds of type objects. The resultin
 import { type, parser, Validator } from "react-router-typesafe-routes/dom"; // Or /native
 
 const positiveNumber: Validator<number> = (value: unknown): number => {
-    if (typeof value !== "number" || value <= 0) {
-        throw new Error("Expected positive number");
-    }
+  if (typeof value !== "number" || value <= 0) {
+    throw new Error("Expected positive number");
+  }
 
-    return value;
+  return value;
 };
 
 // The following types are equivalent (we use JSON as a parser).
@@ -602,11 +619,11 @@ For instance:
 import { number, Validator } from "react-router-typesafe-routes/dom"; // Or /native
 
 const positive: Validator<number, number> = (value: number): number => {
-    if (value <= 0) {
-        throw new Error("Expected positive number");
-    }
+  if (value <= 0) {
+    throw new Error("Expected positive number");
+  }
 
-    return value;
+  return value;
 };
 
 number(positive);
@@ -618,8 +635,8 @@ You can use Zod and Yup out-of-box, and you should be able to integrate any thir
 
 Gotchas:
 
--   It doesn't matter if a validator can accept or return `undefined` or not - it will be normalized by `type()` anyway.
--   A validator can receive `undefined`, which means that it can define its own default value, for example.
+- It doesn't matter if a validator can accept or return `undefined` or not - it will be normalized by `type()` anyway.
+- A validator can receive `undefined`, which means that it can define its own default value, for example.
 
 #### Hash values
 
@@ -635,7 +652,9 @@ Just as usual segments, dynamic segments (path params) can be made optional by a
 import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
 
 // Here, id is overridden to be a number, and subId and optionalId are strings
-const ROUTE = route("route/:id/:subId/:optionalId?", { params: { id: number() } });
+const ROUTE = route("route/:id/:subId/:optionalId?", {
+  params: { id: number() },
+});
 ```
 
 Upon building, all path params except the optional ones are required. Star parameter (`*`) is always optional upon building.
@@ -681,7 +700,9 @@ import { route, hashValues } from "react-router-typesafe-routes/dom"; // Or /nat
 
 const ROUTE_NO_HASH = route("route");
 
-const ROUTE_DEFINED_HASH = route("route", { hash: hashValues("about", "more") });
+const ROUTE_DEFINED_HASH = route("route", {
+  hash: hashValues("about", "more"),
+});
 
 const ROUTE_ANY_HASH = route("route", { hash: hashValues() });
 ```
@@ -710,9 +731,9 @@ We can use nesting and put common types to a single common route:
 import { route, number, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
 
 const ROUTE = route(
-    "",
-    { searchParams: { page: number() } },
-    { USER: route("user"), POST: route("post"), ABOUT: route("about") }
+  "",
+  { searchParams: { page: number() } },
+  { USER: route("user"), POST: route("post"), ABOUT: route("about") },
 );
 
 // We can use this common ROUTE to get the page param anywhere:
@@ -721,24 +742,30 @@ const [{ page }] = useTypedSearchParams(ROUTE);
 
 However, this approach has the following drawbacks:
 
--   All routes will have all common params, even if they don't need them.
--   All common params are defined in one place, which may get cluttered.
--   We can't share path params this way, because they require the corresponding path pattern.
+- All routes will have all common params, even if they don't need them.
+- All common params are defined in one place, which may get cluttered.
+- We can't share path params this way, because they require the corresponding path pattern.
 
 To mitigate these issues, we can use type composition via the [`types()`](#types) helper:
 
 ```tsx
-import { route, types, number, string, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
+import {
+  route,
+  types,
+  number,
+  string,
+  useTypedSearchParams,
+} from "react-router-typesafe-routes/dom"; // Or /native
 
 const PAGINATION_FRAGMENT = route("", { searchParams: { page: number() } });
 
 const ROUTES = {
-    // This route uses pagination params and also has its own search params.
-    USER: route("user", types({ searchParams: { q: string() } })(PAGINATION_FRAGMENT)),
-    // This route only uses pagination params.
-    POST: route("post", types(PAGINATION_FRAGMENT)),
-    // This route doesn't use pagination params
-    ABOUT: route("about"),
+  // This route uses pagination params and also has its own search params.
+  USER: route("user", types({ searchParams: { q: string() } })(PAGINATION_FRAGMENT)),
+  // This route only uses pagination params.
+  POST: route("post", types(PAGINATION_FRAGMENT)),
+  // This route doesn't use pagination params
+  ABOUT: route("about"),
 };
 
 // We can use PAGINATION_FRAGMENT to get the page param anywhere:
@@ -759,24 +786,24 @@ A route is defined via the `route()` helper. It accepts required `path` and opti
 import { route, string, number, boolean, hashValues } from "react-router-typesafe-routes/dom"; // Or /native
 
 const ROUTE = route(
-    "my/path",
-    {
-        params: { pathParam: string() },
-        searchParams: { searchParam: number() },
-        state: { stateParam: boolean() },
-        hash: hashValues("value"),
-    },
-    { CHILD_ROUTE: route("child") }
+  "my/path",
+  {
+    params: { pathParam: string() },
+    searchParams: { searchParam: number() },
+    state: { stateParam: boolean() },
+    hash: hashValues("value"),
+  },
+  { CHILD_ROUTE: route("child") },
 );
 ```
 
 The `path` argument is a path pattern that you would put to the `path` property of a `<Route/>`, but without leading or trailing slashes (`/`). More specifically, it can:
 
--   be a simple segment or a group of segments (`'user'`, `'user/details'`).
--   have any number of dynamic segments (params) anywhere (`':id/user'`, `'user/:id/more'`).
--   **end** with a star segment (`'user/:id/*'`, `'*'`)
--   have any number of optional segments (`user?/:id?/*?`)
--   be an empty string (`''`).
+- be a simple segment or a group of segments (`'user'`, `'user/details'`).
+- have any number of dynamic segments (params) anywhere (`':id/user'`, `'user/:id/more'`).
+- **end** with a star segment (`'user/:id/*'`, `'*'`)
+- have any number of optional segments (`user?/:id?/*?`)
+- be an empty string (`''`).
 
 The `types` argument specifies type objects and hash values of the route. See [Typing](#typing).
 
@@ -784,17 +811,17 @@ The `children` argument specifies child routes of the route. See [Nesting](#nest
 
 The `route()` helper returns a route object, which has the following fields:
 
--   `path` and `relativePath`, where `path` contains a combined path pattern with a leading slash (`/`), and `relativePath` contains a combined path pattern **without intermediate stars (`*`)** and a leading slash (`/`). They can be passed to e.g. the `path` prop of React Router `<Route/>`.
-    > ❗ At the time of writing, patterns with optional segments [can't](https://github.com/remix-run/react-router/discussions/9862) be used in `matchPath`/`useMatch`.
--   `buildPath()` and `buildRelativePath()` for building parametrized URL paths (pathname + search + hash) which can be passed to e.g. the `to` prop of React Router `<Link />`.
--   `buildState()` for building typed states, which can be passed to e.g. the `state` prop of React Router `<Link />`.
--   `buildSearch()` and `buildHash()` for building parametrized URL parts. They can be used (in conjunction with `buildState()` and `buildPath()`/`buildRelativePath()`) to e.g. build a parametrized `Location` object.
--   `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
--   `getUntypedParams()`, `getUntypedSearchParams()`, and `getUntypedState()` for retrieving untyped params from React Router primitives. Typed params are omitted. Note that the hash is always typed.
--   `getPlainParams()` and `getPlainSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `buildHash()` and `buildState()` can be used instead.
--   `types`, which contains type objects and hash values of the route. Can be used for sharing types with other routes, though normally you should use the [`types()`](#types) helper instead.
--   `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
--   Any number of child routes starting with an uppercase letter.
+- `path` and `relativePath`, where `path` contains a combined path pattern with a leading slash (`/`), and `relativePath` contains a combined path pattern **without intermediate stars (`*`)** and a leading slash (`/`). They can be passed to e.g. the `path` prop of React Router `<Route/>`.
+  > ❗ At the time of writing, patterns with optional segments [can't](https://github.com/remix-run/react-router/discussions/9862) be used in `matchPath`/`useMatch`.
+- `buildPath()` and `buildRelativePath()` for building parametrized URL paths (pathname + search + hash) which can be passed to e.g. the `to` prop of React Router `<Link />`.
+- `buildState()` for building typed states, which can be passed to e.g. the `state` prop of React Router `<Link />`.
+- `buildSearch()` and `buildHash()` for building parametrized URL parts. They can be used (in conjunction with `buildState()` and `buildPath()`/`buildRelativePath()`) to e.g. build a parametrized `Location` object.
+- `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
+- `getUntypedParams()`, `getUntypedSearchParams()`, and `getUntypedState()` for retrieving untyped params from React Router primitives. Typed params are omitted. Note that the hash is always typed.
+- `getPlainParams()` and `getPlainSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `buildHash()` and `buildState()` can be used instead.
+- `types`, which contains type objects and hash values of the route. Can be used for sharing types with other routes, though normally you should use the [`types()`](#types) helper instead.
+- `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
+- Any number of child routes starting with an uppercase letter.
 
 ### `parser()`
 
@@ -802,9 +829,9 @@ The built-in parser is exposed as `parser()`. It should only be used for creatin
 
 It accepts the following type hints:
 
--   `'unknown'` - the value is processed by `JSON`. This is the default.
--   `'string'` - the value is not transformed in any way.
--   `'date'` - the value is transformed to an ISO string.
+- `'unknown'` - the value is processed by `JSON`. This is the default.
+- `'string'` - the value is not transformed in any way.
+- `'date'` - the value is transformed to an ISO string.
 
 ### `type()`
 
@@ -814,20 +841,20 @@ See [Typing: Type helpers](#type-helpers).
 
 There are built-in helpers for common types:
 
--   `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and type checks. Can accept validators that expect the corresponding types as an input.
--   `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values. Can accept a readonly array or individual values.
+- `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and type checks. Can accept validators that expect the corresponding types as an input.
+- `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values. Can accept a readonly array or individual values.
 
 There are also built-in helpers for third-party validation libraries:
 
--   `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
--   `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
+- `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
+- `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
 
 All of them use the built-in parser with auto-detected hint.
 
 All built-in helpers catch parsing and validation errors and replace them with `undefined`. This behavior can be altered with the following modifiers:
 
--   `.default()` - accepts a default value that is used instead of an absent/invalid param;
--   `.defined()` - specifies that an error is thrown in case of an absent/invalid param. For invalid params, the original error is used.
+- `.default()` - accepts a default value that is used instead of an absent/invalid param;
+- `.defined()` - specifies that an error is thrown in case of an absent/invalid param. For invalid params, the original error is used.
 
 ### `hashValues()`
 
