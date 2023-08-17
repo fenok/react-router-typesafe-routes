@@ -76,28 +76,28 @@ Define routes:
 ```tsx
 import { route, number, boolean, union } from "react-router-typesafe-routes/dom"; // Or /native
 
-const ROUTES = {
-  USER: route({
-    // This is a normal path (pathname) pattern, but without leading or trailing slashes.
-    // Pathname params are inferred from the pattern. By default, required params use the 'string().defined()' type.
-    // The .defined() modifier means that, upon parsing, an absent/invalid param will lead to an error.
+const routes = {
+  user: route({
+    // This is a regular path (pathname) pattern, but without leading or trailing slashes.
+    // Pathname params are inferred. By default, required params use 'string().defined()' type.
+    // '.defined()' means that an absent/invalid param will lead to an error upon parsing.
     path: "user/:id",
     // We can override some or all pathname params. Params existence is checked on a type level.
-    // Note that .defined() modifier is not required.
+    // Note that any modifier can be used here.
     params: { id: number().defined() },
-    // Here we define search params. By default, there are no search params.
-    // The '.default()' modifier allows to specify a value to use in case of an absent/invalid param.
+    // This is how to define search params.
+    // '.default()' allows to specify a value to use in case of an absent/invalid param.
     searchParams: { infoVisible: boolean().default(false) },
-    // Here we define state. By default, there is no state.
+    // This is how to define state.
     // Without modifiers, 'undefined' is returned in case of an absent/invalid param.
     state: { fromUserList: boolean() },
-    // Here we define hash. By default, there is no hash. To allow any hash, define it as 'string()'.
-    // Note that 'union()' is just another type, and all types can be used anywhere with different modifiers.
+    // This is how to define hash. To allow any hash, define it as 'string()'.
+    // 'union()' is just another type, and all types can be used anywhere with different modifiers.
     hash: union("info", "comments"),
     children: {
       // This is a child route, which inherits all parent params.
-      // By default, optional pathanme params use the 'string()' type.
-      DETAILS: route("details/:lang?"),
+      // By default, optional pathanme params use 'string()' type.
+      details: route("details/:lang?"),
     },
   }),
 };
@@ -107,24 +107,24 @@ Use `Route` components as usual:
 
 ```tsx
 import { Route, Routes } from "react-router-dom"; // Or -native
-import { ROUTES } from "./path/to/routes";
+import { routes } from "./path/to/routes";
 
 // Absolute paths
 <Routes>
   {/* /user/:id */}
-  <Route path={ROUTES.USER.path} element={<User />}>
+  <Route path={routes.user.$path} element={<User />}>
     {/* /user/:id/details/:lang? */}
-    <Route path={ROUTES.USER.DETAILS.path} element={<UserDetails />} />
+    <Route path={routes.user.details.$path} element={<UserDetails />} />
   </Route>
 </Routes>;
 
 // Relative paths
 <Routes>
   {/* user/:id */}
-  <Route path={ROUTES.USER.relativePath} element={<User />}>
+  <Route path={routes.user.$relativePath} element={<User />}>
     {/* details/:lang? */}
     {/* $ effectively defines path pattern start. */}
-    <Route path={ROUTES.USER.$.DETAILS.relativePath} element={<UserDetails />} />
+    <Route path={routes.user.$.details.$relativePath} element={<UserDetails />} />
   </Route>
 </Routes>;
 ```
@@ -133,37 +133,37 @@ Use `Link` components as usual:
 
 ```tsx
 import { Link } from "react-router-dom"; // Or -native
-import { ROUTES } from "./path/to/routes";
+import { routes } from "./path/to/routes";
 
 // Absolute link
 <Link
-  // Params are squashed together, so they should all be unique.
+  // Path params are squashed together, so they should all be unique.
   // In rare cases where it's impossible, there is an escape hatch (see advanced examples).
-  // Path params: { id: number; lang?: string } -- optionality is governed by the path pattern.
+  // Pathname params: { id: number; lang?: string } -- optionality is governed by the path pattern.
   // Search params: { infoVisible?: boolean } -- all params are optional.
   // State fields: { fromUserList?: boolean } -- all fields are optional.
   // Hash: "info" | "comments" | undefined
-  to={ROUTES.USER.DETAILS.$buildPath({
+  to={routes.user.details.$buildPath({
     id: 1,
     lang: "en",
     infoVisible: false,
     $hash: "comments",
   })}
-  state={ROUTES.USER.DETAILS.$buildState({ fromUserList: true })}
+  state={routes.user.details.$buildState({ fromUserList: true })}
 >
   /user/1/details/en?infoVisible=false#comments
 </Link>;
 
 // Relative link
 <Link
-  // Path params: { lang?: string } -- optionality is governed by the path pattern.
+  // Pathname params: { lang?: string } -- optionality is governed by the path pattern.
   // Other params remain the same.
   // $ effectively defines path pattern start.
-  to={ROUTES.USER.$.DETAILS.$buildPath(
+  to={routes.user.$.details.$buildPath(
     { lang: "en", infoVisible: true, $hash: "info" },
     { relative: true },
   )}
-  state={ROUTES.USER.DETAILS.$buildState({ fromUserList: false })}
+  state={routes.user.details.$buildState({ fromUserList: false })}
 >
   details/en?infoVisible=true#info
 </Link>;
@@ -173,43 +173,43 @@ Get typed path params with `useTypedParams()`:
 
 ```tsx
 import { useTypedParams } from "react-router-typesafe-routes/dom"; // Or /native
-import { ROUTES } from "./path/to/routes";
+import { routes } from "./path/to/routes";
 
 // The type here is { id: number; lang?: string }.
 // Note how id can't be undefined because we throw an error in case of an absent/invalid param.
-const { id, lang } = useTypedParams(ROUTES.USER.DETAILS);
+const { id, lang } = useTypedParams(routes.user.details);
 ```
 
 Get typed search params with `useTypedSearchParams()`:
 
 ```tsx
 import { useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
-import { ROUTES } from "./path/to/routes";
+import { routes } from "./path/to/routes";
 
 // The type here is { infoVisible: boolean }.
 // Note how infoVisible can't be undefined because we specified a default value.
-const [{ infoVisible }, setTypedSearchParams] = useTypedSearchParams(ROUTES.USER.DETAILS);
+const [{ infoVisible }, setTypedSearchParams] = useTypedSearchParams(routes.user.details);
 ```
 
 Get typed state with `useTypedState()`:
 
 ```tsx
 import { useTypedState } from "react-router-typesafe-routes/dom"; // Or /native
-import { ROUTES } from "./path/to/routes";
+import { routes } from "./path/to/routes";
 
 // The type here is { fromUserList: boolean | undefined }.
 // Note how fromUserList can be undefined, which means that it's absent or invalid.
-const { fromUserList } = useTypedState(ROUTES.USER.DETAILS);
+const { fromUserList } = useTypedState(routes.user.details);
 ```
 
 Get typed hash with `useTypedHash()`:
 
 ```tsx
 import { useTypedHash } from "react-router-typesafe-routes/dom"; // Or /native
-import { ROUTES } from "./path/to/routes";
+import { routes } from "./path/to/routes";
 
 // The type here is "info" | "comments" | undefined.
-const hash = useTypedHash(ROUTES.USER.DETAILS);
+const hash = useTypedHash(routes.user.details);
 ```
 
 ## Advanced examples
@@ -219,13 +219,14 @@ Define arrays:
 ```tsx
 import { route, union, number } from "react-router-typesafe-routes/dom"; // Or /native
 
-const ROUTE = route("", {
+const myRoute = route({
   searchParams: {
-    // Every built-in type can be used to create an array type.
-    // Arrays can only be used for search params and state fields.
-    // As expected, we can use '.default()' and '.defined()' for items.
+    // Every built-in type can be made an array. Arrays can only be used in search and state.
+    // Upon parsing, undefined values are omitted from the resulting array.
+    selectedIds: number().array(),
+    // In niche cases we might want to use '.default()' or '.defined()' for items.
     // If items are '.defined()', an absent/invalid param will fail the whole array.
-    selectedIds: number().default(-1).array(),
+    selectedItems: number().default(-1).array(),
   },
 });
 ```
@@ -237,27 +238,85 @@ import {
   route,
   fragment,
   number,
+  string,
   useTypedParams,
   useTypedSearchParams,
 } from "react-router-typesafe-routes/dom"; // Or /native
 
-// Fragments are essentially routes without pathname building API. There is no path pattern or children.
-const FRAGMENT = fragment({
-  params: { id: number() },
-  searchParams: { page: number() },
-});
-
-// Note that types allow to compose a fragment that has additional pathname params.
-// In such cases, only params parsing is affected (i.e. additional params are simply ignored upon path building).
-const ROUTES = {
-  USER: route({ path: "user/:id", compose: [FRAGMENT] }),
-  POST: route({ path: "post/:id", compose: [FRAGMENT] }),
+// Fragments allow to compose types to multiple routes.
+// There is no path pattern or children, they are essentially routes without pathname building API.
+const fragments = {
+  id: fragment({
+    params: { id: number() },
+  }),
+  query: fragment({
+    searchParams: { query: string() },
+  }),
 };
 
+// Since children inherit parent types, we can create a root route with types common for all routes.
+const root = route({
+  searchParams: { lang: string() },
+  children: {
+    // If a fragment has additional pathname params, path building will still work correctly.
+    user: route({ path: "user/:id", compose: [fragments.id, fragments.query] }),
+    post: route({ path: "post/:id", compose: [fragments.id] }),
+    about: route({ path: "about" }),
+  },
+});
+
 // We can build helpers that are reusable between routes:
-const { id } = useTypedParams(FRAGMENT);
-const [{ page }] = useTypedSearchParams(FRAGMENT);
+const { id } = useTypedParams(fragments.id);
+const [{ query }] = useTypedSearchParams(fragments.query);
+const [{ lang }] = useTypedSearchParams(root);
 ```
+
+Inherit hash values:
+
+```tsx
+import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
+
+// Child types for params with the same name take precedence. Since hash, unlike other route parts,
+// is a param itself, it can't normally inherit parent types. To solve this, there is a
+// hash-specific way of specifying values as an array of strings instead of a type.
+const myRoute = route({
+  path: "user",
+  // This route hash is just "info"
+  hash: ["info"],
+  children: {
+    details: route({
+      path: "details",
+      // This route hash is "info" | "address"
+      hash: ["address"],
+      children: {
+        misc: route({
+          path: "misc",
+          // This route hash is simply string. Hash arrays in its children will be ignored, and
+          // types should be used with caution, because they will override the parent one.
+          // Generally, every route chain should only have one type for hash which is terminating.
+          hash: string(),
+        }),
+      },
+    }),
+  },
+});
+```
+
+Type non-object states:
+
+```tsx
+import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
+
+// State can be typed as a whole, in which case it becomes a single param like hash.
+// Similar to hash, child routes can't type separate state fields, and types for the whole state
+// will override the parent one.
+const myRoute = route({
+  path: "user",
+  state: string(),
+});
+```
+
+> ❗If you're building from scratch, it's almost certainly a bad idea to use this API. However, it might come in handy if you're typing an existing system where it's not easy to get rid of non-object states.
 
 Add custom validation:
 
