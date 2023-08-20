@@ -54,11 +54,11 @@ interface PathnameBuilderOptions {
 }
 
 interface SearchBuilderOptions {
-  preserveUntyped?: URLSearchParams;
+  preserveUntypedSearch?: URLSearchParams;
 }
 
 interface StateBuilderOptions {
-  preserveUntyped?: unknown;
+  preserveUntypedState?: unknown;
 }
 
 type PlainState<TStateTypes extends StateTypesConstraint> = TStateTypes extends StateTypesObjectConstraint
@@ -555,8 +555,8 @@ function getRouteFragment<TTypes extends Types>(
   function getPlainSearchParams(params: InSearchParams<TTypes["searchParams"]>, opts?: SearchBuilderOptions) {
     const plainParams = creatorOptions.createSearchParams(getPlainSearchParamsByTypes(params, types.searchParams));
 
-    if (opts?.preserveUntyped) {
-      appendSearchParams(plainParams, getUntypedSearchParams(opts?.preserveUntyped));
+    if (opts?.preserveUntypedSearch) {
+      appendSearchParams(plainParams, getUntypedSearchParams(opts?.preserveUntypedSearch));
     }
 
     return plainParams;
@@ -579,7 +579,7 @@ function getRouteFragment<TTypes extends Types>(
     return (
       isStateType(types.state)
         ? getPlainStateByType(params, types.state)
-        : Object.assign(getPlainStateParamsByTypes(params, types.state), getUntypedState(opts?.preserveUntyped))
+        : Object.assign(getPlainStateParamsByTypes(params, types.state), getUntypedState(opts?.preserveUntypedState))
     ) as PlainState<TTypes["state"]>;
   }
 
