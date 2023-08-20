@@ -24,7 +24,7 @@ type DecoratedChildren<TPath extends string, TTypes extends Types, TChildren> = 
 type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, any, any>> = {
   $path: `/${SanitizedPath<TPath>}`;
   $relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
-  $buildPath: (params: InPathParams<TPath, TTypes>, opts?: PathBuilderOptions) => string;
+  $buildPath: (opts: PathBuilderOptions<TPath, TTypes>) => string;
   $buildPathname: (params: InPathnameParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
   $getPlainParams: (params: InPathnameParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
 } & RouteFragment<TTypes>;
@@ -47,7 +47,9 @@ type RouteFragment<TTypes extends Types = Types<any, any, any>> = {
   $types: TTypes;
 };
 
-interface PathBuilderOptions extends PathnameBuilderOptions, SearchBuilderOptions {}
+type PathBuilderOptions<TPath extends string, TTypes extends Types> = Readable<
+  InPathParams<TPath, TTypes> & PathnameBuilderOptions & SearchBuilderOptions
+>;
 
 interface PathnameBuilderOptions {
   relative?: boolean;
@@ -528,10 +530,10 @@ function getRoute<TPath extends string, TTypes extends Types>(
     return `${opts?.relative ? "" : "/"}${relativePathname}`;
   }
 
-  function buildPath(params: InPathParams<TPath, TTypes>, opts?: PathBuilderOptions) {
-    const pathnameParams = params.params ?? ({} as InPathnameParams<TPath, TTypes["params"]>);
-    const searchParams = params.searchParams ?? ({} as InSearchParams<TTypes["searchParams"]>);
-    const hash = params.hash;
+  function buildPath(opts: PathBuilderOptions<TPath, TTypes>) {
+    const pathnameParams = opts.params ?? ({} as InPathnameParams<TPath, TTypes["params"]>);
+    const searchParams = opts.searchParams ?? ({} as InSearchParams<TTypes["searchParams"]>);
+    const hash = opts.hash;
 
     return `${buildPathname(pathnameParams, opts)}${routeFragment.$buildSearch(searchParams, opts)}${
       hash !== undefined ? routeFragment.$buildHash(hash) : ""
