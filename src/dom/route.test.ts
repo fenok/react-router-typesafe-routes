@@ -2063,8 +2063,8 @@ it("generates correct paths when the first segment is optional", () => {
   expect(TEST_ROUTE.$buildPath({ params: { required: "req" } })).toStrictEqual("/req");
   expect(TEST_ROUTE.$buildPath({ params: { optional: "opt", required: "req" } })).toStrictEqual("/opt/req");
 
-  expect(TEST_ROUTE.$buildPath({ params: { required: "req" } }, { relative: true })).toStrictEqual("req");
-  expect(TEST_ROUTE.$buildPath({ params: { optional: "opt", required: "req" } }, { relative: true })).toStrictEqual(
+  expect(TEST_ROUTE.$buildPath({ params: { required: "req" }, relative: true })).toStrictEqual("req");
+  expect(TEST_ROUTE.$buildPath({ params: { optional: "opt", required: "req" }, relative: true })).toStrictEqual(
     "opt/req",
   );
 });
@@ -2209,9 +2209,9 @@ it("allows to preserve untyped search params on path/query building", () => {
 
   const testSearchParams = createSearchParams({ typed: "1", typedUnused: "true", untyped: "foo" });
 
-  expect(
-    TEST_ROUTE.$buildPath({ searchParams: { typed: 42 } }, { preserveUntypedSearch: testSearchParams }),
-  ).toStrictEqual("/test?typed=42&untyped=foo");
+  expect(TEST_ROUTE.$buildPath({ searchParams: { typed: 42 }, preserveUntypedSearch: testSearchParams })).toStrictEqual(
+    "/test?typed=42&untyped=foo",
+  );
 
   expect(TEST_ROUTE.$buildSearch({ typed: 42 }, { preserveUntypedSearch: testSearchParams })).toStrictEqual(
     "?typed=42&untyped=foo",
