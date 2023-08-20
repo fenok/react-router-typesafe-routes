@@ -2209,11 +2209,11 @@ it("allows to preserve untyped search params on path/query building", () => {
 
   const testSearchParams = createSearchParams({ typed: "1", typedUnused: "true", untyped: "foo" });
 
-  expect(TEST_ROUTE.$buildPath({ searchParams: { typed: 42 } }, { preserveUntyped: testSearchParams })).toStrictEqual(
-    "/test?typed=42&untyped=foo",
-  );
+  expect(
+    TEST_ROUTE.$buildPath({ searchParams: { typed: 42 } }, { preserveUntypedSearch: testSearchParams }),
+  ).toStrictEqual("/test?typed=42&untyped=foo");
 
-  expect(TEST_ROUTE.$buildSearch({ typed: 42 }, { preserveUntyped: testSearchParams })).toStrictEqual(
+  expect(TEST_ROUTE.$buildSearch({ typed: 42 }, { preserveUntypedSearch: testSearchParams })).toStrictEqual(
     "?typed=42&untyped=foo",
   );
 });
@@ -2223,7 +2223,7 @@ it("allows to preserve untyped state on state building", () => {
 
   const testState = { typed: "1", typedUnused: "true", untyped: "foo" };
 
-  expect(TEST_ROUTE.$buildState({ typed: 42 }, { preserveUntyped: testState })).toStrictEqual({
+  expect(TEST_ROUTE.$buildState({ typed: 42 }, { preserveUntypedState: testState })).toStrictEqual({
     typed: 42,
     untyped: "foo",
   });
@@ -2234,7 +2234,7 @@ it("ignores preserveUntyped option when state is typed as a whole", () => {
 
   const testState = { untyped: "foo" };
 
-  expect(TEST_ROUTE.$buildState(42, { preserveUntyped: testState })).toStrictEqual(42);
+  expect(TEST_ROUTE.$buildState(42, { preserveUntypedState: testState })).toStrictEqual(42);
 });
 
 it("ties pathname params to path pattern", () => {
