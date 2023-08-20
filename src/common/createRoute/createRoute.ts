@@ -69,9 +69,15 @@ type UntypedPlainState<TStateTypes extends StateTypesConstraint> = TStateTypes e
   ? Record<string, unknown>
   : undefined;
 
+type PathnameParamsRequired<T> = Partial<T> extends T ? (IsAny<T> extends true ? true : false) : true;
+
 type InPathParams<TPath extends string, TTypes extends Types> = Readable<
-  InPathnameParams<TPath, TTypes["params"]> &
-    InSearchParams<TTypes["searchParams"]> & { $hash?: InHash<TTypes["hash"]> }
+  (PathnameParamsRequired<InPathnameParams<TPath, TTypes["params"]>> extends true
+    ? { params: InPathnameParams<TPath, TTypes["params"]> }
+    : { params?: InPathnameParams<TPath, TTypes["params"]> }) & {
+    searchParams?: InSearchParams<TTypes["searchParams"]>;
+    hash?: InHash<TTypes["hash"]>;
+  }
 >;
 
 type InPathnameParams<
@@ -523,10 +529,13 @@ function getRoute<TPath extends string, TTypes extends Types>(
   }
 
   function buildPath(params: InPathParams<TPath, TTypes>, opts?: PathBuilderOptions) {
-    return `${buildPathname(params as InPathnameParams<TPath, TTypes["params"]>, opts)}${routeFragment.$buildSearch(
-      params,
-      opts,
-    )}${params.$hash !== undefined ? routeFragment.$buildHash(params.$hash as InHash<TTypes["hash"]>) : ""}`;
+    const pathnameParams = params.params ?? ({} as InPathnameParams<TPath, TTypes["params"]>);
+    const searchParams = params.searchParams ?? ({} as InSearchParams<TTypes["searchParams"]>);
+    const hash = params.hash;
+
+    return `${buildPathname(pathnameParams, opts)}${routeFragment.$buildSearch(searchParams, opts)}${
+      hash !== undefined ? routeFragment.$buildHash(hash) : ""
+    }`;
   }
 
   return {

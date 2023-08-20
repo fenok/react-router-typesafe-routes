@@ -643,7 +643,7 @@ it("allows search params", () => {
 
   expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
   expect(TEST_ROUTE.CHILD.$buildPath({})).toStrictEqual("/test/child");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ foo: 1 })).toStrictEqual("/test/child/grand?foo=1");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ searchParams: { foo: 1 } })).toStrictEqual("/test/child/grand?foo=1");
 });
 
 it("allows to mix search params across multiple routes", () => {
@@ -668,8 +668,8 @@ it("allows to mix search params across multiple routes", () => {
   );
 
   expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.$buildPath({ bar: [1, 2] })).toStrictEqual("/test/child?bar=1&bar=2");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ foo: 1, bar: [1, 2] })).toStrictEqual(
+  expect(TEST_ROUTE.CHILD.$buildPath({ searchParams: { bar: [1, 2] } })).toStrictEqual("/test/child?bar=1&bar=2");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ searchParams: { foo: 1, bar: [1, 2] } })).toStrictEqual(
     "/test/child/grand?foo=1&bar=1&bar=2",
   );
 });
@@ -694,8 +694,8 @@ it("prioritizes children when mixing search params with the same name", () => {
   assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildSearch>[0], { foo?: number }>>(true);
 
   expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.$buildPath({ foo: [1, 2] })).toStrictEqual("/test/child?foo=1&foo=2");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ foo: 1 })).toStrictEqual("/test/child/grand?foo=1");
+  expect(TEST_ROUTE.CHILD.$buildPath({ searchParams: { foo: [1, 2] } })).toStrictEqual("/test/child?foo=1&foo=2");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ searchParams: { foo: 1 } })).toStrictEqual("/test/child/grand?foo=1");
 });
 
 it("allows implicit hash params", () => {
@@ -718,7 +718,7 @@ it("allows implicit hash params", () => {
 
   expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
   expect(TEST_ROUTE.CHILD.$buildPath({})).toStrictEqual("/test/child");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ $hash: "my-id" })).toStrictEqual("/test/child/grand#my-id");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "my-id" })).toStrictEqual("/test/child/grand#my-id");
 });
 
 it("allows explicit hash params", () => {
@@ -741,7 +741,7 @@ it("allows explicit hash params", () => {
 
   expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
   expect(TEST_ROUTE.CHILD.$buildPath({})).toStrictEqual("/test/child");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ $hash: "foo" })).toStrictEqual("/test/child/grand#foo");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "foo" })).toStrictEqual("/test/child/grand#foo");
 });
 
 it("allows mixing explicit hash params across multiple routes", () => {
@@ -764,8 +764,8 @@ it("allows mixing explicit hash params across multiple routes", () => {
   assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildHash>[0], "baz" | "foo" | "bar">>(true);
 
   expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.$buildPath({ $hash: "baz" })).toStrictEqual("/test/child#baz");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ $hash: "baz" })).toStrictEqual("/test/child/grand#baz");
+  expect(TEST_ROUTE.CHILD.$buildPath({ hash: "baz" })).toStrictEqual("/test/child#baz");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "baz" })).toStrictEqual("/test/child/grand#baz");
 });
 
 it("allows mixing explicit and implicit hash params across multiple routes", () => {
@@ -788,8 +788,8 @@ it("allows mixing explicit and implicit hash params across multiple routes", () 
   assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildHash>[0], string>>(true);
 
   expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.$buildPath({ $hash: "baz" })).toStrictEqual("/test/child#baz");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ $hash: "anything" })).toStrictEqual("/test/child/grand#anything");
+  expect(TEST_ROUTE.CHILD.$buildPath({ hash: "baz" })).toStrictEqual("/test/child#baz");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "anything" })).toStrictEqual("/test/child/grand#anything");
 });
 
 it("allows state params", () => {
@@ -1449,9 +1449,9 @@ it("allows types composition", () => {
 
   assert<IsExact<Parameters<typeof ROUTE.$buildState>[0], { fromList?: boolean; hidden?: boolean }>>(true);
 
-  expect(ROUTE.$buildPath({ id: 1, subId: 2, page: true, ordered: true, $hash: "info" })).toStrictEqual(
-    "/1/2?page=true&ordered=true#info",
-  );
+  expect(
+    ROUTE.$buildPath({ params: { id: 1, subId: 2 }, searchParams: { page: true, ordered: true }, hash: "info" }),
+  ).toStrictEqual("/1/2?page=true&ordered=true#info");
 
   expect(ROUTE.$buildState({ fromList: true, hidden: true })).toStrictEqual({ fromList: true, hidden: true });
 });
@@ -1532,16 +1532,16 @@ it("allows to inherit non-path params in trimmed children", () => {
     true,
   );
 
-  expect(TEST_ROUTE.$buildPath({ foo: 1, $hash: "hashFoo" })).toStrictEqual("/test?foo=1#hashFoo");
-  expect(TEST_ROUTE.$.CHILD.$buildPath({ foo: 1, bar: "test", $hash: "hashBar" })).toStrictEqual(
+  expect(TEST_ROUTE.$buildPath({ searchParams: { foo: 1 }, hash: "hashFoo" })).toStrictEqual("/test?foo=1#hashFoo");
+  expect(TEST_ROUTE.$.CHILD.$buildPath({ searchParams: { foo: 1, bar: "test" }, hash: "hashBar" })).toStrictEqual(
     "/child?foo=1&bar=test#hashBar",
   );
-  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPath({ foo: 1, bar: "test", baz: false, $hash: "hashBaz" })).toStrictEqual(
-    "/grand?foo=1&bar=test&baz=false#hashBaz",
-  );
-  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPath({ foo: 1, bar: "test", baz: false, $hash: "hashBaz" })).toStrictEqual(
-    "/child/grand?foo=1&bar=test&baz=false#hashBaz",
-  );
+  expect(
+    TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPath({ searchParams: { foo: 1, bar: "test", baz: false }, hash: "hashBaz" }),
+  ).toStrictEqual("/grand?foo=1&bar=test&baz=false#hashBaz");
+  expect(
+    TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPath({ searchParams: { foo: 1, bar: "test", baz: false }, hash: "hashBaz" }),
+  ).toStrictEqual("/child/grand?foo=1&bar=test&baz=false#hashBaz");
 
   const testSearchParams = createSearchParams({ foo: "1", bar: "test", baz: "false" });
 
@@ -1581,10 +1581,12 @@ it("prevents path param inheritance in trimmed children", () => {
     true,
   );
 
-  expect(TEST_ROUTE.$buildPath({ id: 1 })).toStrictEqual("/test/1");
-  expect(TEST_ROUTE.$.CHILD.$buildPath({ subId: true })).toStrictEqual("/child/true");
-  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPath({ id: "test" })).toStrictEqual("/grand/test");
-  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPath({ subId: true, id: "test" })).toStrictEqual("/child/true/grand/test");
+  expect(TEST_ROUTE.$buildPath({ params: { id: 1 } })).toStrictEqual("/test/1");
+  expect(TEST_ROUTE.$.CHILD.$buildPath({ params: { subId: true } })).toStrictEqual("/child/true");
+  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPath({ params: { id: "test" } })).toStrictEqual("/grand/test");
+  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPath({ params: { subId: true, id: "test" } })).toStrictEqual(
+    "/child/true/grand/test",
+  );
 
   expect(TEST_ROUTE.$getTypedParams({ id: "1", subId: "true" })).toStrictEqual({ id: 1 });
   expect(TEST_ROUTE.$.CHILD.$getTypedParams({ id: "1", subId: "true" })).toStrictEqual({ subId: true });
@@ -2058,11 +2060,13 @@ it("generates correct paths when the first segment is optional", () => {
     path: ":optional?/:required",
   });
 
-  expect(TEST_ROUTE.$buildPath({ required: "req" })).toStrictEqual("/req");
-  expect(TEST_ROUTE.$buildPath({ optional: "opt", required: "req" })).toStrictEqual("/opt/req");
+  expect(TEST_ROUTE.$buildPath({ params: { required: "req" } })).toStrictEqual("/req");
+  expect(TEST_ROUTE.$buildPath({ params: { optional: "opt", required: "req" } })).toStrictEqual("/opt/req");
 
-  expect(TEST_ROUTE.$buildPath({ required: "req" }, { relative: true })).toStrictEqual("req");
-  expect(TEST_ROUTE.$buildPath({ optional: "opt", required: "req" }, { relative: true })).toStrictEqual("opt/req");
+  expect(TEST_ROUTE.$buildPath({ params: { required: "req" } }, { relative: true })).toStrictEqual("req");
+  expect(TEST_ROUTE.$buildPath({ params: { optional: "opt", required: "req" } }, { relative: true })).toStrictEqual(
+    "opt/req",
+  );
 });
 
 it("provides a base type that any route is assignable to", () => {
@@ -2205,7 +2209,7 @@ it("allows to preserve untyped search params on path/query building", () => {
 
   const testSearchParams = createSearchParams({ typed: "1", typedUnused: "true", untyped: "foo" });
 
-  expect(TEST_ROUTE.$buildPath({ typed: 42 }, { preserveUntyped: testSearchParams })).toStrictEqual(
+  expect(TEST_ROUTE.$buildPath({ searchParams: { typed: 42 } }, { preserveUntyped: testSearchParams })).toStrictEqual(
     "/test?typed=42&untyped=foo",
   );
 

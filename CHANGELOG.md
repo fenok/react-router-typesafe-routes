@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Pathname params will now be parsed solely basing on the provided types, which makes fragments for pathname params possible. Path (pathname) building is unaffected.
 - **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
 - **Breaking**: Path and state generation API is changed.
-  - `$buildPath` (formerly `buildPath`) now accepts all params as a single argument (hash uses a `$hash` param).
+  - `$buildPath` (formerly `buildPath`) now accepts all params as a single argument.
   - `buildRelativePath` is removed, and instead `$buildPath` now accepts a second argument with options, one of which is `relative`.
   - If you have params with the same name between pathname, search, and hash, which you can't refactor away, you can build a React Router `Path` object instead, using `$buildSearch`, `$buildHash`, and newly added `$buildPathname`, which also can be made `relative`.
   - `$buildPath`/`$buildSearch`/`$getPlainSearchParams` and `$buildState` now accept a `preserveUntyped` option in the second argument, which is a `URLSearchParams` instance and a state respectively. When provided, the corresponding untyped parts will be added to the resulting path (the search part) or state.
