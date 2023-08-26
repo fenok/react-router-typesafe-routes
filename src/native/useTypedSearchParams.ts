@@ -4,7 +4,7 @@ import { useMemo, useCallback } from "react";
 
 interface TypedNavigateOptions<T> extends NavigateOptions {
   state?: T;
-  preserveUntypedSearch?: boolean;
+  untypedSearchParams?: boolean;
 }
 
 function useTypedSearchParams<TTypesMap extends Types>(
@@ -33,13 +33,13 @@ function useTypedSearchParams<TTypesMap extends Types>(
       params:
         | InSearchParams<TTypesMap["searchParams"]>
         | ((prevParams: OutSearchParams<TTypesMap["searchParams"]>) => InSearchParams<TTypesMap["searchParams"]>),
-      { state, preserveUntypedSearch, ...restNavigateOptions }: TypedNavigateOptions<InState<TTypesMap["state"]>> = {},
+      { state, untypedSearchParams, ...restNavigateOptions }: TypedNavigateOptions<InState<TTypesMap["state"]>> = {},
     ) => {
       setSearchParams(
         (prevParams) => {
           return route.$getPlainSearchParams(
             typeof params === "function" ? params(route.$getTypedSearchParams(prevParams)) : params,
-            { preserveUntypedSearch: preserveUntypedSearch ? prevParams : undefined },
+            { untypedSearchParams: untypedSearchParams ? prevParams : undefined },
           );
         },
         {

@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `$buildPath` (formerly `buildPath`) now accepts all params as a single argument.
   - `buildRelativePath` is removed, and instead `$buildPath` now accepts a second argument with options, one of which is `relative`.
   - If you have params with the same name between pathname, search, and hash, which you can't refactor away, you can build a React Router `Path` object instead, using `$buildSearch`, `$buildHash`, and newly added `$buildPathname`, which also can be made `relative`.
-  - `$buildPath`/`$buildSearch`/`$getPlainSearchParams` and `$buildState` now accept `preserveUntypedSearch` and `preserveUntypedState` options respectively in the second argument. When provided, the corresponding untyped parts will be added to the resulting path (the search part) or state. The corresponding option in `useTypedSearchParams` is also renamed.
+  - `$buildPath`/`$buildSearch`/`$getPlainSearchParams` and `$buildState` now accept `untypedSearchParams` and `untypedState` options respectively in the second argument. When provided, the corresponding untyped parts will be added to the resulting path (the search part) or state. The corresponding option in `useTypedSearchParams` is also renamed.
   - `$getPlainSearchParams` (formerly `getPlainSearchParams`) now returns a `URLSearchParams` instance for consistency with the rest of the API.
 - **Breaking**: `route` API is changed. It now accepts only a single argument with optional types, path, composed routes and children. By default, path is empty string.
 - **Breaking**: Hash should now be specified as an array of strings or a type. Empty array now means "nothing" instead of "any string". For example:
