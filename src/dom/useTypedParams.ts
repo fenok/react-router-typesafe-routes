@@ -1,9 +1,9 @@
-import { RouteFragment, Types, OutPathnameParams } from "../common/index.js";
+import { BaseRoute, Types, OutPathnameParams } from "../common/index.js";
 import { useParams } from "react-router-dom";
 import { useMemo } from "react";
 
 export function useTypedParams<TTypesMap extends Types>(
-  route: RouteFragment<TTypesMap>,
+  route: BaseRoute<string | undefined, TTypesMap>,
 ): OutPathnameParams<TTypesMap["params"]> {
   const params = useParams();
   return useMemo(() => route.$getTypedParams(params), [route, params]);
