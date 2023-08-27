@@ -2092,13 +2092,17 @@ it("provides a base type that any route is assignable to", () => {
     path: "",
   });
 
+  const PATHLESS_ROUTE = route({});
+
   const test1: BaseRoute = TEST_ROUTE;
   const test2: BaseRoute = TEST_ROUTE.CHILD;
   const test3: BaseRoute = EMPTY_ROUTE;
+  const test4: BaseRoute = PATHLESS_ROUTE;
 
   expect(test1).toBeTruthy();
   expect(test2).toBeTruthy();
   expect(test3).toBeTruthy();
+  expect(test4).toBeTruthy();
 });
 
 it("checks that leading and trailing slashes are forbidden", () => {
@@ -2254,6 +2258,18 @@ it("ties pathname params to path pattern", () => {
   expect(route({ path: ":id/:test", params: { id: undefined } })).toBeTruthy();
   // @ts-expect-error Undefined is forbidden
   expect(route({ params: { something: undefined } })).toBeTruthy();
+});
+
+it("allows pathless routes", () => {
+  const grandchild = route({ path: "grandchild" });
+  const child = route({ children: { grandchild } });
+  const testRoute = route({ path: "test", children: { child } });
+
+  expect(child.$path).toBe(undefined);
+  expect(testRoute.$.child.$path).toBe(undefined);
+  expect(testRoute.child.$path).toBe("/test");
+  expect(testRoute.child.grandchild.$path).toBe("/test/grandchild");
+  expect(testRoute.$.child.grandchild.$path).toBe("/grandchild");
 });
 
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {
