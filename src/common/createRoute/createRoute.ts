@@ -25,16 +25,13 @@ type DecoratedChildren<TPath extends PathConstraint, TTypes extends Types, TChil
     : TChildren[TKey];
 };
 
-type BaseRoute<TPath extends PathConstraint = PathConstraint, TTypes extends Types = Types<any, any, any>> = {
+interface BaseRoute<TPath extends PathConstraint = PathConstraint, TTypes extends Types = Types<any, any, any>> {
   $path: AbsolutePath<SanitizedPath<TPath>>;
   $relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
   $_path: SanitizedPath<TPath>;
   $buildPath: (opts: PathBuilderOptions<TPath, TTypes>) => string;
   $buildPathname: (params: InPathnameParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
   $getPlainParams: (params: InPathnameParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
-} & RouteFragment<TTypes>;
-
-type RouteFragment<TTypes extends Types = Types<any, any, any>> = {
   $getTypedParams: (params: Record<string, string | undefined>) => OutPathnameParams<TTypes["params"]>;
   $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TTypes["searchParams"]>;
   $getTypedHash: (hash: string) => OutHash<TTypes["hash"]>;
@@ -50,7 +47,7 @@ type RouteFragment<TTypes extends Types = Types<any, any, any>> = {
   $buildHash: (hash: InHash<TTypes["hash"]>) => string;
   $buildState: (state: InState<TTypes["state"]>, opts?: StateBuilderOptions) => PlainState<TTypes["state"]>;
   $types: TTypes;
-};
+}
 
 type StringPath<T extends PathConstraint> = T extends undefined ? "" : T;
 
@@ -188,7 +185,8 @@ type AbsolutePath<T extends PathConstraint> = T extends string ? `/${T}` : T;
 
 type SanitizedChildren<T> = {
   [TKey in keyof T]: TKey extends Omit$<TKey>
-    ? T[TKey] extends BaseRoute
+    ? // Without explicit inferring, path in nested inlined routes is 'string' for some reason
+      T[TKey] extends BaseRoute<infer T1, infer T2>
       ? T[TKey]
       : BaseRoute
     : ErrorMessage<"Name can't start with $">;
@@ -257,7 +255,7 @@ interface Types<
   hash: THash;
 }
 
-type ExtractTypes<Tuple extends [...RouteFragment[]]> = {
+type ExtractTypes<Tuple extends [...BaseRoute[]]> = {
   [Index in keyof Tuple]: Tuple[Index]["$types"];
 };
 
@@ -370,7 +368,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     TStateTypes extends StateTypesConstraint = {},
     THashString extends string = string,
     THash extends HashTypesConstraint<THashString> = [],
-    TComposedRoutes extends [...RouteFragment[]] = [],
+    TComposedRoutes extends [...BaseRoute[]] = [],
     // This should be restricted to Record<string, BaseRoute>, but it breaks types for nested routes,
     // even without names validity check
     TChildren = {},
@@ -436,37 +434,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     >;
   }
 
-  function fragment<
-    TPathnameTypes extends PathnameTypesConstraint = {},
-    TSearchTypes extends SearchTypesConstraint = {},
-    TStateTypes extends StateTypesConstraint = {},
-    THashString extends string = string,
-    THash extends HashTypesConstraint<THashString> = [],
-    TComposedRoutes extends [...RouteFragment[]] = [],
-  >(opts: {
-    compose?: [...TComposedRoutes];
-    params?: TPathnameTypes;
-    searchParams?: TSearchTypes;
-    state?: TStateTypes;
-    hash?: THash;
-  }): RouteFragment<
-    MergedTypes<[...ExtractTypes<TComposedRoutes>, Types<TPathnameTypes, TSearchTypes, TStateTypes, THash>]>
-  > {
-    const composedTypes = (opts.compose ?? []).map(({ $types }) => $types) as ExtractTypes<TComposedRoutes>;
-
-    const ownTypes = {
-      params: opts?.params ?? {},
-      searchParams: opts?.searchParams ?? {},
-      state: opts?.state ?? {},
-      hash: opts?.hash ?? [],
-    } as Types<TPathnameTypes, TSearchTypes, TStateTypes, THash>;
-
-    const resolvedTypes = mergeTypes([...composedTypes, ownTypes]);
-
-    return getRouteFragment(resolvedTypes, creatorOptions);
-  }
-
-  return { route, fragment };
+  return route;
 }
 
 function omiTPathnameTypes<T extends Types>(types: T): OmiTPathnameTypes<T> {
@@ -534,8 +502,6 @@ function getRoute<TPath extends PathConstraint, TTypes extends Types>(
   const [allPathParams] = getPathParams(path);
   const relativePath = removeIntermediateStars(path);
 
-  const routeFragment = getRouteFragment(types, creatorOptions);
-
   function getPlainParams(params: InPathnameParams<TPath, TTypes["params"]>) {
     return getPlainParamsByTypes(allPathParams, params, types.params);
   }
@@ -552,26 +518,11 @@ function getRoute<TPath extends PathConstraint, TTypes extends Types>(
     const searchParams = opts.searchParams ?? ({} as InSearchParams<TTypes["searchParams"]>);
     const hash = opts.hash;
 
-    return `${buildPathname(pathnameParams, opts)}${routeFragment.$buildSearch(searchParams, opts)}${
-      hash !== undefined ? routeFragment.$buildHash(hash) : ""
+    return `${buildPathname(pathnameParams, opts)}${buildSearch(searchParams, opts)}${
+      hash !== undefined ? buildHash(hash) : ""
     }`;
   }
 
-  return {
-    $path: makeAbsolute(path),
-    $_path: path,
-    $relativePath: relativePath,
-    $buildPath: buildPath,
-    $buildPathname: buildPathname,
-    $getPlainParams: getPlainParams,
-    ...routeFragment,
-  };
-}
-
-function getRouteFragment<TTypes extends Types>(
-  types: TTypes,
-  creatorOptions: CreateRouteOptions,
-): RouteFragment<TTypes> {
   function getPlainSearchParams(params: InSearchParams<TTypes["searchParams"]>, opts?: SearchBuilderOptions) {
     const plainParams = creatorOptions.createSearchParams(getPlainSearchParamsByTypes(params, types.searchParams));
 
@@ -672,6 +623,12 @@ function getRouteFragment<TTypes extends Types>(
   }
 
   return {
+    $path: makeAbsolute(path),
+    $_path: path,
+    $relativePath: relativePath,
+    $buildPath: buildPath,
+    $buildPathname: buildPathname,
+    $getPlainParams: getPlainParams,
     $buildSearch: buildSearch,
     $buildHash: buildHash,
     $buildState: buildState,
@@ -880,7 +837,6 @@ export {
   CreateRouteOptions,
   Route,
   BaseRoute,
-  RouteFragment,
   DecoratedChildren,
   Types,
   PathParam,
