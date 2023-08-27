@@ -3,7 +3,7 @@ import { PathnameType, SearchType, StateType, HashType, Type, DefType, string } 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any */
 
 type Route<
-  TPath extends string = string,
+  TPath extends PathConstraint = PathConstraint,
   TTypes extends Types = Types<any, any, any>,
   TChildren = {},
 > = DecoratedChildren<TPath, TTypes, TChildren> &
@@ -11,19 +11,20 @@ type Route<
     $: DecoratedChildren<"", OmiTPathnameTypes<TTypes>, TChildren>;
   };
 
-type DecoratedChildren<TPath extends string, TTypes extends Types, TChildren> = {
+type DecoratedChildren<TPath extends PathConstraint, TTypes extends Types, TChildren> = {
   [TKey in keyof TChildren]: TChildren[TKey] extends Route<infer TChildPath, infer TChildTypes, infer TChildChildren>
     ? Route<
-        TPath extends "" ? TChildPath : TChildPath extends "" ? TPath : `${TPath}/${TChildPath}`,
+        StringPath<TPath> extends "" ? TChildPath : StringPath<TChildPath> extends "" ? TPath : `${TPath}/${TChildPath}`,
         MergedTypes<[TTypes, TChildTypes]>,
         TChildChildren
       >
     : TChildren[TKey];
 };
 
-type BaseRoute<TPath extends string = string, TTypes extends Types = Types<any, any, any>> = {
-  $path: `/${SanitizedPath<TPath>}`;
+type BaseRoute<TPath extends PathConstraint = PathConstraint, TTypes extends Types = Types<any, any, any>> = {
+  $path: AbsolutePath<SanitizedPath<TPath>>
   $relativePath: PathWithoutIntermediateStars<SanitizedPath<TPath>>;
+  $_path: SanitizedPath<TPath>;
   $buildPath: (opts: PathBuilderOptions<TPath, TTypes>) => string;
   $buildPathname: (params: InPathnameParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) => string;
   $getPlainParams: (params: InPathnameParams<TPath, TTypes["params"]>) => Record<string, string | undefined>;
@@ -47,7 +48,9 @@ type RouteFragment<TTypes extends Types = Types<any, any, any>> = {
   $types: TTypes;
 };
 
-type PathBuilderOptions<TPath extends string, TTypes extends Types> = Readable<
+type StringPath<T extends PathConstraint> = T extends undefined ? "" : T;
+
+type PathBuilderOptions<TPath extends PathConstraint, TTypes extends Types> = Readable<
   InPathParams<TPath, TTypes> & PathnameBuilderOptions & SearchBuilderOptions
 >;
 
@@ -73,7 +76,7 @@ type UntypedPlainState<TStateTypes extends StateTypesConstraint> = TStateTypes e
 
 type PathnameParamsRequired<T> = Partial<T> extends T ? (IsAny<T> extends true ? true : false) : true;
 
-type InPathParams<TPath extends string, TTypes extends Types> = Readable<
+type InPathParams<TPath extends PathConstraint, TTypes extends Types> = Readable<
   (PathnameParamsRequired<InPathnameParams<TPath, TTypes["params"]>> extends true
     ? { params: InPathnameParams<TPath, TTypes["params"]> }
     : { params?: InPathnameParams<TPath, TTypes["params"]> }) & {
@@ -83,7 +86,7 @@ type InPathParams<TPath extends string, TTypes extends Types> = Readable<
 >;
 
 type InPathnameParams<
-  TPath extends string,
+  TPath extends PathConstraint,
   TPathnameTypes extends PathnameTypesConstraint,
 > = IsAny<TPathnameTypes> extends true
   ? any
@@ -171,11 +174,13 @@ type SanitizedPath<T> = T extends `/${string}`
   ? ErrorMessage<"Trailing slashes are forbidden">
   : T;
 
-type PathWithoutIntermediateStars<T extends string> = T extends `${infer TStart}*?/${infer TEnd}`
+type PathWithoutIntermediateStars<T extends PathConstraint> = T extends `${infer TStart}*?/${infer TEnd}`
   ? PathWithoutIntermediateStars<`${TStart}${TEnd}`>
   : T extends `${infer TStart}*/${infer TEnd}`
   ? PathWithoutIntermediateStars<`${TStart}${TEnd}`>
   : T;
+
+  type AbsolutePath<T extends PathConstraint> = T extends string ? `/${T}` : T;
 
 type SanitizedChildren<T> = {
   [TKey in keyof T]: TKey extends Omit$<TKey>
@@ -202,7 +207,7 @@ type SanitizedPathParam<
   : TRawParam;
 
 type PathParam<
-  TPath extends string,
+  TPath extends PathConstraint,
   TKind extends "all" | "optional" = "all",
   TMode extends "in" | "out" = "out",
 > = string extends TPath
@@ -221,6 +226,8 @@ interface CreateRouteOptions {
   createSearchParams: (init?: Record<string, string | string[]> | URLSearchParams) => URLSearchParams;
   generatePath: (path: string, params?: Record<string, string | undefined>) => string;
 }
+
+type PathConstraint = string | undefined;
 
 type PathnameTypesConstraint = Record<string, PathnameType<any>>;
 
@@ -275,7 +282,7 @@ type MergedTypesPair<T, U> = T extends Types<infer TPathnameTypes, infer TSearch
     : never
   : never;
 
-type DefaulTPathnameTypes<T extends string> = Types<
+type DefaulTPathnameTypes<T extends PathConstraint> = Types<
   Merge<Record<PathParam<T>, DefType<string>>, Record<PathParam<T, "optional">, Type<string>>>,
   {},
   {},
@@ -313,7 +320,7 @@ type Undefined<T> = {
 
 type NeverToUndefined<T> = [T] extends [never] ? undefined : T;
 
-type NormalizedPathTypes<TTypes, TPath extends string> = Partial<
+type NormalizedPathTypes<TTypes, TPath extends PathConstraint> = Partial<
   Record<PathParam<TPath>, PathnameType<any>>
 > extends TTypes
   ? {}
@@ -325,7 +332,7 @@ type RequiredWithoutUndefined<T> = {
 
 declare const brand: unique symbol;
 
-function getDefaulTPathnameTypes<T extends string>(path: T): DefaulTPathnameTypes<T> {
+function getDefaulTPathnameTypes<T extends PathConstraint>(path: T): DefaulTPathnameTypes<T> {
   const [allPathParams, optionalPathParams] = getPathParams(path);
 
   const params: Record<string, PathnameType<any>> = {};
@@ -350,7 +357,7 @@ function getDefaulTPathnameTypes<T extends string>(path: T): DefaulTPathnameType
 
 function createRoute(creatorOptions: CreateRouteOptions) {
   function route<
-    TPath extends string = "",
+    TPath extends PathConstraint = undefined,
     // We actually want {} by default, but it breaks autocomplete for some reason.
     TPathnameTypes extends Partial<Record<PathParam<TPath>, PathnameType<any>>> = Partial<
       Record<PathParam<TPath>, PathnameType<any>>
@@ -367,7 +374,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     path?: SanitizedPath<TPath>;
     compose?: [...TComposedRoutes];
     // Forbid undefined values and non-existent keys (if there are params in path)
-    params?: {
+    params?: TPath extends undefined ? PathnameTypesConstraint : {
       [TKey in keyof TPathnameTypes]: TKey extends PathParam<TPath>
         ? TPathnameTypes[TKey] extends undefined
           ? PathnameType<any>
@@ -479,7 +486,7 @@ function isHashType<T extends HashType<any>>(value: T | string[] | undefined): v
   return Boolean(value) && !Array.isArray(value);
 }
 
-function decorateChildren<TPath extends string, TTypes extends Types, TChildren>(
+function decorateChildren<TPath extends PathConstraint, TTypes extends Types, TChildren>(
   path: SanitizedPath<TPath>,
   typesObj: TTypes,
   creatorOptions: CreateRouteOptions,
@@ -496,7 +503,7 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren>
         ? {
             ...decorateChildren(path, typesObj, creatorOptions, value),
             ...getRoute(
-              path === "" ? value.$path.substring(1) : value.$path === "/" ? path : `${path}${value.$path}`,
+              ["", undefined].includes(path) ? value.$_path : ["", undefined].includes(value.$_path) ? path : `${path}/${value.$_path}`,
               mergeTypes([typesObj, value.$types]),
               creatorOptions,
             ),
@@ -509,7 +516,7 @@ function decorateChildren<TPath extends string, TTypes extends Types, TChildren>
   return result as DecoratedChildren<TPath, TTypes, TChildren>;
 }
 
-function getRoute<TPath extends string, TTypes extends Types>(
+function getRoute<TPath extends PathConstraint, TTypes extends Types>(
   path: SanitizedPath<TPath>,
   types: TTypes,
   creatorOptions: CreateRouteOptions,
@@ -524,7 +531,7 @@ function getRoute<TPath extends string, TTypes extends Types>(
   }
 
   function buildPathname(params: InPathnameParams<TPath, TTypes["params"]>, opts?: PathnameBuilderOptions) {
-    const rawBuiltPath = creatorOptions.generatePath(relativePath, getPlainParams(params));
+    const rawBuiltPath = creatorOptions.generatePath(relativePath ?? '', getPlainParams(params));
     const relativePathname = rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
 
     return `${opts?.relative ? "" : "/"}${relativePathname}`;
@@ -541,7 +548,8 @@ function getRoute<TPath extends string, TTypes extends Types>(
   }
 
   return {
-    $path: `/${path}`,
+    $path: makeAbsolute(path),
+    $_path: path,
     $relativePath: relativePath,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
@@ -798,12 +806,14 @@ function getTypedStateByType<TStateTypes extends StateTypesUnknownConstraint>(
   return type.getTypedState(state);
 }
 
-function getPathParams<TPath extends string>(path: TPath): [PathParam<TPath>[], PathParam<TPath, "optional">[]] {
+function getPathParams<TPath extends PathConstraint>(
+  path: TPath,
+): [PathParam<TPath>[], PathParam<TPath, "optional">[]] {
   const allParams = [];
   const optionalParams = [];
 
   path
-    .split(":")
+    ?.split(":")
     .filter((_, index) => Boolean(index))
     .forEach((part) => {
       const rawParam = part.split("/")[0];
@@ -817,21 +827,25 @@ function getPathParams<TPath extends string>(path: TPath): [PathParam<TPath>[], 
       }
     });
 
-  if (path.includes("*?")) {
+  if (path?.includes("*?")) {
     allParams.push("*");
     optionalParams.push("*");
-  } else if (path.includes("*")) {
+  } else if (path?.includes("*")) {
     allParams.push("*");
   }
 
   return [allParams, optionalParams] as [PathParam<TPath>[], PathParam<TPath, "optional">[]];
 }
 
-function removeIntermediateStars<TPath extends string>(path: TPath): PathWithoutIntermediateStars<TPath> {
-  return path.replace(/\*\??\//g, "") as PathWithoutIntermediateStars<TPath>;
+function removeIntermediateStars<TPath extends PathConstraint>(path: TPath): PathWithoutIntermediateStars<TPath> {
+  return path?.replace(/\*\??\//g, "") as PathWithoutIntermediateStars<TPath>;
 }
 
-function isRoute(value: unknown): value is Route<string, Types, unknown> {
+function makeAbsolute<TPath extends PathConstraint>(path: TPath): AbsolutePath<TPath> {
+  return (typeof path === 'string' ? `/${path}` : path) as AbsolutePath<TPath>;
+}
+
+function isRoute(value: unknown): value is Route<PathConstraint, Types, unknown> {
   return Boolean(value && typeof value === "object" && "$path" in value);
 }
 
