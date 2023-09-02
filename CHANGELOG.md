@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add `fragment` helper and fragment composition API. Fragments are essentially routes without path building API (though they can be used to parse pathname params), and they can be used to share common params between routes. They can be used in React hooks, too.
+- Add pathless routes and route composition API.
 
   ```typescript
   // Instead of route(':id', { params: { id: number() }, searchParams: { page: number() } })
-  const FRAGMENT = fragment({ params: { id: number() }, searchParams: { page: number() } });
+  const FRAGMENT = route({ params: { id: number() }, searchParams: { page: number() } });
 
   // Instead of types(FRAGMENT)({searchParams: { query: string() }})
   const MY_ROUTE = route({
@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Types for pathname `params` are now stricter and don't allow params which are not specified in the path pattern. This also fixes autocomplete for such params.
 - State can now optionally be typed as a whole, so non-object states can now be typed.
 - **Breaking**: Functions in state type object are renamed to `getPlainState` and `getTypedState`.
-- **Breaking**: Pathname params will now be parsed solely basing on the provided types, which makes fragments for pathname params possible. Path (pathname) building is unaffected.
+  ~~- **Breaking**: Pathname params will now be parsed solely basing on the provided types, which makes fragments for pathname params possible. Path (pathname) building is unaffected.~~
 - **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
 - **Breaking**: Path and state generation API is changed.
   - `$buildPath` (formerly `buildPath`) now accepts all params as a single argument.
@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Array types like `string().array()` now filter `undefined` values upon parsing. The previous behavior broke a common pattern of changing a subset of search parameters:
 
   ```typescript
-  const FRAGMENT = fragment({ searchParams: { pages: number().array(), query: string() } });
+  const FRAGMENT = route({ searchParams: { pages: number().array(), query: string() } });
 
   const [{ pages, query }, setTypedSearchParams] = useTypedSearchParams(FRAGMENT);
 
