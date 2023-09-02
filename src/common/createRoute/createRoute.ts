@@ -259,6 +259,20 @@ type ExtractTypes<Tuple extends [...BaseRoute[]]> = {
   [Index in keyof Tuple]: Tuple[Index]["$types"];
 };
 
+type FilterPathnameTypes<TPath extends PathConstraint, T extends Types> = T extends Types<
+  infer TPathnameTypes,
+  infer TSearchTypes,
+  infer TStateTypes,
+  infer THash
+>
+  ? Types<
+      TPath extends string ? Readable<Pick<TPathnameTypes, PathParam<TPath>>> : TPathnameTypes,
+      TSearchTypes,
+      TStateTypes,
+      THash
+    >
+  : never;
+
 type MergedTypes<T extends Types[]> = T extends [infer TFirst, infer TSecond, ...infer TRest]
   ? TRest extends Types[]
     ? MergedTypes<[MergedTypesPair<TFirst, TSecond>, ...TRest]>
@@ -391,12 +405,15 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     children?: SanitizedChildren<TChildren>;
   }): Route<
     TPath,
-    MergedTypes<
-      [
-        DefaulTPathnameTypes<TPath>,
-        ...ExtractTypes<TComposedRoutes>,
-        Types<NormalizedPathTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
-      ]
+    FilterPathnameTypes<
+      TPath,
+      MergedTypes<
+        [
+          DefaulTPathnameTypes<TPath>,
+          ...ExtractTypes<TComposedRoutes>,
+          Types<NormalizedPathTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
+        ]
+      >
     >,
     TChildren
   > {
@@ -413,7 +430,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       hash: opts?.hash ?? [],
     } as Types<NormalizedPathTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>;
 
-    const resolvedTypes = mergeTypes([defaultTypes, ...composedTypes, ownTypes]);
+    const resolvedTypes = filterPathnameTypes(path, mergeTypes([defaultTypes, ...composedTypes, ownTypes]));
 
     const resolvedChildren = opts.children;
 
@@ -423,12 +440,15 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       $: decorateChildren("", omiTPathnameTypes(resolvedTypes), creatorOptions, resolvedChildren),
     } as unknown as Route<
       TPath,
-      MergedTypes<
-        [
-          DefaulTPathnameTypes<TPath>,
-          ...ExtractTypes<TComposedRoutes>,
-          Types<NormalizedPathTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
-        ]
+      FilterPathnameTypes<
+        TPath,
+        MergedTypes<
+          [
+            DefaulTPathnameTypes<TPath>,
+            ...ExtractTypes<TComposedRoutes>,
+            Types<NormalizedPathTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
+          ]
+        >
       >,
       TChildren
     >;
@@ -454,6 +474,26 @@ function mergeTypes<T extends [...Types[]]>(typesArray: [...T]): MergedTypes<T> 
       state: { ...acc.state, ...item.state },
     };
   }) as MergedTypes<T>;
+}
+
+function filterPathnameTypes<TPath extends PathConstraint, TTypes extends Types>(
+  path: TPath,
+  types: TTypes,
+): FilterPathnameTypes<TPath, TTypes> {
+  if (typeof path === "undefined") return types as unknown as FilterPathnameTypes<TPath, TTypes>;
+
+  const [allPathParams] = getPathParams(path);
+
+  const params: Record<string, PathnameType<any>> = {};
+
+  allPathParams.forEach((param) => {
+    params[param] = types.params[param];
+  });
+
+  return {
+    ...types,
+    params,
+  } as unknown as FilterPathnameTypes<TPath, TTypes>;
 }
 
 function isHashType<T extends HashType<any>>(value: T | string[] | undefined): value is T {

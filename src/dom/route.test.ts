@@ -2272,6 +2272,17 @@ it("allows pathless routes", () => {
   expect(testRoute.$.child.grandchild.$path).toBe("/grandchild");
 });
 
+it("ensures that types of non-existent pathname params are ignored", () => {
+  const excessParams = route({ params: { id: number(), fake: number() } });
+
+  const testRoute = route({ path: ":id", compose: [excessParams] });
+
+  assert<IsExact<Parameters<typeof testRoute.$buildPathname>[0], { id: number }>>(true);
+  assert<IsExact<ReturnType<typeof testRoute.$getTypedParams>, { id?: number }>>(true);
+
+  expect(testRoute.$getTypedParams({ id: "1", fake: "2", unknown: "3" })).toStrictEqual({ id: 1 });
+});
+
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {
   const result: Record<string, string | string[]> = {};
 
