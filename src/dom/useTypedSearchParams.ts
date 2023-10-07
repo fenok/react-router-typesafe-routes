@@ -1,4 +1,4 @@
-import { BaseRoute, Types, InSearchParams, OutSearchParams, InState } from "../common/index.js";
+import { BaseRoute, RouteOptions, InSearchParams, OutSearchParams, InState } from "../common/index.js";
 import { useSearchParams, NavigateOptions } from "react-router-dom";
 import { useMemo, useCallback } from "react";
 
@@ -7,8 +7,8 @@ interface TypedNavigateOptions<T> extends NavigateOptions {
   untypedSearchParams?: boolean;
 }
 
-function useTypedSearchParams<TTypesMap extends Types>(
-  route: BaseRoute<string | undefined, TTypesMap>,
+function useTypedSearchParams<TTypesMap extends RouteOptions>(
+  route: BaseRoute<TTypesMap>,
   typedDefaultInit?: InSearchParams<TTypesMap["searchParams"]>,
 ): [
   OutSearchParams<TTypesMap["searchParams"]>,
