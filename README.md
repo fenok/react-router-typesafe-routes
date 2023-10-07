@@ -76,55 +76,56 @@ Define routes:
 ```tsx
 import { route, number, boolean, union } from "react-router-typesafe-routes/dom"; // Or /native
 
-const routes = {
-  user: route({
-    // This is a regular path (pathname) pattern, but without leading or trailing slashes.
-    // Pathname params are inferred. By default, required params use 'string().defined()' type.
-    // '.defined()' means that an absent/invalid param will lead to an error upon parsing.
-    path: "user/:id",
-    // We can override some or all pathname params. Params existence is checked on a type level.
-    // Note that any modifier can be used here.
-    params: { id: number().defined() },
-    // This is how to define search params.
-    // '.default()' allows to specify a value to use in case of an absent/invalid param.
-    searchParams: { infoVisible: boolean().default(false) },
-    // This is how to define state.
-    // Without modifiers, 'undefined' is returned in case of an absent/invalid param.
-    state: { fromUserList: boolean() },
-    // This is how to define hash. To allow any hash, define it as 'string()'.
-    // 'union()' is just another type, and all types can be used anywhere with different modifiers.
-    hash: union("info", "comments"),
-    children: {
-      // This is a child route, which inherits all parent params.
-      // By default, optional pathanme params use 'string()' type.
-      details: route("details/:lang?"),
-    },
-  }),
-};
+// Types specify how params are serialized and parsed.
+// All params are optional, except for required pathname params.
+// You can optionally start with a pathless route to specify params for all routes.
+const routes = route({
+  // E.g. this search param is global and also non-undefined, since it has a default value.
+  searchParams: { utm_campaign: string().default("default_campaign") },
+  // Child routes inherit all parent params.
+  children: {
+    user: route({
+      // Pattern can't start or end with a slash. Pathname params are inferred from it.
+      // Implicit required params use 'string().defined()', so they can throw upon parsing.
+      path: "user/:userId",
+      // You can e.g. change implicit 'string().defined()' to explicit 'number().defined()'.
+      params: { userId: number().defined() },
+      // You can specify state parts. Without modifiers, types can return 'undefined' upon parsing.
+      state: { fromUserList: boolean() },
+      // You can specify hash. To allow any hash, define it as 'string()'.
+      hash: union("info", "comments"),
+      // Child routes inherit all parent params.
+      children: {
+        // Optional pathname params are also supported and implicitly use 'string()' type.
+        posts: route({ path: "posts/:postId?" }),
+      },
+    }),
+  },
+});
 ```
 
 Use `Route` components as usual:
 
 ```tsx
-import { Route, Routes } from "react-router-dom"; // Or -native
+import { Route, Routes } from "react-router-dom"; // Or /native
 import { routes } from "./path/to/routes";
 
 // Absolute paths
 <Routes>
-  {/* /user/:id */}
+  {/* /user/:userId */}
   <Route path={routes.user.$path} element={<User />}>
-    {/* /user/:id/details/:lang? */}
-    <Route path={routes.user.details.$path} element={<UserDetails />} />
+    {/* /user/:userId/posts/:postId? */}
+    <Route path={routes.user.posts.$path} element={<Posts />} />
   </Route>
 </Routes>;
 
 // Relative paths
 <Routes>
-  {/* user/:id */}
+  {/* user/:userId */}
   <Route path={routes.user.$relativePath} element={<User />}>
-    {/* details/:lang? */}
+    {/* posts/:postId? */}
     {/* $ effectively defines path pattern start. */}
-    <Route path={routes.user.$.details.$relativePath} element={<UserDetails />} />
+    <Route path={routes.user.$.posts.$relativePath} element={<Posts />} />
   </Route>
 </Routes>;
 ```
@@ -137,35 +138,30 @@ import { routes } from "./path/to/routes";
 
 // Absolute link
 <Link
-  // Path params are squashed together, so they should all be unique.
-  // In rare cases where it's impossible, there is an escape hatch (see advanced examples).
-  // Pathname params: { id: number; lang?: string } -- optionality is governed by the path pattern.
-  // Search params: { infoVisible?: boolean } -- all params are optional.
-  // State fields: { fromUserList?: boolean } -- all fields are optional.
-  // Hash: "info" | "comments" | undefined
-  to={routes.user.details.$buildPath({
-    id: 1,
-    lang: "en",
-    infoVisible: false,
-    $hash: "comments",
+  // Everything is optional except for required pathname param (params.userId).
+  to={routes.user.posts.$buildPath({
+    params: { userId: 1, postId: "abc" },
+    searchParams: { utm_campaign: "campaign" },
+    hash: "comments",
   })}
-  state={routes.user.details.$buildState({ fromUserList: true })}
+  state={routes.user.posts.$buildState({ fromUserList: true })}
 >
-  /user/1/details/en?infoVisible=false#comments
+  /user/1/posts/abc?utm_campaign=campaign#comments
 </Link>;
 
 // Relative link
 <Link
-  // Pathname params: { lang?: string } -- optionality is governed by the path pattern.
-  // Other params remain the same.
+  // Everything is optional, because there are no required pathname params.
   // $ effectively defines path pattern start.
-  to={routes.user.$.details.$buildPath(
-    { lang: "en", infoVisible: true, $hash: "info" },
-    { relative: true },
-  )}
-  state={routes.user.details.$buildState({ fromUserList: false })}
+  to={routes.user.$.posts.$buildPath({
+    relative: true,
+    params: { postId: "abc" },
+    searchParams: { utm_campaign: "campaign" },
+    hash: "info",
+  })}
+  state={routes.user.posts.$buildState({ fromUserList: false })}
 >
-  details/en?infoVisible=true#info
+  posts/abc?utm_campaign=campaign#info
 </Link>;
 ```
 

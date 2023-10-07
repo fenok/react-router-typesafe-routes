@@ -183,17 +183,6 @@ type PathWithoutIntermediateStars<T extends PathConstraint> = T extends `${infer
 
 type AbsolutePath<T extends PathConstraint> = T extends string ? `/${T}` : T;
 
-type SanitizedChildren<T> = {
-  [TKey in keyof T]: TKey extends Omit$<TKey>
-    ? // Without explicit inferring, path in nested inlined routes is 'string' for some reason
-      T[TKey] extends BaseRoute<infer T1, infer T2>
-      ? T[TKey]
-      : BaseRoute
-    : ErrorMessage<"Name can't start with $">;
-};
-
-type Omit$<T> = T extends `$${infer TValid}` ? TValid : T;
-
 type SanitizedPathParam<
   TRawParam extends string,
   TKind extends "all" | "optional" = "all",
@@ -422,7 +411,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     searchParams?: TSearchTypes;
     state?: TStateTypes;
     hash?: THash;
-    children?: SanitizedChildren<TChildren>;
+    children?: TChildren;
   }): Route<
     TPath,
     FilterPathnameTypes<
@@ -453,7 +442,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
 
     const resolvedTypes = filterPathnameTypes(path, mergeTypes([defaultTypes, ...composedTypes, ownTypes]));
 
-    const resolvedChildren = opts.children;
+    const resolvedChildren = resolveChildren(opts.children);
 
     return {
       ...decorateChildren(path, resolvedTypes, creatorOptions, resolvedChildren),
@@ -477,6 +466,14 @@ function createRoute(creatorOptions: CreateRouteOptions) {
   }
 
   return route;
+}
+
+function resolveChildren<T>(children?: T): T | undefined {
+  if (children && Object.keys(children).some((key) => key.startsWith("$"))) {
+    throw new Error('Children names starting with "$" are forbidden');
+  }
+
+  return children;
 }
 
 function omiTPathnameTypes<T extends Types>(types: T): OmiTPathnameTypes<T> {
@@ -926,7 +923,6 @@ export {
   Types,
   PathParam,
   SanitizedPath,
-  SanitizedChildren,
   InPathParams,
   InPathnameParams,
   OutPathnameParams,

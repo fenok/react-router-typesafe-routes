@@ -2128,58 +2128,6 @@ it("checks that leading and trailing slashes are forbidden", () => {
   ).toBeTruthy();
 });
 
-it("checks that route children are valid", () => {
-  expect(
-    route({
-      path: "",
-      children: {
-        // @ts-expect-error Checking single invalid child name
-        $child: route({
-          path: "",
-        }),
-      },
-    }),
-  ).toBeTruthy();
-
-  expect(
-    route({
-      path: "",
-      children: {
-        valid: route({
-          path: "",
-        }),
-        // @ts-expect-error Checking mix of valid and invalid children names
-        $child: route({
-          path: "",
-        }),
-      },
-    }),
-  ).toBeTruthy();
-
-  expect(
-    route({
-      path: "",
-      children: {
-        // @ts-expect-error Checking single invalid child value
-        child: 1,
-      },
-    }),
-  ).toBeTruthy();
-
-  expect(
-    route({
-      path: "",
-      children: {
-        valid: route({
-          path: "",
-        }),
-        // @ts-expect-error Checking mix of valid and invalid children values
-        child: 1,
-      },
-    }),
-  ).toBeTruthy();
-});
-
 it("allows to type state as a whole", () => {
   const TEST_ROUTE = route({ state: string(), children: { CHILD: route({ state: number() }) } });
 
@@ -2295,6 +2243,25 @@ it("allows to inherit pathname types", () => {
 
   assert<IsExact<Parameters<typeof routes.main.$buildPathname>[0], { id: number }>>(true);
   expect(routes.main.$getTypedParams({ id: "1" })).toStrictEqual({ id: 1 });
+});
+
+it("handles complex nested inlined routes", () => {
+  const routes = route({
+    searchParams: { utm_campaign: string().default("default_campaign") },
+    children: {
+      user: route({
+        path: "user/:id",
+        params: { id: number().defined() },
+        state: { fromUserList: boolean() },
+        hash: union("info", "comments"),
+        children: {
+          details: route({ path: "details/:lang?" }),
+        },
+      }),
+    },
+  });
+
+  assert<IsExact<typeof routes.user.details.$path, "/user/:id/details/:lang?">>(true);
 });
 
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {
