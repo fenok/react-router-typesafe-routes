@@ -1,7 +1,8 @@
 {
   "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "module": "ES2015"
+    "module": "node16",
+    "moduleResolution": "node16"
   },
   "include": ["src/**/*.ts"]
 }
