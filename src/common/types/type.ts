@@ -120,8 +120,10 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
   );
 }
 
+// TODO: Find a way to preserve <T,> without prettier-ignore
+// prettier-ignore
 const getArrayParamTypeBuilder =
-  <T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>>) =>
+  <T,>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>>) =>
   (): ArrayType<Exclude<T, undefined>> => {
     const getPlainSearchParam = (values: T[]) => values.filter(isDefined).map((value) => parser.stringify(value));
     const getTypedSearchParam = (values: string[]) =>
