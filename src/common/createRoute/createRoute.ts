@@ -273,9 +273,13 @@ type FilterPathnameTypes<TPath extends PathConstraint, T extends Types> = T exte
     >
   : never;
 
-type MergedTypes<T extends Types[]> = T extends [infer TFirst, infer TSecond, ...infer TRest]
+type MergedTypes<T extends Types[], TMode extends "default" | "__noImplicit" = "default"> = T extends [
+  infer TFirst,
+  infer TSecond,
+  ...infer TRest,
+]
   ? TRest extends Types[]
-    ? MergedTypes<[MergedTypesPair<TFirst, TSecond>, ...TRest]>
+    ? MergedTypes<[MergedTypesPair<TFirst, TSecond, TMode>, ...TRest], TMode>
     : never
   : T extends [infer TFirst]
   ? TFirst extends Types
@@ -283,10 +287,17 @@ type MergedTypes<T extends Types[]> = T extends [infer TFirst, infer TSecond, ..
     : never
   : never;
 
-type MergedTypesPair<T, U> = T extends Types<infer TPathnameTypes, infer TSearchTypes, infer TState, infer THash>
+type MergedTypesPair<T, U, TMode extends "default" | "__noImplicit" = "default"> = T extends Types<
+  infer TPathnameTypes,
+  infer TSearchTypes,
+  infer TState,
+  infer THash
+>
   ? U extends Types<infer TChildPathTypes, infer TChildSearchTypes, infer TChildState, infer TChildHash>
     ? Types<
-        Merge<TPathnameTypes, TChildPathTypes>,
+        TMode extends "default"
+          ? MergeTypesObjects<TPathnameTypes, TChildPathTypes>
+          : Merge<TPathnameTypes, TChildPathTypes>,
         Merge<TSearchTypes, TChildSearchTypes>,
         TChildState extends StateTypesObjectConstraint
           ? TState extends StateTypesObjectConstraint
@@ -299,7 +310,7 @@ type MergedTypesPair<T, U> = T extends Types<infer TPathnameTypes, infer TSearch
   : never;
 
 type DefaulTPathnameTypes<T extends PathConstraint> = Types<
-  Merge<Record<PathParam<T>, DefType<string>>, Record<PathParam<T, "optional">, Type<string>>>,
+  Merge<Record<PathParam<T>, Implicit<DefType<string>>>, Record<PathParam<T, "optional">, Implicit<Type<string>>>>,
   {},
   {},
   []
@@ -316,13 +327,17 @@ type OmiTPathnameTypes<T extends Types> = T extends Types<
 
 type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
 
-type Readable<T> = T extends Record<string, any>
-  ? Identity<{
-      [K in keyof T]: T[K];
-    }>
-  : T;
+type MergeTypesObjects<T, U> = Readable<Omit<T, keyof U> & ReplaceImplicit<U, T>>;
 
-type Identity<T> = T;
+type ReplaceImplicit<U, T> = {
+  [TKey in keyof U]: U[TKey] extends ImplicitMarker ? (TKey extends keyof T ? T[TKey] : U[TKey]) : U[TKey];
+};
+
+type Readable<T> = T extends object ? (T extends infer O ? { [K in keyof O]: O[K] } : never) : T;
+
+type ImplicitMarker = { __implicit: true };
+
+type Implicit<T> = T & ImplicitMarker;
 
 type ErrorMessage<T extends string> = T & { [brand]: ErrorMessage<T> };
 
@@ -348,18 +363,22 @@ type RequiredWithoutUndefined<T> = {
 
 declare const brand: unique symbol;
 
+function implicit<T>(value: T): Implicit<T> {
+  return { ...value, __implicit: true };
+}
+
 function getDefaulTPathnameTypes<T extends PathConstraint>(path: T): DefaulTPathnameTypes<T> {
   const [allPathParams, optionalPathParams] = getPathParams(path);
 
   const params: Record<string, PathnameType<any>> = {};
 
   optionalPathParams.forEach((optionalParam) => {
-    params[optionalParam] = string();
+    params[optionalParam] = implicit(string());
   });
 
   allPathParams.forEach((param) => {
     if (!params[param]) {
-      params[param] = string().defined();
+      params[param] = implicit(string().defined());
     }
   });
 
@@ -382,7 +401,8 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     TStateTypes extends StateTypesConstraint = {},
     THashString extends string = string,
     THash extends HashTypesConstraint<THashString> = [],
-    TComposedRoutes extends [...BaseRoute[]] = [],
+    // The main reason for restricting this to pathless routes is to optimize types for implicit pathname types.
+    TComposedRoutes extends [...BaseRoute<undefined>[]] = [],
     // This should be restricted to Record<string, BaseRoute>, but it breaks types for nested routes,
     // even without names validity check
     TChildren = {},
@@ -412,7 +432,8 @@ function createRoute(creatorOptions: CreateRouteOptions) {
           DefaulTPathnameTypes<TPath>,
           ...ExtractTypes<TComposedRoutes>,
           Types<NormalizedPathTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
-        ]
+        ],
+        "__noImplicit"
       >
     >,
     TChildren
@@ -447,7 +468,8 @@ function createRoute(creatorOptions: CreateRouteOptions) {
             DefaulTPathnameTypes<TPath>,
             ...ExtractTypes<TComposedRoutes>,
             Types<NormalizedPathTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
-          ]
+          ],
+          "__noImplicit"
         >
       >,
       TChildren
@@ -463,8 +485,10 @@ function omiTPathnameTypes<T extends Types>(types: T): OmiTPathnameTypes<T> {
 
 function mergeTypes<T extends [...Types[]]>(typesArray: [...T]): MergedTypes<T> {
   return typesArray.reduce((acc, item) => {
+    const [implicitParams, explicitParams] = splitImplicit(item.params);
+
     return {
-      params: { ...acc.params, ...item.params },
+      params: { ...implicitParams, ...acc.params, ...explicitParams },
       searchParams: { ...acc.searchParams, ...item.searchParams },
       hash: isHashType(item.hash)
         ? item.hash
@@ -474,6 +498,27 @@ function mergeTypes<T extends [...Types[]]>(typesArray: [...T]): MergedTypes<T> 
       state: { ...acc.state, ...item.state },
     };
   }) as MergedTypes<T>;
+}
+
+function splitImplicit<T>(record: Record<string, T | Implicit<T>>): [Record<string, Implicit<T>>, Record<string, T>] {
+  const implicit: Record<string, Implicit<T>> = {};
+  const explicit: Record<string, T> = {};
+
+  Object.keys(record).forEach((key) => {
+    const value = record[key];
+
+    if (isImplicit(value)) {
+      implicit[key] = value;
+    } else {
+      explicit[key] = value;
+    }
+  });
+
+  return [implicit, explicit];
+}
+
+function isImplicit<T>(value: T | Implicit<T>): value is Implicit<T> {
+  return Boolean((value as Implicit<T>)?.__implicit);
 }
 
 function filterPathnameTypes<TPath extends PathConstraint, TTypes extends Types>(

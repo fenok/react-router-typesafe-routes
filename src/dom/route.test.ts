@@ -2283,6 +2283,20 @@ it("ensures that types of non-existent pathname params are ignored", () => {
   expect(testRoute.$getTypedParams({ id: "1", fake: "2", unknown: "3" })).toStrictEqual({ id: 1 });
 });
 
+it("allows to inherit pathname types", () => {
+  const routes = route({
+    params: {
+      id: number(),
+    },
+    children: {
+      main: route({ path: ":id" }),
+    },
+  });
+
+  assert<IsExact<Parameters<typeof routes.main.$buildPathname>[0], { id: number }>>(true);
+  expect(routes.main.$getTypedParams({ id: "1" })).toStrictEqual({ id: 1 });
+});
+
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {
   const result: Record<string, string | string[]> = {};
 
