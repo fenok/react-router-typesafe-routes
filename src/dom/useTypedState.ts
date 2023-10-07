@@ -1,9 +1,9 @@
-import { BaseRoute, Types, OutState } from "../common/index.js";
+import { BaseRoute, RouteOptions, OutState } from "../common/index.js";
 import { useLocation } from "react-router-dom";
 import { useMemo } from "react";
 
-export function useTypedState<TTypesMap extends Types>(
-  route: BaseRoute<string | undefined, TTypesMap>,
+export function useTypedState<TTypesMap extends RouteOptions>(
+  route: BaseRoute<TTypesMap>,
 ): OutState<TTypesMap["state"]> {
   const location = useLocation();
   return useMemo(() => route.$getTypedState(location.state), [route, location.state]);
