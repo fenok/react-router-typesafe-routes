@@ -7,16 +7,16 @@ interface TypedNavigateOptions<T> extends NavigateOptions {
   untypedSearchParams?: boolean;
 }
 
-function useTypedSearchParams<TTypesMap extends RouteOptions>(
-  route: BaseRoute<TTypesMap>,
-  typedDefaultInit?: InSearchParams<TTypesMap["searchParams"]>,
+function useTypedSearchParams<TOptions extends RouteOptions>(
+  route: BaseRoute<TOptions>,
+  typedDefaultInit?: InSearchParams<TOptions["searchParams"]>,
 ): [
-  OutSearchParams<TTypesMap["searchParams"]>,
+  OutSearchParams<TOptions["searchParams"]>,
   (
     searchParams:
-      | InSearchParams<TTypesMap["searchParams"]>
-      | ((prevParams: OutSearchParams<TTypesMap["searchParams"]>) => InSearchParams<TTypesMap["searchParams"]>),
-    navigateOptions?: TypedNavigateOptions<InState<TTypesMap["state"]>>,
+      | InSearchParams<TOptions["searchParams"]>
+      | ((prevParams: OutSearchParams<TOptions["searchParams"]>) => InSearchParams<TOptions["searchParams"]>),
+    navigateOptions?: TypedNavigateOptions<InState<TOptions["state"]>>,
   ) => void,
 ] {
   const defaultInit = useMemo(
@@ -31,9 +31,9 @@ function useTypedSearchParams<TTypesMap extends RouteOptions>(
   const setTypedSearchParams = useCallback(
     (
       params:
-        | InSearchParams<TTypesMap["searchParams"]>
-        | ((prevParams: OutSearchParams<TTypesMap["searchParams"]>) => InSearchParams<TTypesMap["searchParams"]>),
-      { state, untypedSearchParams, ...restNavigateOptions }: TypedNavigateOptions<InState<TTypesMap["state"]>> = {},
+        | InSearchParams<TOptions["searchParams"]>
+        | ((prevParams: OutSearchParams<TOptions["searchParams"]>) => InSearchParams<TOptions["searchParams"]>),
+      { state, untypedSearchParams, ...restNavigateOptions }: TypedNavigateOptions<InState<TOptions["state"]>> = {},
     ) => {
       setSearchParams(
         (prevParams) => {
