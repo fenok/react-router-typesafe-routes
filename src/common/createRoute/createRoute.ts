@@ -12,7 +12,7 @@ type Route<
 
 type DecoratedChildren<TOptions extends RouteOptions, TChildren> = {
   [TKey in keyof TChildren]: TChildren[TKey] extends Route<infer TChildOptions, infer TChildChildren>
-    ? Route<MergedTypes<[TOptions, TChildOptions], "inherit">, TChildChildren>
+    ? Route<MergedOptions<[TOptions, TChildOptions], "inherit">, TChildChildren>
     : TChildren[TKey];
 };
 
@@ -41,7 +41,7 @@ interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint,
   ) => URLSearchParams;
   $buildHash: (hash: InHash<TOptions["hash"]>) => string;
   $buildState: (state: InState<TOptions["state"]>, opts?: StateBuilderOptions) => PlainState<TOptions["state"]>;
-  $types: TOptions;
+  $options: TOptions;
 }
 
 type StringPath<T extends PathConstraint> = T extends undefined ? "" : T;
@@ -241,8 +241,8 @@ interface RouteOptions<
   hash: THash;
 }
 
-type ExtractTypes<Tuple extends [...BaseRoute[]]> = {
-  [Index in keyof Tuple]: Tuple[Index]["$types"];
+type ExtractOptions<Tuple extends [...BaseRoute[]]> = {
+  [Index in keyof Tuple]: Tuple[Index]["$options"];
 };
 
 type FilterPathnameTypes<T extends RouteOptions> = T extends RouteOptions<
@@ -261,13 +261,13 @@ type FilterPathnameTypes<T extends RouteOptions> = T extends RouteOptions<
     >
   : never;
 
-type MergedTypes<T extends RouteOptions[], TMode extends "inherit" | "compose"> = T extends [
+type MergedOptions<T extends RouteOptions[], TMode extends "inherit" | "compose"> = T extends [
   infer TFirst,
   infer TSecond,
   ...infer TRest,
 ]
   ? TRest extends RouteOptions[]
-    ? MergedTypes<[MergedTypesPair<TFirst, TSecond, TMode>, ...TRest], TMode>
+    ? MergedOptions<[MergedOptionsPair<TFirst, TSecond, TMode>, ...TRest], TMode>
     : never
   : T extends [infer TFirst]
   ? TFirst extends RouteOptions
@@ -275,7 +275,7 @@ type MergedTypes<T extends RouteOptions[], TMode extends "inherit" | "compose"> 
     : never
   : never;
 
-type MergedTypesPair<T, U, TMode extends "inherit" | "compose"> = T extends RouteOptions<
+type MergedOptionsPair<T, U, TMode extends "inherit" | "compose"> = T extends RouteOptions<
   infer TPath,
   infer TPathnameTypes,
   infer TSearchTypes,
@@ -298,7 +298,7 @@ type MergedTypesPair<T, U, TMode extends "inherit" | "compose"> = T extends Rout
             : `${TPath}/${TChildPath}`
           : TChildPath,
         TMode extends "inherit"
-          ? MergeTypesObjects<TPathnameTypes, TChildPathTypes>
+          ? MergeOptionObjects<TPathnameTypes, TChildPathTypes>
           : Merge<TPathnameTypes, TChildPathTypes>,
         Merge<TSearchTypes, TChildSearchTypes>,
         TChildState extends StateTypesObjectConstraint
@@ -311,7 +311,7 @@ type MergedTypesPair<T, U, TMode extends "inherit" | "compose"> = T extends Rout
     : never
   : never;
 
-type DefaulTPathnameTypes<T extends PathConstraint> = RouteOptions<
+type ImplicitOptions<T extends PathConstraint> = RouteOptions<
   T,
   Merge<Record<PathParam<T>, Implicit<DefType<string>>>, Record<PathParam<T, "optional">, Implicit<Type<string>>>>,
   {},
@@ -331,7 +331,7 @@ type OmiTPathnameTypes<T extends RouteOptions> = T extends RouteOptions<
 
 type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
 
-type MergeTypesObjects<T, U> = Readable<Omit<T, keyof U> & ReplaceImplicit<U, T>>;
+type MergeOptionObjects<T, U> = Readable<Omit<T, keyof U> & ReplaceImplicit<U, T>>;
 
 type ReplaceImplicit<U, T> = {
   [TKey in keyof U]: U[TKey] extends ImplicitMarker ? (TKey extends keyof T ? T[TKey] : U[TKey]) : U[TKey];
@@ -355,7 +355,7 @@ type Undefined<T> = {
 
 type NeverToUndefined<T> = [T] extends [never] ? undefined : T;
 
-type NormalizedPathTypes<TTypes, TPath extends PathConstraint> = Partial<
+type NormalizedPathnameTypes<TTypes, TPath extends PathConstraint> = Partial<
   Record<PathParam<TPath>, PathnameType<any>>
 > extends TTypes
   ? {}
@@ -371,7 +371,7 @@ function implicit<T>(value: T): Implicit<T> {
   return { ...value, __implicit: true };
 }
 
-function getDefaulTPathnameTypes<T extends PathConstraint>(path: T): DefaulTPathnameTypes<T> {
+function getImplicitOptions<T extends PathConstraint>(path: T): ImplicitOptions<T> {
   const [allPathParams, optionalPathParams] = getPathParams(path);
 
   const params: Record<string, PathnameType<any>> = {};
@@ -392,7 +392,7 @@ function getDefaulTPathnameTypes<T extends PathConstraint>(path: T): DefaulTPath
     searchParams: {},
     state: {},
     hash: [],
-  } as DefaulTPathnameTypes<T>;
+  } as ImplicitOptions<T>;
 }
 
 function createRoute(creatorOptions: CreateRouteOptions) {
@@ -430,11 +430,11 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     children?: TChildren;
   }): Route<
     FilterPathnameTypes<
-      MergedTypes<
+      MergedOptions<
         [
-          DefaulTPathnameTypes<TPath>,
-          ...ExtractTypes<TComposedRoutes>,
-          RouteOptions<TPath, NormalizedPathTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
+          ImplicitOptions<TPath>,
+          ...ExtractOptions<TComposedRoutes>,
+          RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
         ],
         "compose"
       >
@@ -443,33 +443,35 @@ function createRoute(creatorOptions: CreateRouteOptions) {
   > {
     const path = opts.path as SanitizedPath<TPath>;
 
-    const defaultTypes = getDefaulTPathnameTypes(path);
+    const implicitOptions = getImplicitOptions(path);
 
-    const composedTypes = (opts.compose ?? []).map(({ $types }) => $types) as ExtractTypes<TComposedRoutes>;
+    const composedOptions = (opts.compose ?? []).map(({ $options }) => $options) as ExtractOptions<TComposedRoutes>;
 
-    const ownTypes = {
+    const ownOptions = {
       path: opts.path ?? undefined,
       params: opts?.params ?? {},
       searchParams: opts?.searchParams ?? {},
       state: opts?.state ?? {},
       hash: opts?.hash ?? [],
-    } as RouteOptions<TPath, NormalizedPathTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>;
+    } as RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>;
 
-    const resolvedTypes = filterPathnameTypes(mergeTypes([defaultTypes, ...composedTypes, ownTypes], "compose"));
+    const resolvedOptions = filterPathnameTypes(
+      mergeTypes([implicitOptions, ...composedOptions, ownOptions], "compose"),
+    );
 
     const resolvedChildren = resolveChildren(opts.children);
 
     return {
-      ...decorateChildren(resolvedTypes, creatorOptions, resolvedChildren),
-      ...getRoute(resolvedTypes, creatorOptions),
-      $: decorateChildren(omiTPathnameTypes(resolvedTypes), creatorOptions, resolvedChildren),
+      ...decorateChildren(resolvedOptions, creatorOptions, resolvedChildren),
+      ...getRoute(resolvedOptions, creatorOptions),
+      $: decorateChildren(omiTPathnameTypes(resolvedOptions), creatorOptions, resolvedChildren),
     } as unknown as Route<
       FilterPathnameTypes<
-        MergedTypes<
+        MergedOptions<
           [
-            DefaulTPathnameTypes<TPath>,
-            ...ExtractTypes<TComposedRoutes>,
-            RouteOptions<TPath, NormalizedPathTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
+            ImplicitOptions<TPath>,
+            ...ExtractOptions<TComposedRoutes>,
+            RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
           ],
           "compose"
         >
@@ -496,7 +498,7 @@ function omiTPathnameTypes<T extends RouteOptions>(types: T): OmiTPathnameTypes<
 function mergeTypes<T extends [...RouteOptions[]], TMode extends "compose" | "inherit">(
   typesArray: [...T],
   mode: TMode,
-): MergedTypes<T, TMode> {
+): MergedOptions<T, TMode> {
   return typesArray.reduce((acc, item) => {
     const [implicitParams, explicitParams] = splitImplicit(item.params);
 
@@ -518,7 +520,7 @@ function mergeTypes<T extends [...RouteOptions[]], TMode extends "compose" | "in
         : [...(acc.hash || []), ...(item.hash || [])],
       state: { ...acc.state, ...item.state },
     };
-  }) as MergedTypes<T, TMode>;
+  }) as MergedOptions<T, TMode>;
 }
 
 function splitImplicit<T>(record: Record<string, T | Implicit<T>>): [Record<string, Implicit<T>>, Record<string, T>] {
@@ -578,7 +580,7 @@ function decorateChildren<TOptions extends RouteOptions, TChildren>(
       result[key] = isRoute(value)
         ? {
             ...decorateChildren(typesObj, creatorOptions, value),
-            ...getRoute(mergeTypes([typesObj, value.$types], "inherit"), creatorOptions),
+            ...getRoute(mergeTypes([typesObj, value.$options], "inherit"), creatorOptions),
             $: decorateChildren(omiTPathnameTypes(typesObj), creatorOptions, value.$),
           }
         : value;
@@ -735,7 +737,7 @@ function getRoute<TOptions extends RouteOptions>(
     $getUntypedSearchParams: getUntypedSearchParams,
     $getUntypedState: getUntypedState,
     $getPlainSearchParams: getPlainSearchParams,
-    $types: types,
+    $options: types,
   };
 }
 
@@ -908,7 +910,7 @@ function makeAbsolute<TPath extends PathConstraint>(path: TPath): AbsolutePath<T
 }
 
 function isRoute(value: unknown): value is Route<RouteOptions, unknown> {
-  return Boolean(value && typeof value === "object" && "$path" in value);
+  return Boolean(value && typeof value === "object" && "$options" in value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
