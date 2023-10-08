@@ -47,8 +47,8 @@ interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint,
 
 type StringPath<T extends PathConstraint> = T extends undefined ? "" : T;
 
-type PathBuilderOptions<TTypes extends RouteOptions> = Readable<
-  InPathParams<TTypes> & PathnameBuilderOptions & SearchBuilderOptions
+type PathBuilderOptions<TOptions extends RouteOptions> = Readable<
+  InPathParams<TOptions> & PathnameBuilderOptions & SearchBuilderOptions
 >;
 
 interface PathnameBuilderOptions {
@@ -73,12 +73,12 @@ type UntypedPlainState<TStateTypes extends StateTypesConstraint> = TStateTypes e
 
 type PathnameParamsRequired<T> = Partial<T> extends T ? (IsAny<T> extends true ? true : false) : true;
 
-type InPathParams<TTypes extends RouteOptions> = Readable<
-  (PathnameParamsRequired<InPathnameParams<TTypes["path"], TTypes["params"]>> extends true
-    ? { params: InPathnameParams<TTypes["path"], TTypes["params"]> }
-    : { params?: InPathnameParams<TTypes["path"], TTypes["params"]> }) & {
-    searchParams?: InSearchParams<TTypes["searchParams"]>;
-    hash?: InHash<TTypes["hash"]>;
+type InPathParams<TOptions extends RouteOptions> = Readable<
+  (PathnameParamsRequired<InPathnameParams<TOptions["path"], TOptions["params"]>> extends true
+    ? { params: InPathnameParams<TOptions["path"], TOptions["params"]> }
+    : { params?: InPathnameParams<TOptions["path"], TOptions["params"]> }) & {
+    searchParams?: InSearchParams<TOptions["searchParams"]>;
+    hash?: InHash<TOptions["hash"]>;
   }
 >;
 
@@ -543,8 +543,8 @@ function isImplicit<T>(value: T | Implicit<T>): value is Implicit<T> {
   return Boolean((value as Implicit<T>)?.__implicit);
 }
 
-function filterPathnameTypes<TTypes extends RouteOptions>(types: TTypes): FilterPathnameTypes<TTypes> {
-  if (typeof types.path === "undefined") return types as unknown as FilterPathnameTypes<TTypes>;
+function filterPathnameTypes<TOptions extends RouteOptions>(types: TOptions): FilterPathnameTypes<TOptions> {
+  if (typeof types.path === "undefined") return types as unknown as FilterPathnameTypes<TOptions>;
 
   const [allPathParams] = getPathParams(types.path);
 
@@ -557,18 +557,18 @@ function filterPathnameTypes<TTypes extends RouteOptions>(types: TTypes): Filter
   return {
     ...types,
     params,
-  } as unknown as FilterPathnameTypes<TTypes>;
+  } as unknown as FilterPathnameTypes<TOptions>;
 }
 
 function isHashType<T extends HashType<any>>(value: T | string[] | undefined): value is T {
   return Boolean(value) && !Array.isArray(value);
 }
 
-function decorateChildren<TTypes extends RouteOptions, TChildren>(
-  typesObj: TTypes,
+function decorateChildren<TOptions extends RouteOptions, TChildren>(
+  typesObj: TOptions,
   creatorOptions: CreateRouteOptions,
   children: TChildren | undefined,
-): DecoratedChildren<TTypes, TChildren> {
+): DecoratedChildren<TOptions, TChildren> {
   const result: Record<string, unknown> = {};
 
   if (children) {
@@ -586,27 +586,33 @@ function decorateChildren<TTypes extends RouteOptions, TChildren>(
     });
   }
 
-  return result as DecoratedChildren<TTypes, TChildren>;
+  return result as DecoratedChildren<TOptions, TChildren>;
 }
 
-function getRoute<TTypes extends RouteOptions>(types: TTypes, creatorOptions: CreateRouteOptions): BaseRoute<TTypes> {
+function getRoute<TOptions extends RouteOptions>(
+  types: TOptions,
+  creatorOptions: CreateRouteOptions,
+): BaseRoute<TOptions> {
   const [allPathParams] = getPathParams(types.path);
   const relativePath = removeIntermediateStars(types.path);
 
-  function getPlainParams(params: InPathnameParams<TTypes["path"], TTypes["params"]>) {
+  function getPlainParams(params: InPathnameParams<TOptions["path"], TOptions["params"]>) {
     return getPlainParamsByTypes(allPathParams, params, types.params);
   }
 
-  function buildPathname(params: InPathnameParams<TTypes["path"], TTypes["params"]>, opts?: PathnameBuilderOptions) {
+  function buildPathname(
+    params: InPathnameParams<TOptions["path"], TOptions["params"]>,
+    opts?: PathnameBuilderOptions,
+  ) {
     const rawBuiltPath = creatorOptions.generatePath(relativePath ?? "", getPlainParams(params));
     const relativePathname = rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
 
     return `${opts?.relative ? "" : "/"}${relativePathname}`;
   }
 
-  function buildPath(opts: PathBuilderOptions<TTypes>) {
-    const pathnameParams = opts.params ?? ({} as InPathnameParams<TTypes["path"], TTypes["params"]>);
-    const searchParams = opts.searchParams ?? ({} as InSearchParams<TTypes["searchParams"]>);
+  function buildPath(opts: PathBuilderOptions<TOptions>) {
+    const pathnameParams = opts.params ?? ({} as InPathnameParams<TOptions["path"], TOptions["params"]>);
+    const searchParams = opts.searchParams ?? ({} as InSearchParams<TOptions["searchParams"]>);
     const hash = opts.hash;
 
     return `${buildPathname(pathnameParams, opts)}${buildSearch(searchParams, opts)}${
@@ -614,7 +620,7 @@ function getRoute<TTypes extends RouteOptions>(types: TTypes, creatorOptions: Cr
     }`;
   }
 
-  function getPlainSearchParams(params: InSearchParams<TTypes["searchParams"]>, opts?: SearchBuilderOptions) {
+  function getPlainSearchParams(params: InSearchParams<TOptions["searchParams"]>, opts?: SearchBuilderOptions) {
     const plainParams = creatorOptions.createSearchParams(getPlainSearchParamsByTypes(params, types.searchParams));
 
     if (opts?.untypedSearchParams) {
@@ -624,29 +630,29 @@ function getRoute<TTypes extends RouteOptions>(types: TTypes, creatorOptions: Cr
     return plainParams;
   }
 
-  function buildSearch(params: InSearchParams<TTypes["searchParams"]>, opts?: SearchBuilderOptions) {
+  function buildSearch(params: InSearchParams<TOptions["searchParams"]>, opts?: SearchBuilderOptions) {
     const searchString = creatorOptions.createSearchParams(getPlainSearchParams(params, opts)).toString();
 
     return searchString ? `?${searchString}` : "";
   }
 
-  function buildHash(hash: InHash<TTypes["hash"]>) {
+  function buildHash(hash: InHash<TOptions["hash"]>) {
     if (isHashType(types.hash)) {
       return `#${types.hash.getPlainHash(hash)}`;
     }
     return `#${String(hash)}`;
   }
 
-  function buildState(params: InState<TTypes["state"]>, opts?: StateBuilderOptions) {
+  function buildState(params: InState<TOptions["state"]>, opts?: StateBuilderOptions) {
     return (
       isStateType(types.state)
         ? getPlainStateByType(params, types.state)
         : Object.assign(getPlainStateParamsByTypes(params, types.state), getUntypedState(opts?.untypedState))
-    ) as PlainState<TTypes["state"]>;
+    ) as PlainState<TOptions["state"]>;
   }
 
   function getTypedParams(params: Record<string, string | undefined>) {
-    return getTypedParamsByTypes(params, types.params as TTypes["params"]);
+    return getTypedParamsByTypes(params, types.params as TOptions["params"]);
   }
 
   function getUntypedParams(params: Record<string, string | undefined>) {
@@ -662,7 +668,7 @@ function getRoute<TTypes extends RouteOptions>(types: TTypes, creatorOptions: Cr
   }
 
   function getTypedSearchParams(params: URLSearchParams) {
-    return getTypedSearchParamsByTypes(params, types.searchParams as TTypes["searchParams"]);
+    return getTypedSearchParamsByTypes(params, types.searchParams as TOptions["searchParams"]);
   }
 
   function getUntypedSearchParams(params: URLSearchParams) {
@@ -684,7 +690,7 @@ function getRoute<TTypes extends RouteOptions>(types: TTypes, creatorOptions: Cr
   }
 
   function getUntypedState(state: unknown) {
-    const result = (isStateType(types.state) ? undefined : {}) as UntypedPlainState<TTypes["state"]>;
+    const result = (isStateType(types.state) ? undefined : {}) as UntypedPlainState<TOptions["state"]>;
 
     if (!isRecord(state) || !result) return result;
 
@@ -699,7 +705,7 @@ function getRoute<TTypes extends RouteOptions>(types: TTypes, creatorOptions: Cr
     return result;
   }
 
-  function getTypedHash(hash: string): OutHash<TTypes["hash"]> {
+  function getTypedHash(hash: string): OutHash<TOptions["hash"]> {
     const normalizedHash = hash?.substring(1, hash?.length);
 
     if (isHashType(types.hash)) {
@@ -707,16 +713,16 @@ function getRoute<TTypes extends RouteOptions>(types: TTypes, creatorOptions: Cr
     }
 
     if (normalizedHash && types.hash.indexOf(normalizedHash) !== -1) {
-      return normalizedHash as OutHash<TTypes["hash"]>;
+      return normalizedHash as OutHash<TOptions["hash"]>;
     }
 
-    return undefined as OutHash<TTypes["hash"]>;
+    return undefined as OutHash<TOptions["hash"]>;
   }
 
   return {
-    $path: makeAbsolute(types.path) as AbsolutePath<SanitizedPath<TTypes["path"]>>,
-    $_path: types.path as SanitizedPath<TTypes["path"]>,
-    $relativePath: relativePath as PathWithoutIntermediateStars<SanitizedPath<TTypes["path"]>>,
+    $path: makeAbsolute(types.path) as AbsolutePath<SanitizedPath<TOptions["path"]>>,
+    $_path: types.path as SanitizedPath<TOptions["path"]>,
+    $relativePath: relativePath as PathWithoutIntermediateStars<SanitizedPath<TOptions["path"]>>,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
     $getPlainParams: getPlainParams,
