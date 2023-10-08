@@ -20,7 +20,7 @@ interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint,
   $path: AbsolutePath<SanitizedPath<TOptions["path"]>>;
   $relativePath: PathWithoutIntermediateStars<SanitizedPath<TOptions["path"]>>;
   $_path: SanitizedPath<TOptions["path"]>;
-  $buildPath: (opts: PathBuilderOptions<TOptions["path"], TOptions>) => string;
+  $buildPath: (opts: PathBuilderOptions<TOptions>) => string;
   $buildPathname: (
     params: InPathnameParams<TOptions["path"], TOptions["params"]>,
     opts?: PathnameBuilderOptions,
@@ -47,8 +47,8 @@ interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint,
 
 type StringPath<T extends PathConstraint> = T extends undefined ? "" : T;
 
-type PathBuilderOptions<TPath extends PathConstraint, TTypes extends RouteOptions> = Readable<
-  InPathParams<TPath, TTypes> & PathnameBuilderOptions & SearchBuilderOptions
+type PathBuilderOptions<TTypes extends RouteOptions> = Readable<
+  InPathParams<TTypes> & PathnameBuilderOptions & SearchBuilderOptions
 >;
 
 interface PathnameBuilderOptions {
@@ -73,10 +73,10 @@ type UntypedPlainState<TStateTypes extends StateTypesConstraint> = TStateTypes e
 
 type PathnameParamsRequired<T> = Partial<T> extends T ? (IsAny<T> extends true ? true : false) : true;
 
-type InPathParams<TPath extends PathConstraint, TTypes extends RouteOptions> = Readable<
-  (PathnameParamsRequired<InPathnameParams<TPath, TTypes["params"]>> extends true
-    ? { params: InPathnameParams<TPath, TTypes["params"]> }
-    : { params?: InPathnameParams<TPath, TTypes["params"]> }) & {
+type InPathParams<TTypes extends RouteOptions> = Readable<
+  (PathnameParamsRequired<InPathnameParams<TTypes["path"], TTypes["params"]>> extends true
+    ? { params: InPathnameParams<TTypes["path"], TTypes["params"]> }
+    : { params?: InPathnameParams<TTypes["path"], TTypes["params"]> }) & {
     searchParams?: InSearchParams<TTypes["searchParams"]>;
     hash?: InHash<TTypes["hash"]>;
   }
@@ -604,7 +604,7 @@ function getRoute<TTypes extends RouteOptions>(types: TTypes, creatorOptions: Cr
     return `${opts?.relative ? "" : "/"}${relativePathname}`;
   }
 
-  function buildPath(opts: PathBuilderOptions<TTypes["path"], TTypes>) {
+  function buildPath(opts: PathBuilderOptions<TTypes>) {
     const pathnameParams = opts.params ?? ({} as InPathnameParams<TTypes["path"], TTypes["params"]>);
     const searchParams = opts.searchParams ?? ({} as InSearchParams<TTypes["searchParams"]>);
     const hash = opts.hash;
