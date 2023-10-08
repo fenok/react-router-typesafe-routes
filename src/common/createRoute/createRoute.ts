@@ -19,7 +19,6 @@ type DecoratedChildren<TOptions extends RouteOptions, TChildren> = {
 interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint, any, any, any>> {
   $path: AbsolutePath<SanitizedPath<TOptions["path"]>>;
   $relativePath: PathWithoutIntermediateStars<SanitizedPath<TOptions["path"]>>;
-  $_path: SanitizedPath<TOptions["path"]>;
   $buildPath: (opts: PathBuilderOptions<TOptions>) => string;
   $buildPathname: (
     params: InPathnameParams<TOptions["path"], TOptions["params"]>,
@@ -721,7 +720,6 @@ function getRoute<TOptions extends RouteOptions>(
 
   return {
     $path: makeAbsolute(types.path) as AbsolutePath<SanitizedPath<TOptions["path"]>>,
-    $_path: types.path as SanitizedPath<TOptions["path"]>,
     $relativePath: relativePath as PathWithoutIntermediateStars<SanitizedPath<TOptions["path"]>>,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
