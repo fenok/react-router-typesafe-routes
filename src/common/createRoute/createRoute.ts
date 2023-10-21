@@ -27,7 +27,9 @@ interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint,
   $getPlainParams: (
     params: InPathnameParams<TOptions["path"], TOptions["params"]>,
   ) => Record<string, string | undefined>;
-  $getTypedParams: (params: Record<string, string | undefined>) => OutPathnameParams<TOptions["params"]>;
+  $getTypedParams: (
+    params: Record<string, string | undefined>,
+  ) => OutPathnameParams<TOptions["path"], TOptions["params"]>;
   $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TOptions["searchParams"]>;
   $getTypedHash: (hash: string) => OutHash<TOptions["hash"]>;
   $getTypedState: (state: unknown) => OutState<TOptions["state"]>;
@@ -91,8 +93,12 @@ type InPathnameParams<
       Partial<Pick<RawParams<TPathnameTypes, "in">, PathParam<PathWithoutIntermediateStars<TPath>, "optional", "in">>>
     >;
 
-type OutPathnameParams<TPathnameTypes extends PathnameTypesConstraint> = Readable<
-  PartialUndefined<RawParams<TPathnameTypes, "out">>
+type OutPathnameParams<TPath extends PathConstraint, TPathnameTypes extends PathnameTypesConstraint> = Readable<
+  PartialUndefined<
+    undefined extends TPath
+      ? RawParams<TPathnameTypes, "out">
+      : Pick<RawParams<TPathnameTypes, "out">, PathParam<TPath>>
+  >
 >;
 
 type InSearchParams<TSearchTypes extends SearchTypesConstraint> = IsAny<TSearchTypes> extends true
@@ -244,22 +250,6 @@ interface RouteOptions<
 type ExtractOptions<Tuple extends [...BaseRoute[]]> = {
   [Index in keyof Tuple]: Tuple[Index]["$options"];
 };
-
-type FilterPathnameTypes<T extends RouteOptions> = T extends RouteOptions<
-  infer TPath,
-  infer TPathnameTypes,
-  infer TSearchTypes,
-  infer TStateTypes,
-  infer THash
->
-  ? RouteOptions<
-      TPath,
-      TPath extends string ? Readable<Pick<TPathnameTypes, PathParam<TPath>>> : TPathnameTypes,
-      TSearchTypes,
-      TStateTypes,
-      THash
-    >
-  : never;
 
 type MergedOptions<T extends RouteOptions[], TMode extends "inherit" | "compose"> = T extends [
   infer TFirst,
@@ -429,15 +419,13 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     hash?: THash;
     children?: TChildren;
   }): Route<
-    FilterPathnameTypes<
-      MergedOptions<
-        [
-          ImplicitOptions<TPath>,
-          ...ExtractOptions<TComposedRoutes>,
-          RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
-        ],
-        "compose"
-      >
+    MergedOptions<
+      [
+        ImplicitOptions<TPath>,
+        ...ExtractOptions<TComposedRoutes>,
+        RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
+      ],
+      "compose"
     >,
     TChildren
   > {
@@ -455,9 +443,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       hash: opts?.hash ?? [],
     } as RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>;
 
-    const resolvedOptions = filterPathnameTypes(
-      mergeTypes([implicitOptions, ...composedOptions, ownOptions], "compose"),
-    );
+    const resolvedOptions = mergeTypes([implicitOptions, ...composedOptions, ownOptions], "compose");
 
     const resolvedChildren = resolveChildren(opts.children);
 
@@ -466,15 +452,13 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       ...getRoute(resolvedOptions, creatorOptions),
       $: decorateChildren(omiTPathnameTypes(resolvedOptions), creatorOptions, resolvedChildren),
     } as unknown as Route<
-      FilterPathnameTypes<
-        MergedOptions<
-          [
-            ImplicitOptions<TPath>,
-            ...ExtractOptions<TComposedRoutes>,
-            RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
-          ],
-          "compose"
-        >
+      MergedOptions<
+        [
+          ImplicitOptions<TPath>,
+          ...ExtractOptions<TComposedRoutes>,
+          RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
+        ],
+        "compose"
       >,
       TChildren
     >;
@@ -544,23 +528,6 @@ function isImplicit<T>(value: T | Implicit<T>): value is Implicit<T> {
   return Boolean((value as Implicit<T>)?.__implicit);
 }
 
-function filterPathnameTypes<TOptions extends RouteOptions>(types: TOptions): FilterPathnameTypes<TOptions> {
-  if (typeof types.path === "undefined") return types as unknown as FilterPathnameTypes<TOptions>;
-
-  const [allPathParams] = getPathParams(types.path);
-
-  const params: Record<string, PathnameType<any>> = {};
-
-  allPathParams.forEach((param) => {
-    params[param] = types.params[param];
-  });
-
-  return {
-    ...types,
-    params,
-  } as unknown as FilterPathnameTypes<TOptions>;
-}
-
 function isHashType<T extends HashType<any>>(value: T | string[] | undefined): value is T {
   return Boolean(value) && !Array.isArray(value);
 }
@@ -594,8 +561,8 @@ function getRoute<TOptions extends RouteOptions>(
   types: TOptions,
   creatorOptions: CreateRouteOptions,
 ): BaseRoute<TOptions> {
-  const [allPathParams] = getPathParams(types.path);
-  const relativePath = removeIntermediateStars(types.path);
+  const [allPathParams] = getPathParams(types.path as TOptions["path"]);
+  const relativePath = removeIntermediateStars(types.path as TOptions["path"]);
 
   function getPlainParams(params: InPathnameParams<TOptions["path"], TOptions["params"]>) {
     return getPlainParamsByTypes(allPathParams, params, types.params);
@@ -653,7 +620,7 @@ function getRoute<TOptions extends RouteOptions>(
   }
 
   function getTypedParams(params: Record<string, string | undefined>) {
-    return getTypedParamsByTypes(params, types.params as TOptions["params"]);
+    return getTypedParamsByTypes(params, types, allPathParams);
   }
 
   function getUntypedParams(params: Record<string, string | undefined>) {
@@ -801,16 +768,19 @@ function getPlainStateByType(state: unknown, type: StateType<any>): unknown {
   return type.getPlainState(state);
 }
 
-function getTypedParamsByTypes<TPathnameTypes extends PathnameTypesConstraint>(
+function getTypedParamsByTypes<TOptions extends RouteOptions>(
   params: Record<string, string | undefined>,
-  types: TPathnameTypes,
-): OutPathnameParams<TPathnameTypes> {
+  options: TOptions,
+  keys: PathParam<TOptions["path"]>[],
+): OutPathnameParams<TOptions["path"], TOptions["params"]> {
+  const types = options.params;
+
   const result: Record<string, unknown> = {};
 
   Object.keys(types).forEach((key) => {
     const type = types[key];
 
-    if (type) {
+    if (type && keys.includes(key as PathParam<TOptions["path"]>)) {
       const typedSearchParam = type.getTypedParam(params[key]);
       if (typedSearchParam !== undefined) {
         result[key] = typedSearchParam;
@@ -818,7 +788,7 @@ function getTypedParamsByTypes<TPathnameTypes extends PathnameTypesConstraint>(
     }
   });
 
-  return result as OutPathnameParams<TPathnameTypes>;
+  return result as OutPathnameParams<TOptions["path"], TOptions["params"]>;
 }
 
 function getTypedSearchParamsByTypes<TSearchTypes extends SearchTypesConstraint>(

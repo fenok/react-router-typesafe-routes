@@ -2238,10 +2238,37 @@ it("allows to inherit pathname types", () => {
     },
     children: {
       main: route({ path: ":id" }),
+      other: route({
+        path: "other",
+        children: {
+          entity: route({ path: ":id" }),
+        },
+      }),
     },
   });
 
   assert<IsExact<Parameters<typeof routes.main.$buildPathname>[0], { id: number }>>(true);
+  assert<IsExact<Parameters<typeof routes.other.$buildPathname>[0], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof routes.other.entity.$buildPathname>[0], { id: number }>>(true);
+
+  expect(routes.main.$getTypedParams({ id: "1" })).toStrictEqual({ id: 1 });
+  expect(routes.other.$getTypedParams({ id: "1" })).toStrictEqual({});
+  expect(routes.other.entity.$getTypedParams({ id: "1" })).toStrictEqual({ id: 1 });
+});
+
+it("allows to inherit composed pathname types", () => {
+  const idFragment = route({ params: { id: number() } });
+
+  const routes = route({
+    path: "test",
+    compose: [idFragment],
+    children: {
+      main: route({ path: ":id" }),
+    },
+  });
+
+  assert<IsExact<Parameters<typeof routes.main.$buildPathname>[0], { id: number }>>(true);
+
   expect(routes.main.$getTypedParams({ id: "1" })).toStrictEqual({ id: 1 });
 });
 
