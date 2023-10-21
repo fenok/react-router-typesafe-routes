@@ -106,8 +106,7 @@ const root = route({
 
 Use `Route` components as usual:
 
-> ❗Routes can (and probably should!) be defined as objects that are passed to e.g. [`createBrowserRouter
-`](https://reactrouter.com/en/main/routers/create-browser-router). However, we will use the JSX style throughout the doc because it's not deprecated and also more nuanced.
+> ❗Routes can (and probably should!) be defined as objects that are passed to e.g. [`createBrowserRouter`](https://reactrouter.com/en/main/routers/create-browser-router). However, we will use the JSX style throughout the doc because it's not deprecated and also more nuanced.
 
 ```tsx
 import { Route, Routes } from "react-router-dom"; // Or /native
