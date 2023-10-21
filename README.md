@@ -235,45 +235,43 @@ const myRoute = route({
 
 </details>
 
-Reuse types across routes:
+### Share types between routes
+
+<details>
+  <summary>Click to expand</summary>
 
 ```tsx
-import {
-  route,
-  fragment,
-  number,
-  string,
-  useTypedParams,
-  useTypedSearchParams,
-} from "react-router-typesafe-routes/dom"; // Or /native
-
-// Fragments allow to compose types to multiple routes.
-// There is no path pattern or children, they are essentially routes without pathname building API.
+// Pathless routes can be used for type sharing.
 const fragments = {
-  id: fragment({
+  id: route({
     params: { id: number() },
   }),
-  query: fragment({
+  query: route({
     searchParams: { query: string() },
   }),
 };
 
-// Since children inherit parent types, we can create a root route with types common for all routes.
+// Pathless routes can also be used anywhere in the route tree.
 const root = route({
-  searchParams: { lang: string() },
+  // You can specify types directly.
+  searchParams: { utm_campaign: string() },
+  // Or reuse existing pathless routes.
+  compose: [fragments.id],
   children: {
-    // If a fragment has additional pathname params, path building will still work correctly.
-    user: route({ path: "user/:id", compose: [fragments.id, fragments.query] }),
-    post: route({ path: "post/:id", compose: [fragments.id] }),
+    user: route({ path: "user/:id", compose: [fragments.query] }),
+    post: route({ path: "post/:id" }),
+    // Pathname types are ignored if there are no corresponding params in the pattern.
     about: route({ path: "about" }),
   },
 });
 
-// We can build helpers that are reusable between routes:
+// You can then build helpers that are reusable between routes:
 const { id } = useTypedParams(fragments.id);
 const [{ query }] = useTypedSearchParams(fragments.query);
-const [{ lang }] = useTypedSearchParams(root);
+const [{ utm_campaign }] = useTypedSearchParams(root);
 ```
+
+</details>
 
 Inherit hash values:
 
