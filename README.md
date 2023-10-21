@@ -214,7 +214,10 @@ const hash = useTypedHash(root.user.post);
 
 ## Advanced examples
 
-Define arrays:
+### Define arrays
+
+<details>
+  <summary>Click to expand</summary>
 
 ```tsx
 import { route, union, number } from "react-router-typesafe-routes/dom"; // Or /native
@@ -222,14 +225,16 @@ import { route, union, number } from "react-router-typesafe-routes/dom"; // Or /
 const myRoute = route({
   searchParams: {
     // Every built-in type can be made an array. Arrays can only be used in search and state.
-    // Upon parsing, undefined values are omitted from the resulting array.
+    // Upon parsing, 'undefined' values are omitted, and absent/invalid array is normalized to [].
     selectedIds: number().array(),
     // In niche cases we might want to use '.default()' or '.defined()' for items.
-    // If items are '.defined()', an absent/invalid param will fail the whole array.
+    // '.defined()' means that an invalid item makes the whole array invalid.
     selectedItems: number().default(-1).array(),
   },
 });
 ```
+
+</details>
 
 Reuse types across routes:
 
