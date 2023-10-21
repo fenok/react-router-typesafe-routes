@@ -79,7 +79,7 @@ import { route, number, boolean, union } from "react-router-typesafe-routes/dom"
 // Types specify how params are serialized and parsed.
 // All params are optional, except for required pathname params.
 // You can optionally start with a pathless route to specify params for all routes.
-const routes = route({
+const root = route({
   // E.g. this search param is global and also non-undefined, since it has a default value.
   searchParams: { utm_campaign: string().default("default_campaign") },
   // Child routes inherit all parent params.
@@ -97,7 +97,7 @@ const routes = route({
       // Child routes inherit all parent params.
       children: {
         // Optional pathname params are also supported and implicitly use 'string()' type.
-        posts: route({ path: "posts/:postId?" }),
+        post: route({ path: "post/:postId?" }),
       },
     }),
   },
@@ -111,24 +111,24 @@ Use `Route` components as usual:
 
 ```tsx
 import { Route, Routes } from "react-router-dom"; // Or /native
-import { routes } from "./path/to/routes";
+import { root } from "./path/to/routes";
 
 // Absolute paths
 <Routes>
   {/* /user/:userId */}
-  <Route path={routes.user.$path} element={<User />}>
-    {/* /user/:userId/posts/:postId? */}
-    <Route path={routes.user.posts.$path} element={<Posts />} />
+  <Route path={root.user.$path} element={<User />}>
+    {/* /user/:userId/post/:postId? */}
+    <Route path={root.user.post.$path} element={<Post />} />
   </Route>
 </Routes>;
 
 // Relative paths
 <Routes>
   {/* user/:userId */}
-  <Route path={routes.user.$relativePath} element={<User />}>
-    {/* posts/:postId? */}
+  <Route path={root.user.$relativePath} element={<User />}>
+    {/* post/:postId? */}
     {/* $ effectively defines path pattern start. */}
-    <Route path={routes.user.$.posts.$relativePath} element={<Posts />} />
+    <Route path={root.user.$.post.$relativePath} element={<Post />} />
   </Route>
 </Routes>;
 ```
@@ -137,34 +137,34 @@ Use `Link` components as usual:
 
 ```tsx
 import { Link } from "react-router-dom"; // Or -native
-import { routes } from "./path/to/routes";
+import { root } from "./path/to/routes";
 
 // Absolute link
 <Link
   // Everything is optional except for required pathname param (params.userId).
-  to={routes.user.posts.$buildPath({
+  to={root.user.post.$buildPath({
     params: { userId: 1, postId: "abc" },
     searchParams: { utm_campaign: "campaign" },
     hash: "comments",
   })}
-  state={routes.user.posts.$buildState({ fromUserList: true })}
+  state={root.user.post.$buildState({ fromUserList: true })}
 >
-  /user/1/posts/abc?utm_campaign=campaign#comments
+  /user/1/post/abc?utm_campaign=campaign#comments
 </Link>;
 
 // Relative link
 <Link
   // Everything is optional, because there are no required pathname params.
   // $ effectively defines path pattern start.
-  to={routes.user.$.posts.$buildPath({
+  to={root.user.$.post.$buildPath({
     relative: true,
     params: { postId: "abc" },
     searchParams: { utm_campaign: "campaign" },
     hash: "info",
   })}
-  state={routes.user.posts.$buildState({ fromUserList: false })}
+  state={root.user.post.$buildState({ fromUserList: false })}
 >
-  posts/abc?utm_campaign=campaign#info
+  post/abc?utm_campaign=campaign#info
 </Link>;
 ```
 
@@ -172,43 +172,44 @@ Get typed path params with `useTypedParams()`:
 
 ```tsx
 import { useTypedParams } from "react-router-typesafe-routes/dom"; // Or /native
-import { routes } from "./path/to/routes";
+import { root } from "./path/to/routes";
 
-// The type here is { id: number; lang?: string }.
-// Note how id can't be undefined because we throw an error in case of an absent/invalid param.
-const { id, lang } = useTypedParams(routes.user.details);
+// The type here is { userId: number; postId?: string | undefined; }.
+// If userId is absent/invalid, an error will be thrown.
+const { userId, postId } = useTypedParams(root.user.post);
 ```
 
 Get typed search params with `useTypedSearchParams()`:
 
 ```tsx
 import { useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
-import { routes } from "./path/to/routes";
+import { root } from "./path/to/routes";
 
-// The type here is { infoVisible: boolean }.
-// Note how infoVisible can't be undefined because we specified a default value.
-const [{ infoVisible }, setTypedSearchParams] = useTypedSearchParams(routes.user.details);
+// The type here is { utm_campaign: string }.
+// If utm_campaign is absent/invalid, the default value will be used ("default_campaign").
+const [{ utm_campaign }, setTypedSearchParams] = useTypedSearchParams(root.user.post);
 ```
 
 Get typed state with `useTypedState()`:
 
 ```tsx
 import { useTypedState } from "react-router-typesafe-routes/dom"; // Or /native
-import { routes } from "./path/to/routes";
+import { root } from "./path/to/routes";
 
 // The type here is { fromUserList: boolean | undefined }.
-// Note how fromUserList can be undefined, which means that it's absent or invalid.
-const { fromUserList } = useTypedState(routes.user.details);
+// If fromUserList is absent/invalid, 'undefined' is used instead.
+const { fromUserList } = useTypedState(root.user.post);
 ```
 
 Get typed hash with `useTypedHash()`:
 
 ```tsx
 import { useTypedHash } from "react-router-typesafe-routes/dom"; // Or /native
-import { routes } from "./path/to/routes";
+import { root } from "./path/to/routes";
 
 // The type here is "info" | "comments" | undefined.
-const hash = useTypedHash(routes.user.details);
+// If hash is absent/invalid, 'undefined' is used instead.
+const hash = useTypedHash(root.user.post);
 ```
 
 ## Advanced examples
