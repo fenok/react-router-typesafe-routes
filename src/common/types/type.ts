@@ -166,7 +166,9 @@ function ensureNoUndefined<TFn extends (...args: never[]) => unknown>(
 
     if (result === undefined) {
       if (def === undefined) {
-        throw new Error("Unexpected undefined");
+        throw new Error(
+          "Can't return 'undefined' for a .defined() param. Use .default() instead. Remember, required pathname params use .defined() by default.",
+        );
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return
