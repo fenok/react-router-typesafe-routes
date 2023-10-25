@@ -202,6 +202,16 @@ type PathWithoutIntermediateStars<T extends PathConstraint> = T extends `${infer
 
 type AbsolutePath<T extends PathConstraint> = T extends string ? `/${T}` : T;
 
+type SanitizedChildren<T> = {
+  [TKey in keyof T]: TKey extends Omit$<TKey>
+    ? T[TKey] extends BaseRoute
+      ? T[TKey]
+      : BaseRoute
+    : ErrorMessage<"Name can't start with $">;
+};
+
+type Omit$<T> = T extends `$${infer TValid}` ? TValid : T;
+
 type SanitizedPathParam<
   TRawParam extends string,
   TKind extends "all" | "optional" = "all",
@@ -404,7 +414,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     searchParams?: TSearchTypes;
     state?: TStateTypes;
     hash?: THash;
-    children?: TChildren;
+    children?: SanitizedChildren<TChildren>;
   }): Route<
     MergedOptions<
       [
@@ -427,7 +437,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
 
     const resolvedOptions = mergeTypes([...composedOptions, ownOptions], "compose");
 
-    const resolvedChildren = resolveChildren(opts.children);
+    const resolvedChildren = opts.children;
 
     return {
       ...decorateChildren(resolvedOptions, creatorOptions, resolvedChildren),
@@ -446,14 +456,6 @@ function createRoute(creatorOptions: CreateRouteOptions) {
   }
 
   return route;
-}
-
-function resolveChildren<T>(children?: T): T | undefined {
-  if (children && Object.keys(children).some((key) => key.startsWith("$"))) {
-    throw new Error('Children names starting with "$" are forbidden');
-  }
-
-  return children;
 }
 
 function omiTPathnameTypes<T extends RouteOptions>(types: T): OmiTPathnameTypes<T> {
@@ -867,6 +869,7 @@ export {
   RouteOptions,
   PathParam,
   SanitizedPath,
+  SanitizedChildren,
   InPathParams,
   InPathnameParams,
   OutPathnameParams,
