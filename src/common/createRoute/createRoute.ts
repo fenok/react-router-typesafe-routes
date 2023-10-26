@@ -127,9 +127,9 @@ type OutState<TOptions extends RouteOptions> = TOptions["state"] extends StateTy
   ? RawState<TOptions["state"], "out">
   : never;
 
-type InHash<TOptions extends RouteOptions> = NeverToUndefined<RawHash<TOptions["hash"], "in">>;
+type InHash<TOptions extends RouteOptions> = RawHash<TOptions["hash"], "in">;
 
-type OutHash<TOptions extends RouteOptions> = NeverToUndefined<RawHash<TOptions["hash"], "out">>;
+type OutHash<TOptions extends RouteOptions> = RawHash<TOptions["hash"], "out">;
 
 type InferredPathnameTypes<TPath extends PathConstraint> = Merge<
   Record<PathParam<TPath>, DefType<string>>,
@@ -171,13 +171,15 @@ type RawStateParams<TTypes extends StateTypesObjectConstraint, TMode extends "in
 
 type RawHash<THash, TMode extends "in" | "out"> = THash extends string[]
   ? TMode extends "in"
-    ? THash[number]
+    ? [THash[number]] extends [never]
+      ? undefined
+      : THash[number]
     : THash[number] | undefined
   : THash extends HashType<infer TOut, infer TIn>
   ? TMode extends "in"
     ? Exclude<TIn, undefined>
     : TOut
-  : never;
+  : undefined;
 
 type AbsolutePath<T extends PathConstraint> = T extends string ? `/${T}` : T;
 
@@ -343,8 +345,6 @@ type PartialUndefined<T> = Merge<T, Undefined<T>>;
 type Undefined<T> = {
   [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
 };
-
-type NeverToUndefined<T> = [T] extends [never] ? undefined : T;
 
 type NormalizedPathnameTypes<TTypes, TPath extends PathConstraint> = Partial<
   Record<PathParam<TPath>, PathnameType<any>>
