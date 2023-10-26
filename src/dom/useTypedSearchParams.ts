@@ -9,13 +9,11 @@ interface TypedNavigateOptions<T> extends NavigateOptions {
 
 function useTypedSearchParams<TOptions extends RouteOptions>(
   route: BaseRoute<TOptions>,
-  typedDefaultInit?: InSearchParams<TOptions["searchParams"]>,
+  typedDefaultInit?: InSearchParams<TOptions>,
 ): [
-  OutSearchParams<TOptions["searchParams"]>,
+  OutSearchParams<TOptions>,
   (
-    searchParams:
-      | InSearchParams<TOptions["searchParams"]>
-      | ((prevParams: OutSearchParams<TOptions["searchParams"]>) => InSearchParams<TOptions["searchParams"]>),
+    searchParams: InSearchParams<TOptions> | ((prevParams: OutSearchParams<TOptions>) => InSearchParams<TOptions>),
     navigateOptions?: TypedNavigateOptions<InState<TOptions["state"]>>,
   ) => void,
 ] {
@@ -30,9 +28,7 @@ function useTypedSearchParams<TOptions extends RouteOptions>(
 
   const setTypedSearchParams = useCallback(
     (
-      params:
-        | InSearchParams<TOptions["searchParams"]>
-        | ((prevParams: OutSearchParams<TOptions["searchParams"]>) => InSearchParams<TOptions["searchParams"]>),
+      params: InSearchParams<TOptions> | ((prevParams: OutSearchParams<TOptions>) => InSearchParams<TOptions>),
       { state, untypedSearchParams, ...restNavigateOptions }: TypedNavigateOptions<InState<TOptions["state"]>> = {},
     ) => {
       setSearchParams(

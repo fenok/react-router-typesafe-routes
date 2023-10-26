@@ -20,27 +20,17 @@ interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint,
   $path: AbsolutePath<SanitizedPath<TOptions["path"]>>;
   $relativePath: PathWithoutIntermediateStars<SanitizedPath<TOptions["path"]>>;
   $buildPath: (opts: PathBuilderOptions<TOptions>) => string;
-  $buildPathname: (
-    params: InPathnameParams<TOptions["path"], TOptions["params"]>,
-    opts?: PathnameBuilderOptions,
-  ) => string;
-  $getPlainParams: (
-    params: InPathnameParams<TOptions["path"], TOptions["params"]>,
-  ) => Record<string, string | undefined>;
-  $getTypedParams: (
-    params: Record<string, string | undefined>,
-  ) => OutPathnameParams<TOptions["path"], TOptions["params"]>;
-  $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TOptions["searchParams"]>;
+  $buildPathname: (params: InPathnameParams<TOptions>, opts?: PathnameBuilderOptions) => string;
+  $getPlainParams: (params: InPathnameParams<TOptions>) => Record<string, string | undefined>;
+  $getTypedParams: (params: Record<string, string | undefined>) => OutPathnameParams<TOptions>;
+  $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TOptions>;
   $getTypedHash: (hash: string) => OutHash<TOptions["hash"]>;
   $getTypedState: (state: unknown) => OutState<TOptions["state"]>;
   $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
   $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
   $getUntypedState: (state: unknown) => UntypedPlainState<TOptions["state"]>;
-  $buildSearch: (params: InSearchParams<TOptions["searchParams"]>, opts?: SearchBuilderOptions) => string;
-  $getPlainSearchParams: (
-    params: InSearchParams<TOptions["searchParams"]>,
-    opts?: SearchBuilderOptions,
-  ) => URLSearchParams;
+  $buildSearch: (params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => string;
+  $getPlainSearchParams: (params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => URLSearchParams;
   $buildHash: (hash: InHash<TOptions["hash"]>) => string;
   $buildState: (state: InState<TOptions["state"]>, opts?: StateBuilderOptions) => PlainState<TOptions["state"]>;
   $options: TOptions;
@@ -75,51 +65,54 @@ type UntypedPlainState<TStateTypes extends StateTypesConstraint> = TStateTypes e
 type PathnameParamsRequired<T> = Partial<T> extends T ? (IsAny<T> extends true ? true : false) : true;
 
 type InPathParams<TOptions extends RouteOptions> = Readable<
-  (PathnameParamsRequired<InPathnameParams<TOptions["path"], TOptions["params"]>> extends true
-    ? { params: InPathnameParams<TOptions["path"], TOptions["params"]> }
-    : { params?: InPathnameParams<TOptions["path"], TOptions["params"]> }) & {
-    searchParams?: InSearchParams<TOptions["searchParams"]>;
+  (PathnameParamsRequired<InPathnameParams<TOptions>> extends true
+    ? { params: InPathnameParams<TOptions> }
+    : { params?: InPathnameParams<TOptions> }) & {
+    searchParams?: InSearchParams<TOptions>;
     hash?: InHash<TOptions["hash"]>;
   }
 >;
 
-type InPathnameParams<TPath extends PathConstraint, TPathnameTypes extends PathnameTypesConstraint> = Merge<
-  InferredPathnameTypes<TPath>,
-  TPathnameTypes
+type InPathnameParams<TOptions extends RouteOptions> = Merge<
+  InferredPathnameTypes<TOptions["path"]>,
+  TOptions["params"]
 > extends infer TResolvedTypes
   ? TResolvedTypes extends PathnameTypesConstraint
     ? IsAny<TResolvedTypes> extends true
       ? any
       : Merge<
-          Pick<RawParams<TResolvedTypes, "in">, PathParam<PathWithoutIntermediateStars<TPath>, "all", "in">>,
+          Pick<RawParams<TResolvedTypes, "in">, PathParam<PathWithoutIntermediateStars<TOptions["path"]>, "all", "in">>,
           Partial<
-            Pick<RawParams<TResolvedTypes, "in">, PathParam<PathWithoutIntermediateStars<TPath>, "optional", "in">>
+            Pick<
+              RawParams<TResolvedTypes, "in">,
+              PathParam<PathWithoutIntermediateStars<TOptions["path"]>, "optional", "in">
+            >
           >
         >
     : never
   : never;
 
-type OutPathnameParams<TPath extends PathConstraint, TPathnameTypes extends PathnameTypesConstraint> = Merge<
-  InferredPathnameTypes<TPath>,
-  TPathnameTypes
+type OutPathnameParams<TOptions extends RouteOptions> = Merge<
+  InferredPathnameTypes<TOptions["path"]>,
+  TOptions["params"]
 > extends infer TResolvedTypes
   ? TResolvedTypes extends PathnameTypesConstraint
     ? Readable<
         PartialUndefined<
-          undefined extends TPath
+          undefined extends TOptions["path"]
             ? RawParams<TResolvedTypes, "out">
-            : Pick<RawParams<TResolvedTypes, "out">, PathParam<TPath>>
+            : Pick<RawParams<TResolvedTypes, "out">, PathParam<TOptions["path"]>>
         >
       >
     : never
   : never;
 
-type InSearchParams<TSearchTypes extends SearchTypesConstraint> = IsAny<TSearchTypes> extends true
+type InSearchParams<TOptions extends RouteOptions> = IsAny<TOptions["searchParams"]> extends true
   ? any
-  : Readable<Partial<RawSearchParams<TSearchTypes, "in">>>;
+  : Readable<Partial<RawSearchParams<TOptions["searchParams"], "in">>>;
 
-type OutSearchParams<TSearchTypes extends SearchTypesConstraint> = Readable<
-  PartialUndefined<RawSearchParams<TSearchTypes, "out">>
+type OutSearchParams<TOptions extends RouteOptions> = Readable<
+  PartialUndefined<RawSearchParams<TOptions["searchParams"], "out">>
 >;
 
 type InState<TStateTypes extends StateTypesConstraint> = IsAny<TStateTypes> extends true
@@ -525,14 +518,11 @@ function getRoute<TOptions extends RouteOptions>(
   const relativePath = removeIntermediateStars(types.path as TOptions["path"]);
   const resolvedTypes = { ...types, params: { ...getInferredPathnameTypes(types.path), ...types.params } };
 
-  function getPlainParams(params: InPathnameParams<TOptions["path"], TOptions["params"]>) {
+  function getPlainParams(params: InPathnameParams<TOptions>) {
     return getPlainParamsByTypes(allPathParams, params, types.params);
   }
 
-  function buildPathname(
-    params: InPathnameParams<TOptions["path"], TOptions["params"]>,
-    opts?: PathnameBuilderOptions,
-  ) {
+  function buildPathname(params: InPathnameParams<TOptions>, opts?: PathnameBuilderOptions) {
     const rawBuiltPath = creatorOptions.generatePath(relativePath ?? "", getPlainParams(params));
     const relativePathname = rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
 
@@ -540,8 +530,8 @@ function getRoute<TOptions extends RouteOptions>(
   }
 
   function buildPath(opts: PathBuilderOptions<TOptions>) {
-    const pathnameParams = opts.params ?? ({} as InPathnameParams<TOptions["path"], TOptions["params"]>);
-    const searchParams = opts.searchParams ?? ({} as InSearchParams<TOptions["searchParams"]>);
+    const pathnameParams = opts.params ?? ({} as InPathnameParams<TOptions>);
+    const searchParams = opts.searchParams ?? ({} as InSearchParams<TOptions>);
     const hash = opts.hash;
 
     return `${buildPathname(pathnameParams, opts)}${buildSearch(searchParams, opts)}${
@@ -549,7 +539,7 @@ function getRoute<TOptions extends RouteOptions>(
     }`;
   }
 
-  function getPlainSearchParams(params: InSearchParams<TOptions["searchParams"]>, opts?: SearchBuilderOptions) {
+  function getPlainSearchParams(params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) {
     const plainParams = creatorOptions.createSearchParams(getPlainSearchParamsByTypes(params, types.searchParams));
 
     if (opts?.untypedSearchParams) {
@@ -559,7 +549,7 @@ function getRoute<TOptions extends RouteOptions>(
     return plainParams;
   }
 
-  function buildSearch(params: InSearchParams<TOptions["searchParams"]>, opts?: SearchBuilderOptions) {
+  function buildSearch(params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) {
     const searchString = creatorOptions.createSearchParams(getPlainSearchParams(params, opts)).toString();
 
     return searchString ? `?${searchString}` : "";
@@ -597,7 +587,7 @@ function getRoute<TOptions extends RouteOptions>(
   }
 
   function getTypedSearchParams(params: URLSearchParams) {
-    return getTypedSearchParamsByTypes(params, types.searchParams as TOptions["searchParams"]);
+    return getTypedSearchParamsByTypes(params, types);
   }
 
   function getUntypedSearchParams(params: URLSearchParams) {
@@ -733,7 +723,7 @@ function getTypedParamsByTypes<TOptions extends RouteOptions>(
   params: Record<string, string | undefined>,
   options: TOptions,
   keys: PathParam<TOptions["path"]>[],
-): OutPathnameParams<TOptions["path"], TOptions["params"]> {
+): OutPathnameParams<TOptions> {
   const types = options.params;
 
   const result: Record<string, unknown> = {};
@@ -749,14 +739,15 @@ function getTypedParamsByTypes<TOptions extends RouteOptions>(
     }
   });
 
-  return result as OutPathnameParams<TOptions["path"], TOptions["params"]>;
+  return result as OutPathnameParams<TOptions>;
 }
 
-function getTypedSearchParamsByTypes<TSearchTypes extends SearchTypesConstraint>(
+function getTypedSearchParamsByTypes<TOptions extends RouteOptions>(
   searchParams: URLSearchParams,
-  types: TSearchTypes,
-): OutSearchParams<TSearchTypes> {
+  options: TOptions,
+): OutSearchParams<TOptions> {
   const result: Record<string, unknown> = {};
+  const types = options.searchParams;
 
   Object.keys(types).forEach((key) => {
     const type = types[key];
@@ -769,7 +760,7 @@ function getTypedSearchParamsByTypes<TSearchTypes extends SearchTypesConstraint>
     }
   });
 
-  return result as OutSearchParams<TSearchTypes>;
+  return result as OutSearchParams<TOptions>;
 }
 
 function getTypedStateByTypes<TStateTypes extends StateTypesObjectConstraint>(
