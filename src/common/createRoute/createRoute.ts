@@ -36,8 +36,6 @@ interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint,
   $options: TOptions;
 }
 
-type StringPath<T extends PathConstraint> = T extends undefined ? "" : T;
-
 type PathBuilderOptions<TOptions extends RouteOptions> = Readable<
   InPathParams<TOptions> & PathnameBuilderOptions & SearchBuilderOptions
 >;
@@ -62,8 +60,6 @@ type UntypedPlainState<TStateTypes extends StateTypesConstraint> = TStateTypes e
   ? Record<string, unknown>
   : undefined;
 
-type PathnameParamsRequired<T> = Partial<T> extends T ? (IsAny<T> extends true ? true : false) : true;
-
 type InPathParams<TOptions extends RouteOptions> = Readable<
   (PathnameParamsRequired<InPathnameParams<TOptions>> extends true
     ? { params: InPathnameParams<TOptions> }
@@ -72,6 +68,8 @@ type InPathParams<TOptions extends RouteOptions> = Readable<
     hash?: InHash<TOptions>;
   }
 >;
+
+type PathnameParamsRequired<T> = Partial<T> extends T ? (IsAny<T> extends true ? true : false) : true;
 
 type InPathnameParams<TOptions extends RouteOptions> = Merge<
   InferredPathnameTypes<TOptions["path"]>,
@@ -319,6 +317,8 @@ type MergedOptionsPair<T, U, TMode extends "inherit" | "compose"> = T extends Ro
       >
     : never
   : never;
+
+type StringPath<T extends PathConstraint> = T extends undefined ? "" : T;
 
 type OmitPathnameTypes<T extends RouteOptions> = T extends RouteOptions<
   infer _TPath,
