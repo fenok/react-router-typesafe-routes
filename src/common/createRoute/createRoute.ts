@@ -338,6 +338,8 @@ type Readable<T> = T extends object ? (T extends infer O ? { [K in keyof O]: O[K
 
 type ErrorMessage<T extends string> = T & { [brand]: ErrorMessage<T> };
 
+declare const brand: unique symbol;
+
 type IsAny<T> = 0 extends 1 & T ? true : false;
 
 type PartialUndefined<T> = Merge<T, Undefined<T>>;
@@ -346,7 +348,7 @@ type Undefined<T> = {
   [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
 };
 
-type NormalizedPathnameTypes<TTypes, TPath extends PathConstraint> = Partial<
+type NormalizePathnameTypes<TTypes, TPath extends PathConstraint> = Partial<
   Record<PathParam<TPath>, PathnameType<any>>
 > extends TTypes
   ? {}
@@ -355,8 +357,6 @@ type NormalizedPathnameTypes<TTypes, TPath extends PathConstraint> = Partial<
 type RequiredWithoutUndefined<T> = {
   [P in keyof T]-?: Exclude<T[P], undefined>;
 };
-
-declare const brand: unique symbol;
 
 function getInferredPathnameTypes<T extends PathConstraint>(path: T): InferredPathnameTypes<T> {
   const [allPathParams, optionalPathParams] = getPathParams(path);
@@ -412,7 +412,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     MergeOptions<
       [
         ...ExtractOptions<TComposedRoutes>,
-        RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
+        RouteOptions<TPath, NormalizePathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
       ],
       "compose"
     >,
@@ -426,7 +426,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       searchParams: opts?.searchParams ?? {},
       state: opts?.state ?? {},
       hash: opts?.hash ?? [],
-    } as RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>;
+    } as RouteOptions<TPath, NormalizePathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>;
 
     const resolvedOptions = mergeTypes([...composedOptions, ownOptions], "compose");
 
@@ -440,7 +440,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       MergeOptions<
         [
           ...ExtractOptions<TComposedRoutes>,
-          RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
+          RouteOptions<TPath, NormalizePathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
         ],
         "compose"
       >,
