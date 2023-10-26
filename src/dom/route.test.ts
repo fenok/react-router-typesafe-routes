@@ -2272,6 +2272,15 @@ it("allows pathless routes", () => {
   expect(testRoute.$.child.grandchild.$path).toBe("/grandchild");
 });
 
+it("preserves pathless routes in chains", () => {
+  const grandchild = route({});
+  const child = route({ children: { grandchild } });
+  const test = route({ children: { child } });
+
+  expect(test.child.grandchild.$path).toBe(undefined);
+  expect(test.$.child.grandchild.$path).toBe(undefined);
+});
+
 it("ensures that types of non-existent pathname params are ignored", () => {
   const excessParams = route({ params: { id: number(), fake: number() } });
 
