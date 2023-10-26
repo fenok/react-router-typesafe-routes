@@ -14,7 +14,7 @@ function useTypedSearchParams<TOptions extends RouteOptions>(
   OutSearchParams<TOptions>,
   (
     searchParams: InSearchParams<TOptions> | ((prevParams: OutSearchParams<TOptions>) => InSearchParams<TOptions>),
-    navigateOptions?: TypedNavigateOptions<InState<TOptions["state"]>>,
+    navigateOptions?: TypedNavigateOptions<InState<TOptions>>,
   ) => void,
 ] {
   const defaultInit = useMemo(
@@ -29,7 +29,7 @@ function useTypedSearchParams<TOptions extends RouteOptions>(
   const setTypedSearchParams = useCallback(
     (
       params: InSearchParams<TOptions> | ((prevParams: OutSearchParams<TOptions>) => InSearchParams<TOptions>),
-      { state, untypedSearchParams, ...restNavigateOptions }: TypedNavigateOptions<InState<TOptions["state"]>> = {},
+      { state, untypedSearchParams, ...restNavigateOptions }: TypedNavigateOptions<InState<TOptions>> = {},
     ) => {
       setSearchParams(
         (prevParams) => {
