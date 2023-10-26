@@ -7,7 +7,7 @@ type Route<
   TChildren = {},
 > = DecorateChildren<TOptions, TChildren> &
   BaseRoute<TOptions> & {
-    $: DecorateChildren<OmitPathnameTypes<TOptions>, TChildren>;
+    $: DecorateChildren<OmitPathname<TOptions>, TChildren>;
   };
 
 type DecorateChildren<TOptions extends RouteOptions, TChildren> = {
@@ -17,8 +17,8 @@ type DecorateChildren<TOptions extends RouteOptions, TChildren> = {
 };
 
 interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint, any, any, any>> {
-  $path: AbsolutePath<SanitizedPath<TOptions["path"]>>;
-  $relativePath: PathWithoutIntermediateStars<SanitizedPath<TOptions["path"]>>;
+  $path: AbsolutePath<SanitizePath<TOptions["path"]>>;
+  $relativePath: PathWithoutIntermediateStars<SanitizePath<TOptions["path"]>>;
   $buildPath: (opts: PathBuilderOptions<TOptions>) => string;
   $buildPathname: (params: InPathnameParams<TOptions>, opts?: PathnameBuilderOptions) => string;
   $buildSearch: (searchParams: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => string;
@@ -179,11 +179,7 @@ type RawHash<THash, TMode extends "in" | "out"> = THash extends string[]
     : TOut
   : never;
 
-type SanitizedPath<T> = T extends `/${string}`
-  ? ErrorMessage<"Leading slashes are forbidden">
-  : T extends `${string}/`
-  ? ErrorMessage<"Trailing slashes are forbidden">
-  : T;
+type AbsolutePath<T extends PathConstraint> = T extends string ? `/${T}` : T;
 
 type PathWithoutIntermediateStars<T extends PathConstraint> = T extends `${infer TStart}*?/${infer TEnd}`
   ? PathWithoutIntermediateStars<`${TStart}${TEnd}`>
@@ -191,9 +187,13 @@ type PathWithoutIntermediateStars<T extends PathConstraint> = T extends `${infer
   ? PathWithoutIntermediateStars<`${TStart}${TEnd}`>
   : T;
 
-type AbsolutePath<T extends PathConstraint> = T extends string ? `/${T}` : T;
+type SanitizePath<T> = T extends `/${string}`
+  ? ErrorMessage<"Leading slashes are forbidden">
+  : T extends `${string}/`
+  ? ErrorMessage<"Trailing slashes are forbidden">
+  : T;
 
-type SanitizedChildren<T> = {
+type SanitizeChildren<T> = {
   [TKey in keyof T]: TKey extends Omit$<TKey>
     ? T[TKey] extends BaseRoute
       ? T[TKey]
@@ -203,7 +203,7 @@ type SanitizedChildren<T> = {
 
 type Omit$<T> = T extends `$${infer TValid}` ? TValid : T;
 
-type SanitizedPathParam<
+type ExtractPathParam<
   TRawParam extends string,
   TKind extends "all" | "optional" = "all",
   TMode extends "in" | "out" = "out",
@@ -224,18 +224,32 @@ type PathParam<
 > = string extends TPath
   ? never
   : TPath extends `${infer TBefore}*?${infer TAfter}`
-  ? SanitizedPathParam<"*?", TKind, TMode> | PathParam<TBefore, TKind, TMode> | PathParam<TAfter, TKind, TMode>
+  ? ExtractPathParam<"*?", TKind, TMode> | PathParam<TBefore, TKind, TMode> | PathParam<TAfter, TKind, TMode>
   : TPath extends `${infer TBefore}*${infer TAfter}`
-  ? SanitizedPathParam<"*", TKind, TMode> | PathParam<TBefore, TKind, TMode> | PathParam<TAfter, TKind, TMode>
+  ? ExtractPathParam<"*", TKind, TMode> | PathParam<TBefore, TKind, TMode> | PathParam<TAfter, TKind, TMode>
   : TPath extends `${infer TStart}:${infer TParam}/${infer TRest}`
-  ? SanitizedPathParam<TParam, TKind, TMode> | PathParam<TRest, TKind, TMode>
+  ? ExtractPathParam<TParam, TKind, TMode> | PathParam<TRest, TKind, TMode>
   : TPath extends `${infer TStart}:${infer TParam}`
-  ? SanitizedPathParam<TParam, TKind, TMode>
+  ? ExtractPathParam<TParam, TKind, TMode>
   : never;
 
 interface CreateRouteOptions {
   createSearchParams: (init?: Record<string, string | string[]> | URLSearchParams) => URLSearchParams;
   generatePath: (path: string, params?: Record<string, string | undefined>) => string;
+}
+
+interface RouteOptions<
+  TPath extends PathConstraint = PathConstraint,
+  TPathnameTypes extends PathnameTypesConstraint = PathnameTypesConstraint,
+  TSearchTypes extends SearchTypesConstraint = SearchTypesConstraint,
+  TStateTypes extends StateTypesConstraint = StateTypesConstraint,
+  THash extends HashTypesConstraint = HashTypesConstraint,
+> {
+  path: TPath;
+  params: TPathnameTypes;
+  searchParams: TSearchTypes;
+  state: TStateTypes;
+  hash: THash;
 }
 
 type PathConstraint = string | undefined;
@@ -252,22 +266,8 @@ type StateTypesUnknownConstraint = StateType<any>;
 
 type HashTypesConstraint<T extends string = string> = T[] | HashType<any>;
 
-interface RouteOptions<
-  TPath extends PathConstraint = PathConstraint,
-  TPathnameTypes extends PathnameTypesConstraint = PathnameTypesConstraint,
-  TSearchTypes extends SearchTypesConstraint = SearchTypesConstraint,
-  TStateTypes extends StateTypesConstraint = StateTypesConstraint,
-  THash extends HashTypesConstraint = HashTypesConstraint,
-> {
-  path: TPath;
-  params: TPathnameTypes;
-  searchParams: TSearchTypes;
-  state: TStateTypes;
-  hash: THash;
-}
-
-type ExtractOptions<Tuple extends [...BaseRoute[]]> = {
-  [Index in keyof Tuple]: Tuple[Index]["$options"];
+type ExtractOptions<TTuple extends [...BaseRoute[]]> = {
+  [TIndex in keyof TTuple]: TTuple[TIndex]["$options"];
 };
 
 type MergeOptions<T extends RouteOptions[], TMode extends "inherit" | "compose"> = T extends [
@@ -276,7 +276,7 @@ type MergeOptions<T extends RouteOptions[], TMode extends "inherit" | "compose">
   ...infer TRest,
 ]
   ? TRest extends RouteOptions[]
-    ? MergeOptions<[MergedOptionsPair<TFirst, TSecond, TMode>, ...TRest], TMode>
+    ? MergeOptions<[MergeOptionsPair<TFirst, TSecond, TMode>, ...TRest], TMode>
     : never
   : T extends [infer TFirst]
   ? TFirst extends RouteOptions
@@ -284,7 +284,7 @@ type MergeOptions<T extends RouteOptions[], TMode extends "inherit" | "compose">
     : never
   : never;
 
-type MergedOptionsPair<T, U, TMode extends "inherit" | "compose"> = T extends RouteOptions<
+type MergeOptionsPair<T, U, TMode extends "inherit" | "compose"> = T extends RouteOptions<
   infer TPath,
   infer TPathnameTypes,
   infer TSearchTypes,
@@ -320,7 +320,7 @@ type MergedOptionsPair<T, U, TMode extends "inherit" | "compose"> = T extends Ro
 
 type StringPath<T extends PathConstraint> = T extends undefined ? "" : T;
 
-type OmitPathnameTypes<T extends RouteOptions> = T extends RouteOptions<
+type OmitPathname<T extends RouteOptions> = T extends RouteOptions<
   infer _TPath,
   infer _TPathnameTypes,
   infer TSearchTypes,
@@ -338,7 +338,7 @@ type ErrorMessage<T extends string> = T & { [brand]: ErrorMessage<T> };
 
 type IsAny<T> = 0 extends 1 & T ? true : false;
 
-type PartialUndefined<T> = Undefined<T> & Omit<T, keyof Undefined<T>>;
+type PartialUndefined<T> = Merge<T, Undefined<T>>;
 
 type Undefined<T> = {
   [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
@@ -392,7 +392,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     // even without names validity check
     TChildren = {},
   >(opts: {
-    path?: SanitizedPath<TPath>;
+    path?: SanitizePath<TPath>;
     compose?: [...TComposedRoutes];
     // Forbid undefined values and non-existent keys (if there are params in path)
     params?: TPath extends undefined
@@ -407,7 +407,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     searchParams?: TSearchTypes;
     state?: TStateTypes;
     hash?: THash;
-    children?: SanitizedChildren<TChildren>;
+    children?: SanitizeChildren<TChildren>;
   }): Route<
     MergeOptions<
       [
@@ -451,8 +451,8 @@ function createRoute(creatorOptions: CreateRouteOptions) {
   return route;
 }
 
-function omiTPathnameTypes<T extends RouteOptions>(types: T): OmitPathnameTypes<T> {
-  return { ...types, params: {}, path: "" } as unknown as OmitPathnameTypes<T>;
+function omiTPathnameTypes<T extends RouteOptions>(types: T): OmitPathname<T> {
+  return { ...types, params: {}, path: "" } as unknown as OmitPathname<T>;
 }
 
 function mergeTypes<T extends [...RouteOptions[]], TMode extends "compose" | "inherit">(
@@ -637,8 +637,8 @@ function getRoute<TOptions extends RouteOptions>(
   }
 
   return {
-    $path: makeAbsolute(types.path) as AbsolutePath<SanitizedPath<TOptions["path"]>>,
-    $relativePath: relativePath as PathWithoutIntermediateStars<SanitizedPath<TOptions["path"]>>,
+    $path: makeAbsolute(types.path) as AbsolutePath<SanitizePath<TOptions["path"]>>,
+    $relativePath: relativePath as PathWithoutIntermediateStars<SanitizePath<TOptions["path"]>>,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
     $getPlainParams: getPlainParams,
@@ -852,8 +852,8 @@ export {
   DecorateChildren,
   RouteOptions,
   PathParam,
-  SanitizedPath,
-  SanitizedChildren,
+  SanitizePath,
+  SanitizeChildren,
   InPathParams,
   InPathnameParams,
   OutPathnameParams,
