@@ -25,14 +25,14 @@ interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint,
   $getTypedParams: (params: Record<string, string | undefined>) => OutPathnameParams<TOptions>;
   $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TOptions>;
   $getTypedHash: (hash: string) => OutHash<TOptions["hash"]>;
-  $getTypedState: (state: unknown) => OutState<TOptions["state"]>;
+  $getTypedState: (state: unknown) => OutState<TOptions>;
   $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
   $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
   $getUntypedState: (state: unknown) => UntypedPlainState<TOptions["state"]>;
   $buildSearch: (params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => string;
   $getPlainSearchParams: (params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => URLSearchParams;
   $buildHash: (hash: InHash<TOptions["hash"]>) => string;
-  $buildState: (state: InState<TOptions["state"]>, opts?: StateBuilderOptions) => PlainState<TOptions["state"]>;
+  $buildState: (state: InState<TOptions>, opts?: StateBuilderOptions) => PlainState<TOptions["state"]>;
   $options: TOptions;
 }
 
@@ -115,18 +115,18 @@ type OutSearchParams<TOptions extends RouteOptions> = Readable<
   PartialUndefined<RawSearchParams<TOptions["searchParams"], "out">>
 >;
 
-type InState<TStateTypes extends StateTypesConstraint> = IsAny<TStateTypes> extends true
+type InState<TOptions extends RouteOptions> = IsAny<TOptions["state"]> extends true
   ? any
-  : TStateTypes extends StateTypesObjectConstraint
-  ? Readable<Partial<RawStateParams<TStateTypes, "in">>>
-  : TStateTypes extends StateTypesUnknownConstraint
-  ? RawState<TStateTypes, "in">
+  : TOptions["state"] extends StateTypesObjectConstraint
+  ? Readable<Partial<RawStateParams<TOptions["state"], "in">>>
+  : TOptions["state"] extends StateTypesUnknownConstraint
+  ? RawState<TOptions["state"], "in">
   : never;
 
-type OutState<TStateTypes extends StateTypesConstraint> = TStateTypes extends StateTypesObjectConstraint
-  ? Readable<PartialUndefined<RawStateParams<TStateTypes, "out">>>
-  : TStateTypes extends StateTypesUnknownConstraint
-  ? RawState<TStateTypes, "out">
+type OutState<TOptions extends RouteOptions> = TOptions["state"] extends StateTypesObjectConstraint
+  ? Readable<PartialUndefined<RawStateParams<TOptions["state"], "out">>>
+  : TOptions["state"] extends StateTypesUnknownConstraint
+  ? RawState<TOptions["state"], "out">
   : never;
 
 type InHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash, "in">>;
@@ -562,7 +562,7 @@ function getRoute<TOptions extends RouteOptions>(
     return `#${String(hash)}`;
   }
 
-  function buildState(params: InState<TOptions["state"]>, opts?: StateBuilderOptions) {
+  function buildState(params: InState<TOptions>, opts?: StateBuilderOptions) {
     return (
       isStateType(types.state)
         ? getPlainStateByType(params, types.state)
@@ -603,9 +603,7 @@ function getRoute<TOptions extends RouteOptions>(
   }
 
   function getTypedState(state: unknown) {
-    return isStateType(types.state)
-      ? getTypedStateByType(state, types.state)
-      : getTypedStateByTypes(state, types.state);
+    return getTypedStateByTypes(state, types);
   }
 
   function getUntypedState(state: unknown) {
@@ -763,11 +761,13 @@ function getTypedSearchParamsByTypes<TOptions extends RouteOptions>(
   return result as OutSearchParams<TOptions>;
 }
 
-function getTypedStateByTypes<TStateTypes extends StateTypesObjectConstraint>(
-  state: unknown,
-  types: TStateTypes,
-): OutState<TStateTypes> {
+function getTypedStateByTypes<TOptions extends RouteOptions>(state: unknown, options: TOptions): OutState<TOptions> {
+  if (isStateType(options.state)) {
+    return options.state.getTypedState(state);
+  }
+
   const result: Record<string, unknown> = {};
+  const types = options.state;
 
   if (isRecord(state)) {
     Object.keys(types).forEach((key) => {
@@ -782,14 +782,7 @@ function getTypedStateByTypes<TStateTypes extends StateTypesObjectConstraint>(
     });
   }
 
-  return result as OutState<TStateTypes>;
-}
-
-function getTypedStateByType<TStateTypes extends StateTypesUnknownConstraint>(
-  state: unknown,
-  type: TStateTypes,
-): OutState<TStateTypes> {
-  return type.getTypedState(state);
+  return result as OutState<TOptions>;
 }
 
 function getPathParams<TPath extends PathConstraint>(
