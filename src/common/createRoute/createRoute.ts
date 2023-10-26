@@ -5,14 +5,14 @@ import { PathnameType, SearchType, StateType, HashType, Type, DefType, string } 
 type Route<
   TOptions extends RouteOptions = RouteOptions<PathConstraint, any, any, any>,
   TChildren = {},
-> = DecoratedChildren<TOptions, TChildren> &
+> = DecorateChildren<TOptions, TChildren> &
   BaseRoute<TOptions> & {
-    $: DecoratedChildren<OmiTPathnameTypes<TOptions>, TChildren>;
+    $: DecorateChildren<OmitPathnameTypes<TOptions>, TChildren>;
   };
 
-type DecoratedChildren<TOptions extends RouteOptions, TChildren> = {
+type DecorateChildren<TOptions extends RouteOptions, TChildren> = {
   [TKey in keyof TChildren]: TChildren[TKey] extends Route<infer TChildOptions, infer TChildChildren>
-    ? Route<MergedOptions<[TOptions, TChildOptions], "inherit">, TChildChildren>
+    ? Route<MergeOptions<[TOptions, TChildOptions], "inherit">, TChildChildren>
     : TChildren[TKey];
 };
 
@@ -21,18 +21,18 @@ interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint,
   $relativePath: PathWithoutIntermediateStars<SanitizedPath<TOptions["path"]>>;
   $buildPath: (opts: PathBuilderOptions<TOptions>) => string;
   $buildPathname: (params: InPathnameParams<TOptions>, opts?: PathnameBuilderOptions) => string;
-  $getPlainParams: (params: InPathnameParams<TOptions>) => Record<string, string | undefined>;
+  $buildSearch: (searchParams: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => string;
+  $buildState: (state: InState<TOptions>, opts?: StateBuilderOptions) => PlainState<TOptions["state"]>;
+  $buildHash: (hash: InHash<TOptions>) => string;
   $getTypedParams: (params: Record<string, string | undefined>) => OutPathnameParams<TOptions>;
   $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TOptions>;
-  $getTypedHash: (hash: string) => OutHash<TOptions>;
   $getTypedState: (state: unknown) => OutState<TOptions>;
+  $getTypedHash: (hash: string) => OutHash<TOptions>;
   $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
   $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
   $getUntypedState: (state: unknown) => UntypedPlainState<TOptions["state"]>;
-  $buildSearch: (params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => string;
-  $getPlainSearchParams: (params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => URLSearchParams;
-  $buildHash: (hash: InHash<TOptions>) => string;
-  $buildState: (state: InState<TOptions>, opts?: StateBuilderOptions) => PlainState<TOptions["state"]>;
+  $getPlainParams: (params: InPathnameParams<TOptions>) => Record<string, string | undefined>;
+  $getPlainSearchParams: (searchParams: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => URLSearchParams;
   $options: TOptions;
 }
 
@@ -272,13 +272,13 @@ type ExtractOptions<Tuple extends [...BaseRoute[]]> = {
   [Index in keyof Tuple]: Tuple[Index]["$options"];
 };
 
-type MergedOptions<T extends RouteOptions[], TMode extends "inherit" | "compose"> = T extends [
+type MergeOptions<T extends RouteOptions[], TMode extends "inherit" | "compose"> = T extends [
   infer TFirst,
   infer TSecond,
   ...infer TRest,
 ]
   ? TRest extends RouteOptions[]
-    ? MergedOptions<[MergedOptionsPair<TFirst, TSecond, TMode>, ...TRest], TMode>
+    ? MergeOptions<[MergedOptionsPair<TFirst, TSecond, TMode>, ...TRest], TMode>
     : never
   : T extends [infer TFirst]
   ? TFirst extends RouteOptions
@@ -320,9 +320,9 @@ type MergedOptionsPair<T, U, TMode extends "inherit" | "compose"> = T extends Ro
     : never
   : never;
 
-type OmiTPathnameTypes<T extends RouteOptions> = T extends RouteOptions<
-  infer TPath,
-  infer TPathnameTypes,
+type OmitPathnameTypes<T extends RouteOptions> = T extends RouteOptions<
+  infer _TPath,
+  infer _TPathnameTypes,
   infer TSearchTypes,
   infer TStateTypes,
   infer THash
@@ -409,7 +409,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     hash?: THash;
     children?: SanitizedChildren<TChildren>;
   }): Route<
-    MergedOptions<
+    MergeOptions<
       [
         ...ExtractOptions<TComposedRoutes>,
         RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
@@ -437,7 +437,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       ...getRoute(resolvedOptions, creatorOptions),
       $: decorateChildren(omiTPathnameTypes(resolvedOptions), creatorOptions, resolvedChildren),
     } as unknown as Route<
-      MergedOptions<
+      MergeOptions<
         [
           ...ExtractOptions<TComposedRoutes>,
           RouteOptions<TPath, NormalizedPathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
@@ -451,14 +451,14 @@ function createRoute(creatorOptions: CreateRouteOptions) {
   return route;
 }
 
-function omiTPathnameTypes<T extends RouteOptions>(types: T): OmiTPathnameTypes<T> {
-  return { ...types, params: {}, path: "" } as unknown as OmiTPathnameTypes<T>;
+function omiTPathnameTypes<T extends RouteOptions>(types: T): OmitPathnameTypes<T> {
+  return { ...types, params: {}, path: "" } as unknown as OmitPathnameTypes<T>;
 }
 
 function mergeTypes<T extends [...RouteOptions[]], TMode extends "compose" | "inherit">(
   typesArray: [...T],
   mode: TMode,
-): MergedOptions<T, TMode> {
+): MergeOptions<T, TMode> {
   return typesArray.reduce((acc, item) => {
     return {
       path:
@@ -478,7 +478,7 @@ function mergeTypes<T extends [...RouteOptions[]], TMode extends "compose" | "in
         : [...(acc.hash || []), ...(item.hash || [])],
       state: { ...acc.state, ...item.state },
     };
-  }) as MergedOptions<T, TMode>;
+  }) as MergeOptions<T, TMode>;
 }
 
 function isHashType<T extends HashType<any>>(value: T | string[] | undefined): value is T {
@@ -489,7 +489,7 @@ function decorateChildren<TOptions extends RouteOptions, TChildren>(
   typesObj: TOptions,
   creatorOptions: CreateRouteOptions,
   children: TChildren | undefined,
-): DecoratedChildren<TOptions, TChildren> {
+): DecorateChildren<TOptions, TChildren> {
   const result: Record<string, unknown> = {};
 
   if (children) {
@@ -507,7 +507,7 @@ function decorateChildren<TOptions extends RouteOptions, TChildren>(
     });
   }
 
-  return result as DecoratedChildren<TOptions, TChildren>;
+  return result as DecorateChildren<TOptions, TChildren>;
 }
 
 function getRoute<TOptions extends RouteOptions>(
@@ -849,7 +849,7 @@ export {
   CreateRouteOptions,
   Route,
   BaseRoute,
-  DecoratedChildren,
+  DecorateChildren,
   RouteOptions,
   PathParam,
   SanitizedPath,
