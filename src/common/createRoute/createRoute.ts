@@ -24,14 +24,14 @@ interface BaseRoute<TOptions extends RouteOptions = RouteOptions<PathConstraint,
   $getPlainParams: (params: InPathnameParams<TOptions>) => Record<string, string | undefined>;
   $getTypedParams: (params: Record<string, string | undefined>) => OutPathnameParams<TOptions>;
   $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TOptions>;
-  $getTypedHash: (hash: string) => OutHash<TOptions["hash"]>;
+  $getTypedHash: (hash: string) => OutHash<TOptions>;
   $getTypedState: (state: unknown) => OutState<TOptions>;
   $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
   $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
   $getUntypedState: (state: unknown) => UntypedPlainState<TOptions["state"]>;
   $buildSearch: (params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => string;
   $getPlainSearchParams: (params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) => URLSearchParams;
-  $buildHash: (hash: InHash<TOptions["hash"]>) => string;
+  $buildHash: (hash: InHash<TOptions>) => string;
   $buildState: (state: InState<TOptions>, opts?: StateBuilderOptions) => PlainState<TOptions["state"]>;
   $options: TOptions;
 }
@@ -69,7 +69,7 @@ type InPathParams<TOptions extends RouteOptions> = Readable<
     ? { params: InPathnameParams<TOptions> }
     : { params?: InPathnameParams<TOptions> }) & {
     searchParams?: InSearchParams<TOptions>;
-    hash?: InHash<TOptions["hash"]>;
+    hash?: InHash<TOptions>;
   }
 >;
 
@@ -129,9 +129,9 @@ type OutState<TOptions extends RouteOptions> = TOptions["state"] extends StateTy
   ? RawState<TOptions["state"], "out">
   : never;
 
-type InHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash, "in">>;
+type InHash<TOptions extends RouteOptions> = NeverToUndefined<RawHash<TOptions["hash"], "in">>;
 
-type OutHash<THash extends HashTypesConstraint> = NeverToUndefined<RawHash<THash, "out">>;
+type OutHash<TOptions extends RouteOptions> = NeverToUndefined<RawHash<TOptions["hash"], "out">>;
 
 type InferredPathnameTypes<TPath extends PathConstraint> = Merge<
   Record<PathParam<TPath>, DefType<string>>,
@@ -555,7 +555,7 @@ function getRoute<TOptions extends RouteOptions>(
     return searchString ? `?${searchString}` : "";
   }
 
-  function buildHash(hash: InHash<TOptions["hash"]>) {
+  function buildHash(hash: InHash<TOptions>) {
     if (isHashType(types.hash)) {
       return `#${types.hash.getPlainHash(hash)}`;
     }
@@ -622,7 +622,7 @@ function getRoute<TOptions extends RouteOptions>(
     return result;
   }
 
-  function getTypedHash(hash: string): OutHash<TOptions["hash"]> {
+  function getTypedHash(hash: string): OutHash<TOptions> {
     const normalizedHash = hash?.substring(1, hash?.length);
 
     if (isHashType(types.hash)) {
@@ -630,10 +630,10 @@ function getRoute<TOptions extends RouteOptions>(
     }
 
     if (normalizedHash && types.hash.indexOf(normalizedHash) !== -1) {
-      return normalizedHash as OutHash<TOptions["hash"]>;
+      return normalizedHash as OutHash<TOptions>;
     }
 
-    return undefined as OutHash<TOptions["hash"]>;
+    return undefined as OutHash<TOptions>;
   }
 
   return {
