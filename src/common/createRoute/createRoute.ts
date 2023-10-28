@@ -203,6 +203,14 @@ type SanitizeChildren<T> = {
     : ErrorMessage<"Name can't start with $">;
 };
 
+type SanitizePathnameTypes<TPath extends PathConstraint, TPathnameTypes> = {
+  [TKey in keyof TPathnameTypes]: TKey extends PathParam<TPath>
+    ? TPathnameTypes[TKey] extends undefined
+      ? PathnameType<any>
+      : TPathnameTypes[TKey]
+    : ErrorMessage<"There is no such param in path">;
+};
+
 type Omit$<T> = T extends `$${infer TValid}` ? TValid : T;
 
 type ExtractPathParam<
@@ -394,16 +402,8 @@ function createRoute(creatorOptions: CreateRouteOptions) {
   >(opts: {
     path?: SanitizePath<TPath>;
     compose?: [...TComposedRoutes];
-    // Forbid undefined values and non-existent keys (if there are params in path)
-    params?: TPath extends undefined
-      ? PathnameTypesConstraint
-      : {
-          [TKey in keyof TPathnameTypes]: TKey extends PathParam<TPath>
-            ? TPathnameTypes[TKey] extends undefined
-              ? PathnameType<any>
-              : TPathnameTypes[TKey]
-            : ErrorMessage<"There is no such param in path">;
-        };
+    // Forbid undefined values and non-existent keys if there is path
+    params?: TPath extends undefined ? PathnameTypesConstraint : SanitizePathnameTypes<TPath, TPathnameTypes>;
     searchParams?: TSearchTypes;
     state?: TStateTypes;
     hash?: THash;
