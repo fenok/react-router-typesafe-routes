@@ -149,7 +149,6 @@ function ensureNoError<TFn extends (...args: never[]) => unknown, TDefault>(
 ): (...args: Parameters<TFn>) => ReturnType<TFn> | undefined {
   return (...args: Parameters<TFn>) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return fn(...args) as ReturnType<TFn>;
     } catch (error) {
       return undefined;
@@ -171,11 +170,9 @@ function ensureNoUndefined<TFn extends (...args: never[]) => unknown>(
         );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return def;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result as Exclude<ReturnType<TFn>, undefined>;
   };
 }
