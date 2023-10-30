@@ -34,6 +34,7 @@ function useTypedSearchParams<TOptions extends RouteOptions>(
       setSearchParams(
         (prevParams) => {
           return route.$getPlainSearchParams(
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             typeof params === "function" ? params(route.$getTypedSearchParams(prevParams)) : params,
             { untypedSearchParams: untypedSearchParams ? prevParams : undefined },
           );

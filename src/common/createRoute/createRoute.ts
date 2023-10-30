@@ -1,6 +1,6 @@
 import { PathnameType, SearchType, StateType, HashType, Type, DefType, string } from "../types/index.js";
 
-/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
 
 type Route<
   TOptions extends RouteOptions = RouteOptions<PathConstraint, any, any, any>,
