@@ -424,8 +424,20 @@ function createRoute(creatorOptions: CreateRouteOptions) {
   return route;
 }
 
-function omitPathnameTypes<T extends RouteOptions>(types: T): OmitPathname<T> {
-  return { ...types, params: {}, path: "" } as unknown as OmitPathname<T>;
+function omitPathnameTypes<
+  TPath extends PathConstraint,
+  TPathnameTypes extends PathnameTypesConstraint,
+  TSearchTypes extends SearchTypesConstraint,
+  TStateTypes extends StateTypesConstraint,
+  THash extends HashTypesConstraint,
+>(
+  options: RouteOptions<TPath, TPathnameTypes, TSearchTypes, TStateTypes, THash>,
+): OmitPathname<RouteOptions<TPath, TPathnameTypes, TSearchTypes, TStateTypes, THash>> {
+  return {
+    ...options,
+    path: "",
+    params: {},
+  };
 }
 
 function mergeOptions<T extends [...RouteOptions[]], TMode extends "compose" | "inherit">(
