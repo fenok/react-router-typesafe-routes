@@ -441,10 +441,10 @@ function omitPathnameTypes<
 }
 
 function mergeOptions<T extends [...RouteOptions[]], TMode extends "compose" | "inherit">(
-  typesArray: [...T],
+  optionsArray: [...T],
   mode: TMode,
 ): MergeOptions<T, TMode> {
-  return typesArray.reduce((acc, item) => {
+  return optionsArray.reduce((acc, item) => {
     return {
       path:
         mode === "compose"
@@ -471,7 +471,7 @@ function isHashType<T extends HashType<any>>(value: T | string[] | undefined): v
 }
 
 function decorateChildren<TOptions extends RouteOptions, TChildren>(
-  typesObj: TOptions,
+  options: TOptions,
   creatorOptions: CreateRouteOptions,
   children: TChildren | undefined,
 ): DecorateChildren<TOptions, TChildren> {
@@ -484,9 +484,9 @@ function decorateChildren<TOptions extends RouteOptions, TChildren>(
 
       result[key] = isRoute(value)
         ? {
-            ...decorateChildren(typesObj, creatorOptions, value),
-            ...getRoute(mergeOptions([typesObj, value.$options], "inherit"), creatorOptions),
-            $: decorateChildren(omitPathnameTypes(typesObj), creatorOptions, value.$),
+            ...decorateChildren(options, creatorOptions, value),
+            ...getRoute(mergeOptions([options, value.$options], "inherit"), creatorOptions),
+            $: decorateChildren(omitPathnameTypes(options), creatorOptions, value.$),
           }
         : value;
     });
@@ -496,15 +496,15 @@ function decorateChildren<TOptions extends RouteOptions, TChildren>(
 }
 
 function getRoute<TOptions extends RouteOptions>(
-  types: TOptions,
+  options: TOptions,
   creatorOptions: CreateRouteOptions,
 ): BaseRoute<TOptions> {
-  const [allPathParams] = getPathParams(types.path as TOptions["path"]);
-  const relativePath = removeIntermediateStars(types.path as TOptions["path"]);
-  const resolvedTypes = { ...types, params: { ...getInferredPathnameTypes(types.path), ...types.params } };
+  const [allPathParams] = getPathParams(options.path as TOptions["path"]);
+  const relativePath = removeIntermediateStars(options.path as TOptions["path"]);
+  const resolvedTypes = { ...options, params: { ...getInferredPathnameTypes(options.path), ...options.params } };
 
   function getPlainParams(params: InPathnameParams<TOptions>) {
-    return getPlainParamsByTypes(allPathParams, params, types.params);
+    return getPlainParamsByTypes(allPathParams, params, options.params);
   }
 
   function buildPathname(params: InPathnameParams<TOptions>, opts?: PathnameBuilderOptions) {
@@ -525,7 +525,7 @@ function getRoute<TOptions extends RouteOptions>(
   }
 
   function getPlainSearchParams(params: InSearchParams<TOptions>, opts?: SearchBuilderOptions) {
-    const plainParams = creatorOptions.createSearchParams(getPlainSearchParamsByTypes(params, types.searchParams));
+    const plainParams = creatorOptions.createSearchParams(getPlainSearchParamsByTypes(params, options.searchParams));
 
     if (opts?.untypedSearchParams) {
       appendSearchParams(plainParams, getUntypedSearchParams(opts?.untypedSearchParams));
@@ -541,17 +541,17 @@ function getRoute<TOptions extends RouteOptions>(
   }
 
   function buildHash(hash: InHash<TOptions>) {
-    if (isHashType(types.hash)) {
-      return `#${types.hash.getPlainHash(hash)}`;
+    if (isHashType(options.hash)) {
+      return `#${options.hash.getPlainHash(hash)}`;
     }
     return `#${String(hash)}`;
   }
 
   function buildState(params: InState<TOptions>, opts?: StateBuilderOptions) {
     return (
-      isStateType(types.state)
-        ? getPlainStateByType(params, types.state)
-        : Object.assign(getPlainStateParamsByTypes(params, types.state), getUntypedState(opts?.untypedState))
+      isStateType(options.state)
+        ? getPlainStateByType(params, options.state)
+        : Object.assign(getPlainStateParamsByTypes(params, options.state), getUntypedState(opts?.untypedState))
     ) as PlainState<TOptions["state"]>;
   }
 
@@ -572,15 +572,15 @@ function getRoute<TOptions extends RouteOptions>(
   }
 
   function getTypedSearchParams(params: URLSearchParams) {
-    return getTypedSearchParamsByTypes(params, types);
+    return getTypedSearchParamsByTypes(params, options);
   }
 
   function getUntypedSearchParams(params: URLSearchParams) {
     const result = creatorOptions.createSearchParams(params);
 
-    if (!types.searchParams) return result;
+    if (!options.searchParams) return result;
 
-    Object.keys(types.searchParams).forEach((key) => {
+    Object.keys(options.searchParams).forEach((key) => {
       result.delete(key);
     });
 
@@ -588,15 +588,15 @@ function getRoute<TOptions extends RouteOptions>(
   }
 
   function getTypedState(state: unknown) {
-    return getTypedStateByTypes(state, types);
+    return getTypedStateByTypes(state, options);
   }
 
   function getUntypedState(state: unknown) {
-    const result = (isStateType(types.state) ? undefined : {}) as UntypedPlainState<TOptions["state"]>;
+    const result = (isStateType(options.state) ? undefined : {}) as UntypedPlainState<TOptions["state"]>;
 
     if (!isRecord(state) || !result) return result;
 
-    const typedKeys = types.state ? Object.keys(types.state) : [];
+    const typedKeys = options.state ? Object.keys(options.state) : [];
 
     Object.keys(state).forEach((key) => {
       if (typedKeys.indexOf(key) === -1) {
@@ -610,11 +610,11 @@ function getRoute<TOptions extends RouteOptions>(
   function getTypedHash(hash: string): OutHash<TOptions> {
     const normalizedHash = hash?.substring(1, hash?.length);
 
-    if (isHashType(types.hash)) {
-      return types.hash.getTypedHash(normalizedHash);
+    if (isHashType(options.hash)) {
+      return options.hash.getTypedHash(normalizedHash);
     }
 
-    if (normalizedHash && types.hash.indexOf(normalizedHash) !== -1) {
+    if (normalizedHash && options.hash.indexOf(normalizedHash) !== -1) {
       return normalizedHash as OutHash<TOptions>;
     }
 
@@ -622,7 +622,7 @@ function getRoute<TOptions extends RouteOptions>(
   }
 
   return {
-    $path: makeAbsolute(types.path) as AbsolutePath<SanitizePath<TOptions["path"]>>,
+    $path: makeAbsolute(options.path) as AbsolutePath<SanitizePath<TOptions["path"]>>,
     $relativePath: relativePath as PathWithoutIntermediateStars<SanitizePath<TOptions["path"]>>,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
@@ -638,7 +638,7 @@ function getRoute<TOptions extends RouteOptions>(
     $getUntypedSearchParams: getUntypedSearchParams,
     $getUntypedState: getUntypedState,
     $getPlainSearchParams: getPlainSearchParams,
-    $options: types,
+    $options: options,
   };
 }
 
