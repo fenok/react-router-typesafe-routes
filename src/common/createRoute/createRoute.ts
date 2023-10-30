@@ -195,13 +195,13 @@ type SanitizePath<T> = T extends `/${string}`
   ? ErrorMessage<"Trailing slashes are forbidden">
   : T;
 
-type SanitizeChildren<T> = {
+type SanitizeChildren<T> = Readable<{
   [TKey in keyof T]: TKey extends Omit$<TKey>
     ? T[TKey] extends BaseRoute
       ? T[TKey]
       : BaseRoute
     : ErrorMessage<"Name can't start with $">;
-};
+}>;
 
 type SanitizePathnameTypes<TPath extends PathConstraint, TPathnameTypes> = {
   [TKey in keyof TPathnameTypes]: TKey extends PathParam<TPath>
@@ -366,24 +366,6 @@ type RequiredWithoutUndefined<T> = {
   [P in keyof T]-?: Exclude<T[P], undefined>;
 };
 
-function getInferredPathnameTypes<T extends PathConstraint>(path: T): InferredPathnameTypes<T> {
-  const [allPathParams, optionalPathParams] = getPathParams(path);
-
-  const params: Record<string, PathnameType<any>> = {};
-
-  optionalPathParams.forEach((optionalParam) => {
-    params[optionalParam] = string();
-  });
-
-  allPathParams.forEach((param) => {
-    if (!params[param]) {
-      params[param] = string().defined();
-    }
-  });
-
-  return params as InferredPathnameTypes<T>;
-}
-
 function createRoute(creatorOptions: CreateRouteOptions) {
   function route<
     TPath extends PathConstraint = undefined,
@@ -393,8 +375,10 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     >,
     TSearchTypes extends SearchTypesConstraint = {},
     TStateTypes extends StateTypesConstraint = {},
+    // Allows to infer hash values from array without const.
     THashString extends string = string,
     THash extends HashTypesConstraint<THashString> = [],
+    // Only allow to compose pathless routes
     TComposedRoutes extends [...BaseRoute<RouteOptions<undefined, any, any, any>>[]] = [],
     // This should be restricted to Record<string, BaseRoute>, but it breaks types for nested routes,
     // even without names validity check
@@ -402,7 +386,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
   >(opts: {
     path?: SanitizePath<TPath>;
     compose?: [...TComposedRoutes];
-    // Forbid undefined values and non-existent keys if there is path
+    // Forbid undefined values and non-existent keys (but allow all keys for pathless routes)
     params?: TPath extends undefined ? PathnameTypesConstraint : SanitizePathnameTypes<TPath, TPathnameTypes>;
     searchParams?: TSearchTypes;
     state?: TStateTypes;
@@ -416,46 +400,35 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       ],
       "compose"
     >,
-    TChildren
+    SanitizeChildren<TChildren>
   > {
     const composedOptions = (opts.compose ?? []).map(({ $options }) => $options) as ExtractOptions<TComposedRoutes>;
 
     const ownOptions = {
-      path: opts.path ?? undefined,
+      path: opts.path,
       params: opts?.params ?? {},
       searchParams: opts?.searchParams ?? {},
       state: opts?.state ?? {},
       hash: opts?.hash ?? [],
-    } as RouteOptions<TPath, NormalizePathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>;
+    };
 
-    const resolvedOptions = mergeTypes([...composedOptions, ownOptions], "compose");
-
-    const resolvedChildren = opts.children;
+    const resolvedOptions = mergeOptions([...composedOptions, ownOptions], "compose");
 
     return {
-      ...decorateChildren(resolvedOptions, creatorOptions, resolvedChildren),
+      ...decorateChildren(resolvedOptions, creatorOptions, opts.children),
       ...getRoute(resolvedOptions, creatorOptions),
-      $: decorateChildren(omiTPathnameTypes(resolvedOptions), creatorOptions, resolvedChildren),
-    } as unknown as Route<
-      MergeOptions<
-        [
-          ...ExtractOptions<TComposedRoutes>,
-          RouteOptions<TPath, NormalizePathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
-        ],
-        "compose"
-      >,
-      TChildren
-    >;
+      $: decorateChildren(omitPathnameTypes(resolvedOptions), creatorOptions, opts.children),
+    };
   }
 
   return route;
 }
 
-function omiTPathnameTypes<T extends RouteOptions>(types: T): OmitPathname<T> {
+function omitPathnameTypes<T extends RouteOptions>(types: T): OmitPathname<T> {
   return { ...types, params: {}, path: "" } as unknown as OmitPathname<T>;
 }
 
-function mergeTypes<T extends [...RouteOptions[]], TMode extends "compose" | "inherit">(
+function mergeOptions<T extends [...RouteOptions[]], TMode extends "compose" | "inherit">(
   typesArray: [...T],
   mode: TMode,
 ): MergeOptions<T, TMode> {
@@ -500,8 +473,8 @@ function decorateChildren<TOptions extends RouteOptions, TChildren>(
       result[key] = isRoute(value)
         ? {
             ...decorateChildren(typesObj, creatorOptions, value),
-            ...getRoute(mergeTypes([typesObj, value.$options], "inherit"), creatorOptions),
-            $: decorateChildren(omiTPathnameTypes(typesObj), creatorOptions, value.$),
+            ...getRoute(mergeOptions([typesObj, value.$options], "inherit"), creatorOptions),
+            $: decorateChildren(omitPathnameTypes(typesObj), creatorOptions, value.$),
           }
         : value;
     });
@@ -655,6 +628,24 @@ function getRoute<TOptions extends RouteOptions>(
     $getPlainSearchParams: getPlainSearchParams,
     $options: types,
   };
+}
+
+function getInferredPathnameTypes<T extends PathConstraint>(path: T): InferredPathnameTypes<T> {
+  const [allPathParams, optionalPathParams] = getPathParams(path);
+
+  const params: Record<string, PathnameType<any>> = {};
+
+  optionalPathParams.forEach((optionalParam) => {
+    params[optionalParam] = string();
+  });
+
+  allPathParams.forEach((param) => {
+    if (!params[param]) {
+      params[param] = string().defined();
+    }
+  });
+
+  return params as InferredPathnameTypes<T>;
 }
 
 function getPlainParamsByTypes(
