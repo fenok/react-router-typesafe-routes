@@ -89,19 +89,23 @@ interface Route<TPath extends string, TPathTypes, TSearchTypes, THash extends st
     ) => string;
 }
 
-type InParams<TPath extends string, TPathTypes> = Readable<
-    PartialByKey<
-        PickWithFallback<
-            RawParams<TPathTypes, "in">,
-            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>,
-            string
-        >,
-        EnsureExtends<
-            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>, "optional", "in">,
-            PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
-        >
-    >
->;
+type InParams<TPath extends string, TPathTypes> = [
+    PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
+] extends [never]
+    ? Record<string, never>
+    : Readable<
+          PartialByKey<
+              PickWithFallback<
+                  RawParams<TPathTypes, "in">,
+                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>,
+                  string
+              >,
+              EnsureExtends<
+                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>, "optional", "in">,
+                  PathParam<SanitizedPath<PathWithoutIntermediateStars<TPath>>>
+              >
+          >
+      >;
 
 type EnsureExtends<TFirst, TSecond> = TFirst extends TSecond ? TFirst : never;
 
@@ -115,7 +119,9 @@ type OutParamsByKey<TKey extends string, TOptionalKey extends string, TPathTypes
         EnsureExtends<Exclude<TOptionalKey, keyof TPathTypes>, Exclude<TKey, keyof TPathTypes>>
     >;
 
-type InSearchParams<TSearchTypes> = Readable<Partial<RawSearchParams<TSearchTypes, "in">>>;
+type InSearchParams<TSearchTypes> = [keyof TSearchTypes] extends [never]
+    ? Record<string, never>
+    : Readable<Partial<RawSearchParams<TSearchTypes, "in">>>;
 
 type OutSearchParams<TSearchTypes> = Readable<RawSearchParams<TSearchTypes, "out">>;
 

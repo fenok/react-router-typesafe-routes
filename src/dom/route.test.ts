@@ -338,7 +338,7 @@ it("allows implicit star path param", () => {
 
     expect(TEST_ROUTE.buildPath({})).toEqual("/test");
     expect(TEST_ROUTE.CHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/star/param");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/grand");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
 });
 
 it("allows implicit optional star path param", () => {
@@ -352,7 +352,7 @@ it("allows implicit optional star path param", () => {
 
     expect(TEST_ROUTE.buildPath({})).toEqual("/test");
     expect(TEST_ROUTE.CHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/star/param");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/grand");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
 });
 
 it("allows explicit star path param", () => {
@@ -406,9 +406,9 @@ it("allows star path param in the middle of combined path", () => {
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { "*"?: string }>>(true);
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
 
-    expect(TEST_ROUTE.buildPath({ "*": "foo" })).toEqual("/test");
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
     expect(TEST_ROUTE.CHILD.buildPath({ "*": "foo" })).toEqual("/test/child/foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": "foo" })).toEqual("/test/child/grand");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
 });
 
 it("allows search params", () => {
