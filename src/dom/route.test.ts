@@ -1598,3 +1598,25 @@ it("generates correct paths when the first segment is optional", () => {
     expect(TEST_ROUTE.buildRelativePath({ required: "req" })).toEqual("req");
     expect(TEST_ROUTE.buildRelativePath({ optional: "opt", required: "req" })).toEqual("opt/req");
 });
+
+it("disallows pathname input params when there are no pathname params", () => {
+    const TEST_ROUTE = route("test");
+    const TEST_ROUTE_WITH_EMPTY_PARAMS = route("test", { params: {} });
+
+    // @ts-expect-error There are no pathname params
+    TEST_ROUTE.buildPath({ id: 1 });
+
+    // @ts-expect-error There are no pathname params
+    TEST_ROUTE_WITH_EMPTY_PARAMS.buildPath({ id: 1 });
+});
+
+it("disallows search input params when there are no search params", () => {
+    const TEST_ROUTE = route("test");
+    const TEST_ROUTE_WITH_EMPTY_PARAMS = route("test", { searchParams: {} });
+
+    // @ts-expect-error There are no search params
+    TEST_ROUTE.buildPath({}, { id: 1 });
+
+    // @ts-expect-error There are no search params
+    TEST_ROUTE_WITH_EMPTY_PARAMS.buildPath({}, { id: 1 });
+});
