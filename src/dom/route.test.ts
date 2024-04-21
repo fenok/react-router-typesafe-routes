@@ -338,7 +338,7 @@ it("allows implicit star path param", () => {
 
     expect(TEST_ROUTE.buildPath({})).toEqual("/test");
     expect(TEST_ROUTE.CHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/star/param");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/grand");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
 });
 
 it("allows implicit optional star path param", () => {
@@ -352,7 +352,7 @@ it("allows implicit optional star path param", () => {
 
     expect(TEST_ROUTE.buildPath({})).toEqual("/test");
     expect(TEST_ROUTE.CHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/star/param");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/grand");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
 });
 
 it("allows explicit star path param", () => {
@@ -406,9 +406,9 @@ it("allows star path param in the middle of combined path", () => {
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { "*"?: string }>>(true);
     assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
 
-    expect(TEST_ROUTE.buildPath({ "*": "foo" })).toEqual("/test");
+    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
     expect(TEST_ROUTE.CHILD.buildPath({ "*": "foo" })).toEqual("/test/child/foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": "foo" })).toEqual("/test/child/grand");
+    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
 });
 
 it("allows search params", () => {
@@ -1597,4 +1597,37 @@ it("generates correct paths when the first segment is optional", () => {
 
     expect(TEST_ROUTE.buildRelativePath({ required: "req" })).toEqual("req");
     expect(TEST_ROUTE.buildRelativePath({ optional: "opt", required: "req" })).toEqual("opt/req");
+});
+
+it("disallows pathname input params when there are no pathname params", () => {
+    const TEST_ROUTE = route("test");
+    const TEST_ROUTE_WITH_EMPTY_PARAMS = route("test", { params: {} });
+
+    // @ts-expect-error There are no pathname params
+    TEST_ROUTE.buildPath({ id: 1 });
+
+    // @ts-expect-error There are no pathname params
+    TEST_ROUTE_WITH_EMPTY_PARAMS.buildPath({ id: 1 });
+});
+
+it("disallows search input params when there are no search params", () => {
+    const TEST_ROUTE = route("test");
+    const TEST_ROUTE_WITH_EMPTY_PARAMS = route("test", { searchParams: {} });
+
+    // @ts-expect-error There are no search params
+    TEST_ROUTE.buildPath({}, { id: 1 });
+
+    // @ts-expect-error There are no search params
+    TEST_ROUTE_WITH_EMPTY_PARAMS.buildPath({}, { id: 1 });
+});
+
+it("disallows state input params when there are no state params", () => {
+    const TEST_ROUTE = route("test");
+    const TEST_ROUTE_WITH_EMPTY_PARAMS = route("test", { state: {} });
+
+    // @ts-expect-error There are no state params
+    TEST_ROUTE.buildState({ id: 1 });
+
+    // @ts-expect-error There are no state params
+    TEST_ROUTE_WITH_EMPTY_PARAMS.buildState({ id: 1 });
 });
