@@ -125,7 +125,9 @@ type InSearchParams<TSearchTypes> = [keyof TSearchTypes] extends [never]
 
 type OutSearchParams<TSearchTypes> = Readable<RawSearchParams<TSearchTypes, "out">>;
 
-type InStateParams<TStateTypes> = Readable<Partial<RawStateParams<TStateTypes, "in">>>;
+type InStateParams<TStateTypes> = [keyof TStateTypes] extends [never]
+    ? Record<string, never>
+    : Readable<Partial<RawStateParams<TStateTypes, "in">>>;
 
 type OutStateParams<TStateTypes> = Readable<RawStateParams<TStateTypes, "out">>;
 

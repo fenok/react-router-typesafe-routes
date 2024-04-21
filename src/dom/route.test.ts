@@ -1620,3 +1620,14 @@ it("disallows search input params when there are no search params", () => {
     // @ts-expect-error There are no search params
     TEST_ROUTE_WITH_EMPTY_PARAMS.buildPath({}, { id: 1 });
 });
+
+it("disallows state input params when there are no state params", () => {
+    const TEST_ROUTE = route("test");
+    const TEST_ROUTE_WITH_EMPTY_PARAMS = route("test", { state: {} });
+
+    // @ts-expect-error There are no state params
+    TEST_ROUTE.buildState({ id: 1 });
+
+    // @ts-expect-error There are no state params
+    TEST_ROUTE_WITH_EMPTY_PARAMS.buildState({ id: 1 });
+});
