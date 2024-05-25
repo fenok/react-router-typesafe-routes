@@ -67,7 +67,6 @@
   },
   "devDependencies": {
     "@types/jest": "^29.4.1",
-    "@types/jscodeshift": "^0.11.11",
     "@types/node": "^18.15.3",
     "@types/react": "^18.0.9",
     "@typescript-eslint/eslint-plugin": "^6.4.0",

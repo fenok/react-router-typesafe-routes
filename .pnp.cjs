@@ -29,7 +29,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["@types/jest", "npm:29.4.1"],\
-            ["@types/jscodeshift", "npm:0.11.11"],\
             ["@types/node", "npm:18.15.3"],\
             ["@types/react", "npm:18.0.9"],\
             ["@typescript-eslint/eslint-plugin", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.4.0"],\
@@ -2223,17 +2222,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["@types/jscodeshift", [\
-        ["npm:0.11.11", {\
-          "packageLocation": "./.yarn/cache/@types-jscodeshift-npm-0.11.11-eb202d6b48-6224b781cb.zip/node_modules/@types/jscodeshift/",\
-          "packageDependencies": [\
-            ["@types/jscodeshift", "npm:0.11.11"],\
-            ["ast-types", "npm:0.14.2"],\
-            ["recast", "npm:0.20.5"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["@types/json-schema", [\
         ["npm:7.0.12", {\
           "packageLocation": "./.yarn/cache/@types-json-schema-npm-7.0.12-f05cfc0e99-00239e9723.zip/node_modules/@types/json-schema/",\
@@ -2784,14 +2772,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["ast-types", [\
-        ["npm:0.14.2", {\
-          "packageLocation": "./.yarn/cache/ast-types-npm-0.14.2-43c4ac4b0d-8674a77307.zip/node_modules/ast-types/",\
-          "packageDependencies": [\
-            ["ast-types", "npm:0.14.2"],\
-            ["tslib", "npm:2.6.0"]\
-          ],\
-          "linkType": "HARD"\
-        }],\
         ["npm:0.16.1", {\
           "packageLocation": "./.yarn/cache/ast-types-npm-0.16.1-596f974e68-21c186da9f.zip/node_modules/ast-types/",\
           "packageDependencies": [\
@@ -6679,7 +6659,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["react-router-typesafe-routes", "workspace:."],\
             ["@types/jest", "npm:29.4.1"],\
-            ["@types/jscodeshift", "npm:0.11.11"],\
             ["@types/node", "npm:18.15.3"],\
             ["@types/react", "npm:18.0.9"],\
             ["@typescript-eslint/eslint-plugin", "virtual:d0efa141ee1538d6c2d4d107ccc87fe1c110fb814b00adeafc03d2f3665d4ffa9f27c173403ec8aa93f72983194c2b687f8ef94b39fed332c0ea5e328676242c#npm:6.4.0"],\
@@ -6717,17 +6696,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["recast", [\
-        ["npm:0.20.5", {\
-          "packageLocation": "./.yarn/cache/recast-npm-0.20.5-35a50e82d9-14c35115cd.zip/node_modules/recast/",\
-          "packageDependencies": [\
-            ["recast", "npm:0.20.5"],\
-            ["ast-types", "npm:0.14.2"],\
-            ["esprima", "npm:4.0.1"],\
-            ["source-map", "npm:0.6.1"],\
-            ["tslib", "npm:2.6.0"]\
-          ],\
-          "linkType": "HARD"\
-        }],\
         ["npm:0.23.3", {\
           "packageLocation": "./.yarn/cache/recast-npm-0.23.3-9745d8cfb8-b1340ab0a3.zip/node_modules/recast/",\
           "packageDependencies": [\
