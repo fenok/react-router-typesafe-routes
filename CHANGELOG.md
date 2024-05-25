@@ -70,7 +70,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Removed all deprecated features.
 - **Breaking**: Removed `hashValues()`. Pass an array of strings or a type instead.
 - **Breaking**: Removed `types()`. Use composition API instead.
-- ~~**Breaking**: Removed `types` field of a route object. Use route object directly instead.~~
 
 ## [1.2.2] - 2024-04-21
 
