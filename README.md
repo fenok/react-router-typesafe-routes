@@ -274,7 +274,7 @@ const [{ utm_campaign }] = useTypedSearchParams(root);
 
 </details>
 
-### Inherit hash values:
+### Inherit hash values
 
 <details>
   <summary>Click to expand</summary>
@@ -310,7 +310,7 @@ const myRoute = route({
 
 </details>
 
-### Type non-object states:
+### Type non-object states
 
 <details>
   <summary>Click to expand</summary>
@@ -331,7 +331,10 @@ const myRoute = route({
 
 </details>
 
-Add custom validation:
+### Add custom validation
+
+<details>
+  <summary>Click to expand</summary>
 
 ```tsx
 import { route, string, number } from "react-router-typesafe-routes/dom"; // Or /native
@@ -355,7 +358,8 @@ const regExp = (regExp: RegExp) => (value: string) => {
   return value;
 };
 
-const ROUTE = route(":id", {
+const myRoute = route({
+  path: ":id",
   // string() only accepts validators that return strings.
   params: { id: string(regExp(/\d+/)) },
   // number() only accepts validators that return numbers.
@@ -363,14 +367,20 @@ const ROUTE = route(":id", {
 });
 ```
 
-Use Zod:
+</details>
+
+### Use Zod
+
+<details>
+  <summary>Click to expand</summary>
 
 ```tsx
 import { route } from "react-router-typesafe-routes/dom"; // Or /native
 import { zod } from "react-router-typesafe-routes/zod";
 import { z } from "zod";
 
-const ROUTE = route(":id", {
+const myRoute = route({
+  path: ":id",
   // Wrapping quotes in serialized values are omitted where possible.
   params: { id: zod(z.string().uuid()) },
 });
@@ -378,27 +388,38 @@ const ROUTE = route(":id", {
 
 > ❗Zod doesn't do coercion by default, but you may need it for complex values returned from `JSON.parse` (for instance, a date wrapped in an object).
 
-Use Yup:
+</details>
+
+### Use Yup
+
+<details>
+  <summary>Click to expand</summary>
 
 ```tsx
 import { route } from "react-router-typesafe-routes/dom"; // Or /native
 import { yup } from "react-router-typesafe-routes/yup";
 import { string } from "yup";
 
-const ROUTE = route(":id", {
+const ROUTE = route({
+  path: ":id",
   // Wrapping quotes in serialized values are omitted where possible.
   params: { id: yup(string().uuid()) },
 });
 ```
 
-Integrate third-party validation library:
+</details>
+
+### Integrate third-party validation library
+
+<details>
+  <summary>Click to expand</summary>
 
 ```tsx
-import { type, parser, UniversalType, ParserHint } from "react-router-typesafe-routes/dom"; // Or /native
+import { type, parser, Type, ParserHint } from "react-router-typesafe-routes/dom"; // Or /native
 // Schema is a library-specific interface.
 import { v, Schema } from "third-party-library";
 
-function valid<T>(schema: Schema<T>): UniversalType<T> {
+function valid<T>(schema: Schema<T>): Type<T> {
   return type(
     // We use library-specific validation logic.
     (value: unknown) => schema.validate(value),
@@ -416,12 +437,18 @@ function getTypeHint(schema: Schema): ParserHint {
   return schema.type;
 }
 
-const ROUTE = route(":id", {
+const myRoute = route({
+  path: ":id",
   params: { id: valid(v.string().uuid()) },
 });
 ```
 
-Construct type objects manually to cover obscure use cases:
+</details>
+
+### Construct type objects manually to cover obscure use cases
+
+<details>
+  <summary>Click to expand</summary>
 
 ```tsx
 import { route, ParamType } from "react-router-typesafe-routes/dom"; // Or /native
@@ -444,10 +471,13 @@ const looseString: ParamType<string, string | number | boolean> = {
   },
 };
 
-const ROUTE = route(":id", {
+const myRoute = route({
+  path: ":id",
   params: { id: looseString },
 });
 ```
+
+</details>
 
 ## Concepts
 
