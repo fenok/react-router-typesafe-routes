@@ -656,11 +656,11 @@ Validator is simply a function for validating values:
 
 ```typescript
 interface Validator<T, TPrev = unknown> {
-  (value: TPrev): T;
+  (value: TPrev): T | undefined;
 }
 ```
 
-It returns a valid value or throws if that's impossible. It can transform values to make them valid.
+It returns a valid value or throws (or returns `undefined`) if that's impossible. It can transform values to make them valid.
 
 The important thing is that it has to handle both the original value and whatever the corresponding parser returns.
 
@@ -700,26 +700,23 @@ The `.defined()`/`.default()` modifiers guarantee that the parsing result is not
 We can also construct type objects for arrays:
 
 ```typescript
-// Upon parsing:
+// Upon parsing all variants will give 'number[]'.
 
-// This will give '(number | undefined)[]'.
-// This should be the most common variant.
+// Absent/invalid values will be omitted.
 type(positiveNumber).array();
 
-// This will give 'number[]'.
 // Absent/invalid values will be replaced with '-1'.
 type(positiveNumber).default(-1).array();
 
-// This will give 'number[]'.
 // Absent/invalid values will lead to an error.
 type(positiveNumber).defined().array();
 ```
 
-Arrays can only be used in search params and state fields, because there is no standard way to store arrays in path params. For state fields, if a value is not an array, it's parsed as an empty array.
+Arrays can only be used in search params and state fields, because there is no standard way to store arrays in path params or hash. For state, if a value is not an array, it's parsed as an empty array.
 
 ##### Type-specific helpers
 
-Most of the time, you should use type-specific helpers: `string()`, `number()`, `boolean()`, or `date()`. They are built on top of `type()`, but they have the corresponding parsers and type checks built-in.
+Most of the time, you should use type-specific helpers: `string()`, `number()`, `boolean()`, or `date()`. They are built on top of `type()` and have the corresponding parsers and type checks built-in.
 
 For instance:
 
@@ -746,30 +743,27 @@ Gotchas:
 - It doesn't matter if a validator can accept or return `undefined` or not - it will be normalized by `type()` anyway.
 - A validator can receive `undefined`, which means that it can define its own default value, for example.
 
-#### Hash values
+#### Pathname params
 
-Hash is typed via the [`hashValues()`](#hashvalues) helper. You simply specify the allowed values. If none specified, anything is allowed.
+Pathname params are inferred from the provided path pattern and can be overridden (partially or completely) with pathname type objects.
 
-#### Path params
+Just as usual segments, dynamic segments (pathname params) can be made optional by adding a `?` to the end. This also applies to star (`*`) segments.
 
-Path params are inferred from the provided path pattern and can be overridden (partially or completely) with path type objects. Inferred params won't use any type object at all, and instead will simply be considered to be of type `string`.
-
-Just as usual segments, dynamic segments (path params) can be made optional by adding a `?` to the end. This also applies to star (`*`) segments.
+Inferred params will implicitly use `string().defined()` and `string()` for required and optional params respectively.
 
 ```tsx
 import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
 
 // Here, id is overridden to be a number, and subId and optionalId are strings
-const ROUTE = route("route/:id/:subId/:optionalId?", {
+const myRoute = route({
+  path: "route/:id/:subId/:optionalId?",
   params: { id: number() },
 });
 ```
 
-Upon building, all path params except the optional ones are required. Star parameter (`*`) is always optional upon building.
+Upon building, all pathname params except the optional ones are required. Star parameter (`*`) is always optional upon building.
 
-Upon parsing, if some non-optional implicitly typed param is absent (even the star parameter, because React Router parses it as an empty string), the parsing fails with an error.
-
-Explicitly typed params behave as usual.
+Parsing behavior is determined by the type objects. Note that React Router parses star parameter (`*`) as an empty string if there are no segments to match.
 
 > ❗ You most likely will never need it, but it's technically possible to provide a type object for the star parameter as well.
 
