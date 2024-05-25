@@ -4,6 +4,8 @@ Comprehensive and extensible type-safe routes for React Router v6 with first-cla
 
 [![npm](https://img.shields.io/npm/v/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
 
+> ⚠ You're viewing the documentation for the upcoming version 2.0.0, which is currently unstable. If you're looking for the documentation for the current version, please refer to the [main branch](https://github.com/fenok/react-router-typesafe-routes/tree/main).
+
 The library provides type safety for all route params (path params, search params (including multiple keys), state, and hash) on building and parsing URL parts and state objects. There are no unsafe type casts whatsoever.
 
 If you want, you can use a validation library. There is first-party support for [Zod](https://github.com/colinhacks/zod) and [Yup](https://github.com/jquense/yup), and other libraries are easily integratable. If not, you can use other built-in types and fine-tune their validation instead.
@@ -13,8 +15,6 @@ In built-in types, parsing and validation errors are caught and replaced with `u
 If you need more control, you can build completely custom types, which means that parsing, serializing, and typing are fully customizable.
 
 The library doesn't restrict or alter React Router API in any way, including nested routes and relative links. It's also gradually adoptable.
-
-> ⚠ Migrating to `v2.0.0`? Check out this [migration guide](docs/migrating-to-universal-types.md).
 
 ## Installation
 
