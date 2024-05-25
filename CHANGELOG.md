@@ -63,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Similarly, `undefined` keys are now omitted from all parsed params to match how there are no such keys in raw `params` from React Router. [The reason](https://github.com/fenok/react-router-typesafe-routes/issues/10#issuecomment-1186573588) this behavior was originally introduced is not relevant anymore.
 - **Breaking**: Some types are changed for convenience and readability.
 - Path params without explicit types now use `string()` and `string().defined()` for optional and required params respectively instead of custom code.
-- **Breaking**: The minimal required version of TS is now `v5.0.0` with `strict` mode enabled.
+- **Breaking**: The minimal required version of TS is now `v5.0` with `strict` mode enabled.
 
 ### Removed
 
