@@ -451,12 +451,12 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, ParamType } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, PathnameType } from "react-router-typesafe-routes/dom"; // Or /native
 
 // This type accepts 'string | number | boolean' and returns 'string'.
 // We only implement ParamType interface, so this type can only be used for path params.
 // For other params, we would need to implement SearchParamType and StateParamType.
-const looseString: ParamType<string, string | number | boolean> = {
+const looseString: PathnameType<string, string | number | boolean> = {
   getPlainParam(value) {
     // It's always guaranteed that value is not 'undefined' here.
     return String(value);
@@ -492,10 +492,10 @@ Most of the time, it's easier to simply inline child routes:
 ```tsx
 import { route } from "react-router-typesafe-routes/dom"; // Or /native
 
-const USER = route("user/:id", {}, { DETAILS: route("details") });
+const user = route({ path: "user/:id", children: { details: route("details") } });
 
-console.log(USER.path); // "/user/:id"
-console.log(USER.DETAILS.path); // "/user/:id/details"
+console.log(user.path); // "/user/:id"
+console.log(user.details.path); // "/user/:id/details"
 ```
 
 They can also be uninlined, most likely for usage in multiple places:
@@ -503,21 +503,21 @@ They can also be uninlined, most likely for usage in multiple places:
 ```tsx
 import { route } from "react-router-typesafe-routes/dom"; // Or /native
 
-const DETAILS = route("details");
+const details = route("details");
 
-const USER = route("user/:id", {}, { DETAILS });
-const POST = route("post/:id", {}, { DETAILS });
+const user = route("user/:id", {}, { details });
+const post = route("post/:id", {}, { details });
 
-console.log(USER.DETAILS.path); // "/user/:id/details"
-console.log(POST.DETAILS.path); // "/post/:id/details"
-console.log(DETAILS.path); // "/details"
+console.log(user.details.path); // "/user/:id/details"
+console.log(post.details.path); // "/post/:id/details"
+console.log(details.path); // "/details"
 ```
 
-To reiterate, `DETAILS` and `USER.DETAILS` are separate routes, which will usually behave differently. `DETAILS` doesn't know anything about `USER`, but `USER.DETAILS` does. `DETAILS` is a standalone route, but `USER.DETAILS` is a child of `USER`.
+To reiterate, `details` and `user.details` are separate routes, which will usually behave differently. `details` doesn't know anything about `user`, but `user.details` does. `details` is a standalone route, but `user.details` is a child of `user`.
 
-> ❗Child routes have to start with an uppercase letter to prevent overlapping with route API.
+> ❗Child routes can't start with `$` to prevent overlapping with route API.
 
-#### Using routes in React Router `<Route />` components
+#### Using library routes in React Router `<Route />` components
 
 Routes structure _usually_ corresponds to the structure of `<Route />` components:
 
@@ -526,9 +526,9 @@ import { Route, Routes } from "react-router-dom"; // Or -native
 
 <Routes>
   {/* '/user/:id' */}
-  <Route path={USER.path} element={<User />}>
+  <Route path={user.path} element={<User />}>
     {/* '/user/:id/details' */}
-    <Route path={USER.DETAILS.path} element={<UserDetails />} />
+    <Route path={user.details.path} element={<UserDetails />} />
   </Route>
 </Routes>;
 ```
@@ -550,9 +550,9 @@ import { Route, Routes } from "react-router-dom"; // Or -native
 
 <Routes>
   {/* 'user/:id' */}
-  <Route path={USER.relativePath} element={<User />}>
+  <Route path={user.relativePath} element={<User />}>
     {/* 'details' */}
-    <Route path={USER.$.DETAILS.relativePath} element={<UserDetails />} />
+    <Route path={user.$.details.relativePath} element={<UserDetails />} />
   </Route>
 </Routes>;
 ```
@@ -569,17 +569,17 @@ If your `<Route/>` is rendered in a nested `<Routes />`, you have to not only ad
 import { Route, Routes } from "react-router-dom"; // Or -native
 import { route } from "react-router-typesafe-routes/dom"; // Or /native
 
-const USER = route("user/:id/*", {}, { DETAILS: route("details") });
+const user = route({ path: "user/:id/*", children: { details: route("details") } });
 
 <Routes>
   {/* '/user/:id/*' */}
-  <Route path={USER.path} element={<User />} />
+  <Route path={user.path} element={<User />} />
 </Routes>;
 
 // Somewhere inside <User />
 <Routes>
   {/* '/details' */}
-  <Route path={USER.$.DETAILS.path} element={<UserDetails />} />
+  <Route path={user.$.details.path} element={<UserDetails />} />
 </Routes>;
 ```
 
@@ -591,29 +591,35 @@ const USER = route("user/:id/*", {}, { DETAILS: route("details") });
 
 #### Type objects
 
-Path params, search params, and state fields serializing, parsing, validation, and typing are done via type objects. Validation is done during parsing.
+Path params, search params, hash, and state (separate fields or state as a whole) serializing, parsing, validation, and typing are done via type objects. Validation is done during parsing.
 
 ```typescript
-// Can be used for path params
-interface ParamType<TOut, TIn = TOut> {
+// Can be used for pathname params
+interface PathnameType<TOut, TIn = TOut> {
   getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
   getTypedParam: (plainValue: string | undefined) => TOut;
 }
 
 // Can be used for search params
-interface SearchParamType<TOut, TIn = TOut> {
+interface SearchType<TOut, TIn = TOut> {
   getPlainSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
   getTypedSearchParam: (plainValue: string[]) => TOut;
 }
 
-// Can be used for state fields
-interface StateParamType<TOut, TIn = TOut> {
-  getPlainStateParam: (originalValue: Exclude<TIn, undefined>) => unknown;
-  getTypedStateParam: (plainValue: unknown) => TOut;
+// Can be used for state fields or the whole state
+interface StateType<TOut, TIn = TOut> {
+  getPlainState: (originalValue: Exclude<TIn, undefined>) => unknown;
+  getTypedState: (plainValue: unknown) => TOut;
+}
+
+// Can be used for hash
+interface HashType<TOut, TIn = TOut> {
+  getPlainHash: (originalValue: Exclude<TIn, undefined>) => string;
+  getTypedHash: (plainValue: string) => TOut;
 }
 ```
 
-> ❗ It's guaranteed that `undefined` will never be passed as `TIn`.
+> ❗ It's guaranteed that `undefined` will never be passed as `originalValue`.
 
 These interfaces allow to express pretty much anything, though normally you should use the built-in helpers for constructing these objects. Manual construction should only be used if you're hitting some limitations.
 
@@ -624,7 +630,7 @@ To make type objects construction and usage easier, we impose a set of reasonabl
 - `TIn` and `TOut` are the same, for all params.
 - Type objects for arrays are constructed based on helpers for individual values. Array params can never be parsed/validated into `undefined`.
 - By default, parsing/validation errors result in `undefined`. We can also opt in to returning a default value or throwing an error in case of an absent/invalid param.
-- State params are only validated and not transformed in any way.
+- State is only validated and not transformed in any way.
 - Type objects for individual values can be used for any param. Type objects for arrays can only be used for search params and state fields.
 
 With this in mind, we can think about type objects in terms of parsers and validators.
