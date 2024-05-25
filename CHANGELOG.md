@@ -11,20 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add pathless routes and route composition API.
 
-  ```typescript
-  // Instead of route(':id', { params: { id: number() }, searchParams: { page: number() } })
-  const FRAGMENT = route({ params: { id: number() }, searchParams: { page: number() } });
+```typescript
+// Instead of route(':id', { params: { id: number() }, searchParams: { page: number() } })
+const fragment = route({ params: { id: number() }, searchParams: { page: number() } });
 
-  // Instead of types(FRAGMENT)({searchParams: { query: string() }})
-  const MY_ROUTE = route({
-    path: "my-path/:id",
-    compose: [FRAGMENT],
-    searchParams: { query: string() },
-  });
+// Instead of types(FRAGMENT)({searchParams: { query: string() }})
+const myRoute = route({
+  path: "my-path/:id",
+  compose: [fragment],
+  searchParams: { query: string() },
+});
 
-  const { id } = useTypedParams(FRAGMENT);
-  const [{ page }] = useTypedSearchParams(FRAGMENT);
-  ```
+const { id } = useTypedParams(fragment);
+const [{ page }] = useTypedSearchParams(fragment);
+```
 
 ### Changed
 
@@ -34,31 +34,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
 - - **Breaking**: The `types` field is renamed to `$options`, and it now also contains an unmodified `path` option of the route.
 - **Breaking**: Path and state generation API is changed.
-  - `$buildPath` (formerly `buildPath`) now accepts all params as a single argument.
-  - `$buildPathname` is added.
-  - `buildRelativePath` is removed, and instead `$buildPath`/`$buildPathname` now accept a `relative` option.
-  - `$buildPath`/`$buildSearch`/`$getPlainSearchParams` and `$buildState` now accept `untypedSearchParams` and `untypedState` options respectively. When provided, the corresponding untyped parts will be added to the resulting path (the search part) or state. The corresponding option in `useTypedSearchParams` is also renamed.
-  - `$getPlainSearchParams` (formerly `getPlainSearchParams`) now returns a `URLSearchParams` instance for consistency with the rest of the API.
-- **Breaking**: `route` API is changed. It now accepts a single argument with optional types, path, composed routes and children. By default, path is empty string.
+- `$buildPath` (formerly `buildPath`) now accepts all params as a single argument.
+- `$buildPathname` is added.
+- `buildRelativePath` is removed, and instead `$buildPath`/`$buildPathname` now accept a `relative` option.
+- `$buildPath`/`$buildSearch`/`$getPlainSearchParams` and `$buildState` now accept `untypedSearchParams` and `untypedState` options respectively. When provided, the corresponding untyped parts will be added to the resulting path (the search part) or state. The corresponding option in `useTypedSearchParams` is also renamed.
+- `$getPlainSearchParams` (formerly `getPlainSearchParams`) now returns a `URLSearchParams` instance for consistency with the rest of the API.
+- **Breaking**: `route` API is changed. It now accepts a single argument with optional types, path, composed routes and children. By default, path is `undefined` (which means a pathless route).
 - **Breaking**: Hash should now be specified as an array of strings or a type. Empty array now means "nothing" instead of "any string". For example:
-  - `hashValues('about', 'info')` => `['about', 'info']`
-  - `hashValues()` => `string()`
-  - Default: `[]`
-  - You can also use other types, like `number().default(-1)`
+- `hashValues('about', 'info')` => `['about', 'info']`
+- `hashValues()` => `string()`
+- Default: `[]`
+- You can also use other types, like `number().default(-1)`
 - **Breaking**: Array types like `string().array()` now filter `undefined` values upon parsing. The previous behavior broke a common pattern of changing a subset of search parameters:
 
-  ```typescript
-  const FRAGMENT = route({ searchParams: { pages: number().array(), query: string() } });
+```typescript
+const FRAGMENT = route({ searchParams: { pages: number().array(), query: string() } });
 
-  const [{ pages, query }, setTypedSearchParams] = useTypedSearchParams(FRAGMENT);
+const [{ pages, query }, setTypedSearchParams] = useTypedSearchParams(FRAGMENT);
 
-  setTypedSearchParams((prevParams) => ({
-    // Previously, prevParams.pages would be (number|undefined)[],
-    // which is not assignable to number[].
-    ...prevParams,
-    query: "hi",
-  }));
-  ```
+setTypedSearchParams((prevParams) => ({
+  // Previously, prevParams.pages would be (number|undefined)[],
+  // which is not assignable to number[].
+  ...prevParams,
+  query: "hi",
+}));
+```
 
 - **Breaking**: Similarly, `undefined` keys are now omitted from all parsed params to match how there are no such keys in raw `params` from React Router. [The reason](https://github.com/fenok/react-router-typesafe-routes/issues/10#issuecomment-1186573588) this behavior was originally introduced is not relevant anymore.
 - **Breaking**: Some types are changed for convenience and readability.
