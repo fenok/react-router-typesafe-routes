@@ -274,7 +274,10 @@ const [{ utm_campaign }] = useTypedSearchParams(root);
 
 </details>
 
-Inherit hash values:
+### Inherit hash values:
+
+<details>
+  <summary>Click to expand</summary>
 
 ```tsx
 import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
@@ -305,7 +308,12 @@ const myRoute = route({
 });
 ```
 
-Type non-object states:
+</details>
+
+### Type non-object states:
+
+<details>
+  <summary>Click to expand</summary>
 
 ```tsx
 import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
@@ -320,6 +328,8 @@ const myRoute = route({
 ```
 
 > ❗If you're building from scratch, it's almost certainly a bad idea to use this API. However, it might come in handy if you're typing an existing system where it's not easy to get rid of non-object states.
+
+</details>
 
 Add custom validation:
 
