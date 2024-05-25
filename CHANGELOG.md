@@ -31,16 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Types for pathname `params` are now stricter and don't allow params which are not specified in the path pattern. This also fixes autocomplete for such params.
 - State can now optionally be typed as a whole, so non-object states can now be typed.
 - **Breaking**: Functions in state type object are renamed to `getPlainState` and `getTypedState`.
-  ~~- **Breaking**: Pathname params will now be parsed solely basing on the provided types, which makes fragments for pathname params possible. Path (pathname) building is unaffected.~~
 - **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
 - - **Breaking**: The `types` field is renamed to `$options`, and it now also contains an unmodified `path` option of the route.
 - **Breaking**: Path and state generation API is changed.
   - `$buildPath` (formerly `buildPath`) now accepts all params as a single argument.
-  - `buildRelativePath` is removed, and instead `$buildPath` now accepts a second argument with options, one of which is `relative`.
-  - If you have params with the same name between pathname, search, and hash, which you can't refactor away, you can build a React Router `Path` object instead, using `$buildSearch`, `$buildHash`, and newly added `$buildPathname`, which also can be made `relative`.
-  - `$buildPath`/`$buildSearch`/`$getPlainSearchParams` and `$buildState` now accept `untypedSearchParams` and `untypedState` options respectively in the second argument. When provided, the corresponding untyped parts will be added to the resulting path (the search part) or state. The corresponding option in `useTypedSearchParams` is also renamed.
+  - `$buildPathname` is added.
+  - `buildRelativePath` is removed, and instead `$buildPath`/`$buildPathname` now accept a `relative` option.
+  - `$buildPath`/`$buildSearch`/`$getPlainSearchParams` and `$buildState` now accept `untypedSearchParams` and `untypedState` options respectively. When provided, the corresponding untyped parts will be added to the resulting path (the search part) or state. The corresponding option in `useTypedSearchParams` is also renamed.
   - `$getPlainSearchParams` (formerly `getPlainSearchParams`) now returns a `URLSearchParams` instance for consistency with the rest of the API.
-- **Breaking**: `route` API is changed. It now accepts only a single argument with optional types, path, composed routes and children. By default, path is empty string.
+- **Breaking**: `route` API is changed. It now accepts a single argument with optional types, path, composed routes and children. By default, path is empty string.
 - **Breaking**: Hash should now be specified as an array of strings or a type. Empty array now means "nothing" instead of "any string". For example:
   - `hashValues('about', 'info')` => `['about', 'info']`
   - `hashValues()` => `string()`
@@ -64,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Similarly, `undefined` keys are now omitted from all parsed params to match how there are no such keys in raw `params` from React Router. [The reason](https://github.com/fenok/react-router-typesafe-routes/issues/10#issuecomment-1186573588) this behavior was originally introduced is not relevant anymore.
 - **Breaking**: Some types are changed for convenience and readability.
 - Path params without explicit types now use `string()` and `string().defined()` for optional and required params respectively instead of custom code.
-- ~~**Breaking**: The minimal required version of TS is now `v5.0.2`.~~
+- **Breaking**: The minimal required version of TS is now `v5.0.0` with `strict` mode enabled.
 
 ### Removed
 
