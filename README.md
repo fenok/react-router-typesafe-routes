@@ -761,7 +761,7 @@ const myRoute = route({
 });
 ```
 
-Upon building, all pathname params except the optional ones are required. Star parameter (`*`) is always optional upon building.
+Upon building, pathname params are required or optional based on the `?` modifier, except for the star parameter (`*`), which is always optional upon building.
 
 Parsing behavior is determined by the type objects. Note that React Router parses star parameter (`*`) as an empty string if there are no segments to match.
 
@@ -775,43 +775,45 @@ Search params are determined by the provided search type objects.
 import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
 
 // Here, we define a search parameter 'filter' of 'string' type
-const ROUTE = route("route", { searchParams: { filter: string() } });
+const myRoute = route({ path: "route", searchParams: { filter: string() } });
 ```
 
-All search parameters are optional.
+Upon building, all search parameters are optional. Parsing behavior is determined by the type objects.
 
 #### State fields
 
-State fields are determined by the provided state type objects. To make state merging possible, the state is assumed to always be an object.
+State fields are determined by the provided state type objects. It's also possible to use a type object to define the whole state.
 
 ```tsx
-import { route, boolean } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, boolean, string } from "react-router-typesafe-routes/dom"; // Or /native
 
-// Here, we define a state parameter 'fromList' of 'boolean' type
-const ROUTE = route("route", { state: { fromList: boolean() } });
+// Here, we define a state field 'fromList' of 'boolean' type
+const myRoute = route({ path: "route", state: { fromList: boolean() } });
+
+// Here, we define the whole state as 'string'
+const myOtherRoute = route({ path: "route", state: string() });
 ```
 
-All state fields are optional.
+Upon building, all state fields (and the whole state) are optional. Parsing behavior is determined by the type objects.
 
 #### Hash
 
-Hash doesn't use any type objects. Instead, you can specify the allowed values, or specify that any `string` is allowed (by calling the helper without parameters). By default, nothing is allowed as a hash value (otherwise, merging of hash values wouldn't work).
+Hash is determined by the provided hash type object. It's also possible to provide an array of possible `string` values if you want to inherit parent values.
 
 ```tsx
-import { route, hashValues } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, string, union } from "react-router-typesafe-routes/dom"; // Or /native
 
-const ROUTE_NO_HASH = route("route");
+const routeWithAnyHash = route({ path: "route", hash: string() });
 
-const ROUTE_DEFINED_HASH = route("route", {
-  hash: hashValues("about", "more"),
+const routeWithRestrictedHash = route({ path: "route", hash: union("about", "more") });
+
+const routeWithInheritableValues = route({
+  path: "route",
+  hash: ["about", "more"],
 });
-
-const ROUTE_ANY_HASH = route("route", { hash: hashValues() });
 ```
 
-Hash is always optional.
-
-> ❗ Note that `hashValues()` is the equivalent of `[] as const` and is used only to make typing more convenient.
+Upon building, hash is optional. Parsing behavior is determined by the type object. In the case of an array of possible values, an absent/invalid value will result in `undefined`.
 
 #### Nested routes
 
