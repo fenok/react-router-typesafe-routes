@@ -6,7 +6,7 @@ Comprehensive and extensible type-safe routes for React Router v6 with first-cla
 
 > ⚠ You're viewing the documentation for the upcoming version 2.0.0, which is currently unstable. If you're looking for the documentation for the current version, please refer to the [main branch](https://github.com/fenok/react-router-typesafe-routes/tree/main).
 
-The library provides type safety for all route params (path params, search params (including multiple keys), state, and hash) on building and parsing URL parts and state objects. There are no unsafe type casts whatsoever.
+The library provides type safety for all route params (path params, search params (including multiple keys), state, and hash) on building and parsing URL parts and state. There are no unsafe type casts whatsoever.
 
 If you want, you can use a validation library. There is first-party support for [Zod](https://github.com/colinhacks/zod) and [Yup](https://github.com/jquense/yup), and other libraries are easily integratable. If not, you can use other built-in types and fine-tune their validation instead.
 
