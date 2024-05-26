@@ -825,7 +825,7 @@ Child routes under `$` don't inherit parent type objects for path params.
 
 #### Types composition
 
-Pathless routes can be composed to other routes to share types. Please refer to [Advanced examples - Share types between routes](#share-types-between-routes).
+Pathless routes can be composed to other routes to share types. Please refer to [Advanced examples: Share types between routes](#share-types-between-routes).
 
 Multiple routes can be composed. For parameters with the same name, the rightmost route takes precedence.
 
@@ -848,24 +848,25 @@ If state type is defined as a set of its fields' types and a whole state type at
 
 ### `route()`
 
-A route is defined via the `route()` helper. It accepts required `path` and optional `types` and `children`. All `types` fields are optional.
+A route is defined via the `route()` helper. All its options are optional.
 
 ```tsx
-import { route, string, number, boolean, hashValues } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, string, number, boolean } from "react-router-typesafe-routes/dom"; // Or /native
 
-const ROUTE = route(
-  "my/path",
-  {
-    params: { pathParam: string() },
-    searchParams: { searchParam: number() },
-    state: { stateParam: boolean() },
-    hash: hashValues("value"),
-  },
-  { CHILD_ROUTE: route("child") },
-);
+const myFragment = route({ searchParams: { myFragmentParam: string() } });
+
+const myRoute = route({
+  path: "my/path",
+  compose: [myFragment],
+  params: { myPathnameParam: string() },
+  searchParams: { mySearchParam: number() },
+  state: { myStateParam: boolean() },
+  hash: union("my-hash", "my-other-hash"),
+  children: { myChildRoute: route({ path: "child" }) },
+});
 ```
 
-The `path` argument is a path pattern that you would put to the `path` property of a `<Route/>`, but without leading or trailing slashes (`/`). More specifically, it can:
+The `path` option is a path pattern that you would put to the `path` property of a `<Route/>`, but without leading or trailing slashes (`/`). More specifically, it can:
 
 - be a simple segment or a group of segments (`'user'`, `'user/details'`).
 - have any number of dynamic segments (params) anywhere (`':id/user'`, `'user/:id/more'`).
@@ -873,23 +874,27 @@ The `path` argument is a path pattern that you would put to the `path` property 
 - have any number of optional segments (`user?/:id?/*?`)
 - be an empty string (`''`).
 
-The `types` argument specifies type objects and hash values of the route. See [Typing](#typing).
+Unspecified (or `undefined`) `path` means that the route is pathless. Pathless routes are intended for types sharing.
 
-The `children` argument specifies child routes of the route. See [Nesting](#nesting).
+The `compose` option is an array of pathless routes whose types are composed into the route. See [Typing: Types composition](#types-composition).
+
+The `params`, `searchParams`, `state`, and `hash` options specify type objects (and possibly hash values) of the route. See [Typing](#typing).
+
+The `children` option specifies child routes of the route. See [Nesting](#nesting).
 
 The `route()` helper returns a route object, which has the following fields:
 
-- `path` and `relativePath`, where `path` contains a combined path pattern with a leading slash (`/`), and `relativePath` contains a combined path pattern **without intermediate stars (`*`)** and a leading slash (`/`). They can be passed to e.g. the `path` prop of React Router `<Route/>`.
+- `$path` and `$relativePath`, where `$path` contains a combined path pattern with a leading slash (`/`), and `$relativePath` contains a combined path pattern **without intermediate stars (`*`)** and a leading slash (`/`). They can be passed to e.g. the `path` prop of React Router `<Route/>`.
   > ❗ At the time of writing, patterns with optional segments [can't](https://github.com/remix-run/react-router/discussions/9862) be used in `matchPath`/`useMatch`.
-- `buildPath()` and `buildRelativePath()` for building parametrized URL paths (pathname + search + hash) which can be passed to e.g. the `to` prop of React Router `<Link />`.
-- `buildState()` for building typed states, which can be passed to e.g. the `state` prop of React Router `<Link />`.
-- `buildSearch()` and `buildHash()` for building parametrized URL parts. They can be used (in conjunction with `buildState()` and `buildPath()`/`buildRelativePath()`) to e.g. build a parametrized `Location` object.
-- `getTypedParams()`, `getTypedSearchParams()`, `getTypedHash()`, and `getTypedState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
-- `getUntypedParams()`, `getUntypedSearchParams()`, and `getUntypedState()` for retrieving untyped params from React Router primitives. Typed params are omitted. Note that the hash is always typed.
-- `getPlainParams()` and `getPlainSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `buildHash()` and `buildState()` can be used instead.
-- `types`, which contains type objects and hash values of the route. Can be used for sharing types with other routes, though normally you should use the [`types()`](#types) helper instead.
+- `$buildPath()` for building parametrized URL paths (pathname + search + hash) which can be passed to e.g. the `to` prop of React Router `<Link />`.
+- `$buildState()` for building typed states, which can be passed to e.g. the `state` prop of React Router `<Link />`.
+- `$buildPathname()`, `$buildSearch()`, and `$buildHash()` for building parametrized URL parts. They can be used (in conjunction with `$buildState()`) to e.g. build a parametrized `Location` object.
+- `$getTypedParams()`, `$getTypedSearchParams()`, `$getTypedHash()`, and `$getTypedState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
+- `$getUntypedParams()`, `$getUntypedSearchParams()`, and `$getUntypedState()` for retrieving untyped params from React Router primitives. Typed params are omitted. Note that the hash is always typed, as well as the state when it's typed as a whole.
+- `$getPlainParams()` and `$getPlainSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `$buildHash()` and `$buildState()` can be used instead.
+- `$options`, which contains resolved type objects (and possibly hash values) of the route, as well as its `path` option.
 - `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
-- Any number of child routes starting with an uppercase letter.
+- Any number of child routes (that can't start with a `$`).
 
 ### `parser()`
 
@@ -924,14 +929,6 @@ All built-in helpers catch parsing and validation errors and replace them with `
 - `.default()` - accepts a default value that is used instead of an absent/invalid param;
 - `.defined()` - specifies that an error is thrown in case of an absent/invalid param. For invalid params, the original error is used.
 
-### `hashValues()`
-
-The `hashValues()` helper types the hash part of the URL. See [Typing: Hash](#hash).
-
-### `types()`
-
-The `types()` helper is used for types composition. See [Typing: Types composition](#types-composition).
-
 ### Hooks
 
 All hooks are designed in such a way that they can be reimplemented in the userland. If something isn't working for you, you can get yourself unstuck by creating custom hooks.
@@ -946,7 +943,7 @@ The `useTypedParams()` hook is a thin wrapper around React Router `useParams()`.
 
 The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around React Router `useSearchParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
 
-The only notable difference is that `setTypedSearchParams()` has an additional `preserveUntyped` option. If `true`, existing untyped (by the given route) search parameters will remain intact. Note that this option does not affect the `state` option. That is, there is no way to preserve untyped state fields.
+The only notable difference is that `setTypedSearchParams()` has an additional `untypedSearchParams` option. If `true`, existing untyped (by the given route) search parameters will remain intact. Note that this option does not affect the `state` option. That is, there is no way to preserve untyped state fields.
 
 The reason for this is that `useTypedSearchParams()` is intended to be a simple wrapper around `useSearchParams()`, and the latter doesn't provide any access to the current state. If [this proposal](https://github.com/remix-run/react-router/discussions/9950) goes through, it would be very easy to implement, but for now, the only way to achieve this is to create a custom hook.
 
