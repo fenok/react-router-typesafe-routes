@@ -57,9 +57,9 @@ The minimal required version of TypeScript is `5.0` and `strict` mode must be en
 | Nested routes                                                                    | ✅                           | ✅                                                             | ✅                                                                  | ✅                                                                |
 | Relative links                                                                   | ✅                           | ✅                                                             | 🚫                                                                  | ✅                                                                |
 | Tailored specifically for React Router v6                                        | ✅                           | 🚫                                                             | ✅                                                                  | ✅                                                                |
-| Type-safe actions/loaders                                                        | 🚫[^1]                       | 🚫                                                             | 🚫                                                                  | ✅                                                                |
+| Type-safe actions/loaders                                                        | 🚫                           | 🚫                                                             | 🚫                                                                  | ✅                                                                |
 
-[^1]: Type-safe actions/loaders should be fairly easy to implement, but it's a low-priority task. Please open an issue if you need them.
+> Type-safe actions/loaders should be fairly easy to implement, but it's a low-priority task. Please open an issue if you need them.
 
 Other libraries that I was able to find are outdated and not really suitable for React Router v6:
 
