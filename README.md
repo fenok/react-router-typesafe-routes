@@ -38,7 +38,7 @@ The minimal required version of TypeScript is `5.0` and `strict` mode must be en
 
 ## Limitations & Caveats
 
-- Since React Router only considers pathname on route matching, search parameters, state fields, and hash are considered optional upon URL or state building.
+- Since React Router only considers pathname on route matching, search parameters, hash, and state are considered optional upon URL or state building.
 - For convenience, absent and invalid params are considered virtually the same by built-in types (but you have full control with custom types).
 - To emphasize that route relativity is governed by the library, leading slashes in path patterns are forbidden. Trailing slashes are also forbidden due to being purely cosmetic.
 
@@ -62,7 +62,7 @@ The minimal required version of TypeScript is `5.0` and `strict` mode must be en
 Other libraries that I was able to find are outdated and not really suitable for React Router v6:
 
 - [typesafe-react-router](https://github.com/AveroLLC/typesafe-react-router)
-- [react-typesafe-routes](https://github.com/innFactory/react-typesafe-routes) (this one is currently being updated for React Router v6)
+- [react-typesafe-routes](https://github.com/innFactory/react-typesafe-routes)
 
 You might also want to use some other router with built-in type safety:
 
@@ -91,10 +91,10 @@ const root = route({
       path: "user/:userId",
       // You can e.g. change implicit 'string().defined()' to explicit 'number().defined()'.
       params: { userId: number().defined() },
-      // You can specify state parts. Without modifiers, types can return 'undefined' upon parsing.
-      state: { fromUserList: boolean() },
       // You can specify hash. To allow any hash, define it as 'string()'.
       hash: union("info", "comments"),
+      // You can specify state parts. Without modifiers, types can return 'undefined' upon parsing.
+      state: { fromUserList: boolean() },
       // Child routes inherit all parent params.
       children: {
         // Optional pathname params are also supported and implicitly use 'string()' type.
@@ -190,17 +190,6 @@ import { root } from "./path/to/routes";
 const [{ utm_campaign }, setTypedSearchParams] = useTypedSearchParams(root.user.post);
 ```
 
-Get typed state with `useTypedState()`:
-
-```tsx
-import { useTypedState } from "react-router-typesafe-routes/dom"; // Or /native
-import { root } from "./path/to/routes";
-
-// The type here is { fromUserList: boolean | undefined }.
-// If fromUserList is absent/invalid, 'undefined' is used instead.
-const { fromUserList } = useTypedState(root.user.post);
-```
-
 Get typed hash with `useTypedHash()`:
 
 ```tsx
@@ -210,6 +199,17 @@ import { root } from "./path/to/routes";
 // The type here is "info" | "comments" | undefined.
 // If hash is absent/invalid, 'undefined' is used instead.
 const hash = useTypedHash(root.user.post);
+```
+
+Get typed state with `useTypedState()`:
+
+```tsx
+import { useTypedState } from "react-router-typesafe-routes/dom"; // Or /native
+import { root } from "./path/to/routes";
+
+// The type here is { fromUserList: boolean | undefined }.
+// If fromUserList is absent/invalid, 'undefined' is used instead.
+const { fromUserList } = useTypedState(root.user.post);
 ```
 
 ## Advanced examples
@@ -780,22 +780,6 @@ const myRoute = route({ path: "route", searchParams: { filter: string() } });
 
 Upon building, all search parameters are optional. Parsing behavior is determined by the type objects.
 
-#### State fields
-
-State fields are determined by the provided state type objects. It's also possible to use a type object to define the whole state.
-
-```tsx
-import { route, boolean, string } from "react-router-typesafe-routes/dom"; // Or /native
-
-// Here, we define a state field 'fromList' of 'boolean' type
-const myRoute = route({ path: "route", state: { fromList: boolean() } });
-
-// Here, we define the whole state as 'string'
-const myOtherRoute = route({ path: "route", state: string() });
-```
-
-Upon building, all state fields (and the whole state) are optional. Parsing behavior is determined by the type objects.
-
 #### Hash
 
 Hash is determined by the provided hash type object. It's also possible to provide an array of possible `string` values if you want to inherit parent values.
@@ -814,6 +798,22 @@ const routeWithInheritableValues = route({
 ```
 
 Upon building, hash is optional. Parsing behavior is determined by the type object. In the case of an array of possible values, an absent/invalid value will result in `undefined`.
+
+#### State fields
+
+State fields are determined by the provided state type objects. It's also possible to use a type object to define the whole state.
+
+```tsx
+import { route, boolean, string } from "react-router-typesafe-routes/dom"; // Or /native
+
+// Here, we define a state field 'fromList' of 'boolean' type
+const myRoute = route({ path: "route", state: { fromList: boolean() } });
+
+// Here, we define the whole state as 'string'
+const myOtherRoute = route({ path: "route", state: string() });
+```
+
+Upon building, all state fields (and the whole state) are optional. Parsing behavior is determined by the type objects.
 
 #### Types inheritance
 
@@ -860,8 +860,8 @@ const myRoute = route({
   compose: [myFragment],
   params: { myPathnameParam: string() },
   searchParams: { mySearchParam: number() },
-  state: { myStateParam: boolean() },
   hash: union("my-hash", "my-other-hash"),
+  state: { myStateParam: boolean() },
   children: { myChildRoute: route({ path: "child" }) },
 });
 ```
@@ -878,7 +878,7 @@ Unspecified (or `undefined`) `path` means that the route is pathless. Pathless r
 
 The `compose` option is an array of pathless routes whose types are composed into the route. See [Typing: Types composition](#types-composition).
 
-The `params`, `searchParams`, `state`, and `hash` options specify type objects (and possibly hash values) of the route. See [Typing](#typing).
+The `params`, `searchParams`, `hash`, and `state` options specify type objects (and possibly hash values) of the route. See [Typing](#typing).
 
 The `children` option specifies child routes of the route. See [Nesting](#nesting).
 
@@ -947,10 +947,10 @@ The only notable difference is that `setTypedSearchParams()` has an additional `
 
 The reason for this is that `useTypedSearchParams()` is intended to be a simple wrapper around `useSearchParams()`, and the latter doesn't provide any access to the current state. If [this proposal](https://github.com/remix-run/react-router/discussions/9950) goes through, it would be very easy to implement, but for now, the only way to achieve this is to create a custom hook.
 
-#### `useTypedState()`
-
-The `useTypedState()` hook is a thin wrapper around React Router `useLocation()`. It accepts a route object as the first parameter and returns a typed state.
-
 #### `useTypedHash()`
 
 The `useTypedHash()` hook is a thin wrapper around React Router `useLocation()`. It accepts a route object as the first parameter and returns a typed hash.
+
+#### `useTypedState()`
+
+The `useTypedState()` hook is a thin wrapper around React Router `useLocation()`. It accepts a route object as the first parameter and returns a typed state.
