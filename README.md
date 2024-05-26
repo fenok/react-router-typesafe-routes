@@ -815,70 +815,34 @@ const routeWithInheritableValues = route({
 
 Upon building, hash is optional. Parsing behavior is determined by the type object. In the case of an array of possible values, an absent/invalid value will result in `undefined`.
 
-#### Nested routes
+#### Types inheritance
 
-Child routes inherit all type objects from their parent. For parameters with the same name, child type objects take precedence. It also means that if a path parameter has no type object specified, it will use the parent type object for a parameter with the same name, if there is one.
+Child routes inherit all type objects from their parent. For parameters with the same name, child type objects take precedence.
 
-> ❗ Parameters with the same name are discouraged.
-
-Hash values are combined. If a parent allows any `string` to be a hash value, its children can't override that.
+Hash values can be inherited only if they are defined as an array of strings.
 
 Child routes under `$` don't inherit parent type objects for path params.
 
 #### Types composition
 
-It's pretty common to have completely unrelated routes that share the same set of params. One such example is pagination params.
+Pathless routes can be composed to other routes to share types. Please refer to [Advanced examples - Share types between routes](#share-types-between-routes).
 
-We can use nesting and put common types to a single common route:
+Multiple routes can be composed. For parameters with the same name, the rightmost route takes precedence.
 
-```tsx
-import { route, number, useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
+#### Types priority
 
-const ROUTE = route(
-  "",
-  { searchParams: { page: number() } },
-  { USER: route("user"), POST: route("post"), ABOUT: route("about") },
-);
+When there are multiple types for the same param, they are resolved as follows, from the lowest priority to the highest:
 
-// We can use this common ROUTE to get the page param anywhere:
-const [{ page }] = useTypedSearchParams(ROUTE);
-```
+- Implicit pathname types
+- Inherited types
+- Composed types
+- Explicit types
 
-However, this approach has the following drawbacks:
+If hash type is defined as an array of strings and a hash type at the same time, the hash type always wins regardless of the rules above.
 
-- All routes will have all common params, even if they don't need them.
-- All common params are defined in one place, which may get cluttered.
-- We can't share path params this way, because they require the corresponding path pattern.
+If state type is defined as a set of its fields' types and a whole state type at the same time, the whole state type always wins regardless of the rules above.
 
-To mitigate these issues, we can use type composition via the [`types()`](#types) helper:
-
-```tsx
-import {
-  route,
-  types,
-  number,
-  string,
-  useTypedSearchParams,
-} from "react-router-typesafe-routes/dom"; // Or /native
-
-const PAGINATION_FRAGMENT = route("", { searchParams: { page: number() } });
-
-const ROUTES = {
-  // This route uses pagination params and also has its own search params.
-  USER: route("user", types({ searchParams: { q: string() } })(PAGINATION_FRAGMENT)),
-  // This route only uses pagination params.
-  POST: route("post", types(PAGINATION_FRAGMENT)),
-  // This route doesn't use pagination params
-  ABOUT: route("about"),
-};
-
-// We can use PAGINATION_FRAGMENT to get the page param anywhere:
-const [{ page }] = useTypedSearchParams(PAGINATION_FRAGMENT);
-```
-
-The `types()` helper accepts either a set of types (including hash values), or a route which types should be used, and returns a callable set of types, which can be called to add more types. We can compose any number of types, and they are merged in the same way as types in nested routes.
-
-> ❗ Types for path params will only be used if the path pattern has the corresponding dynamic segments.
+> ❗ Parameters with the same name are discouraged.
 
 ## API
 
