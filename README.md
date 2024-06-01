@@ -937,6 +937,12 @@ All built-in helpers catch parsing and validation errors and replace them with `
 - `.default()` - accepts a default value that is used instead of an absent/invalid param;
 - `.defined()` - specifies that an error is thrown in case of an absent/invalid param. For invalid params, the original error is used.
 
+### Useful types
+
+- `PathParam` is similar to `PathParam` from React Router, but it allows a slightly more nuanced params extraction.
+- `BaseRoute` is a base type that any route object is assignable to.
+- `InPathParams`, `InPathnameParams`, `OutPathnameParams`, `InSearchParams`, `OutSearchParams`, `InState`, `OutState`, `InHash`, and `OutHash` can be used to extract the corresponding params from route options (`$options`).
+
 ### Hooks
 
 All hooks are designed in such a way that they can be reimplemented in the userland. If something isn't working for you, you can get yourself unstuck by creating custom hooks.
