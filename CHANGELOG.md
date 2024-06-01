@@ -62,6 +62,7 @@ setTypedSearchParams((prevParams) => ({
 ```
 
 - **Breaking**: Similarly, `undefined` keys are now omitted from all parsed params to match how there are no such keys in raw `params` from React Router. [The reason](https://github.com/fenok/react-router-typesafe-routes/issues/10#issuecomment-1186573588) this behavior was originally introduced is not relevant anymore.
+- **Breaking**: `$` no longer prevents pathname types inheritance.
 - **Breaking**: Some types are changed for convenience and readability.
 - **Breaking**: The minimal required version of TS is now `v5.0` with `strict` mode enabled.
 

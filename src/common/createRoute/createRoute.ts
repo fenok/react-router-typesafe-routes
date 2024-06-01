@@ -340,12 +340,12 @@ type StringPath<T extends PathConstraint> = T extends undefined ? "" : T;
 
 type OmitPathname<T extends RouteOptions> = T extends RouteOptions<
   infer _TPath,
-  infer _TPathnameTypes,
+  infer TPathnameTypes,
   infer TSearchTypes,
   infer TStateTypes,
   infer THash
 >
-  ? RouteOptions<"", {}, TSearchTypes, TStateTypes, THash>
+  ? RouteOptions<"", TPathnameTypes, TSearchTypes, TStateTypes, THash>
   : never;
 
 type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
@@ -425,14 +425,14 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     return {
       ...decorateChildren(resolvedOptions, creatorOptions, opts.children),
       ...getRoute(resolvedOptions, creatorOptions),
-      $: decorateChildren(omitPathnameTypes(resolvedOptions), creatorOptions, opts.children),
+      $: decorateChildren(omitPathname(resolvedOptions), creatorOptions, opts.children),
     };
   }
 
   return route;
 }
 
-function omitPathnameTypes<
+function omitPathname<
   TPath extends PathConstraint,
   TPathnameTypes extends PathnameTypesConstraint,
   TSearchTypes extends SearchTypesConstraint,
@@ -444,7 +444,6 @@ function omitPathnameTypes<
   return {
     ...options,
     path: "",
-    params: {},
   };
 }
 
@@ -494,7 +493,7 @@ function decorateChildren<TOptions extends RouteOptions, TChildren>(
         ? {
             ...decorateChildren(options, creatorOptions, value),
             ...getRoute(mergeOptions([options, value.$options], "inherit"), creatorOptions),
-            $: decorateChildren(omitPathnameTypes(options), creatorOptions, value.$),
+            $: decorateChildren(omitPathname(options), creatorOptions, value.$),
           }
         : value;
     });

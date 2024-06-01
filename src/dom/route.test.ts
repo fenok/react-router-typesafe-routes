@@ -1481,7 +1481,7 @@ it("allows to trim path pattern", () => {
   expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$path).toStrictEqual("/child/grand");
 });
 
-it("allows to inherit non-path params in trimmed children", () => {
+it("allows to inherit non-pathname params in trimmed children", () => {
   const GRANDCHILD = route({
     path: "grand",
     searchParams: { baz: boolean() },
@@ -1560,7 +1560,7 @@ it("allows to inherit non-path params in trimmed children", () => {
   });
 });
 
-it("prevents path param inheritance in trimmed children", () => {
+it("allows to inherit pathname types in trimmed children", () => {
   const GRANDCHILD = route({
     path: "grand/:id",
   });
@@ -1577,23 +1577,23 @@ it("prevents path param inheritance in trimmed children", () => {
 
   assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0], { id: number }>>(true);
   assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.$buildPathname>[0], { subId: boolean }>>(true);
-  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPathname>[0], { id: string }>>(true);
-  assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPathname>[0], { id: string; subId: boolean }>>(
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPathname>[0], { id: number }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPathname>[0], { id: number; subId: boolean }>>(
     true,
   );
 
   expect(TEST_ROUTE.$buildPath({ params: { id: 1 } })).toStrictEqual("/test/1");
   expect(TEST_ROUTE.$.CHILD.$buildPath({ params: { subId: true } })).toStrictEqual("/child/true");
-  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPath({ params: { id: "test" } })).toStrictEqual("/grand/test");
-  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPath({ params: { subId: true, id: "test" } })).toStrictEqual(
-    "/child/true/grand/test",
+  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPath({ params: { id: 2 } })).toStrictEqual("/grand/2");
+  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPath({ params: { subId: true, id: 3 } })).toStrictEqual(
+    "/child/true/grand/3",
   );
 
   expect(TEST_ROUTE.$getTypedParams({ id: "1", subId: "true" })).toStrictEqual({ id: 1 });
   expect(TEST_ROUTE.$.CHILD.$getTypedParams({ id: "1", subId: "true" })).toStrictEqual({ subId: true });
-  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$getTypedParams({ id: "1", subId: "true" })).toStrictEqual({ id: "1" });
+  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$getTypedParams({ id: "1", subId: "true" })).toStrictEqual({ id: 1 });
   expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$getTypedParams({ id: "1", subId: "true" })).toStrictEqual({
-    id: "1",
+    id: 1,
     subId: true,
   });
 });

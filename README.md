@@ -820,9 +820,7 @@ Upon building, all state fields (and the whole state) are optional. Parsing beha
 
 Child routes inherit all type objects from their parent. For parameters with the same name, child type objects take precedence.
 
-Hash values can be inherited only if they are defined as an array of strings.
-
-Child routes under `$` don't inherit parent type objects for path params.
+Separate hash values can be inherited only if they are defined as an array of strings.
 
 #### Types composition
 
