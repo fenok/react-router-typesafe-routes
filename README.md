@@ -898,6 +898,12 @@ The `route()` helper returns a route object, which has the following fields:
 - `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
 - Any number of child routes (that can't start with a `$`).
 
+`$buildPath()` and `$buildPathname()` accept the `relative` option for building relative paths.
+
+`$buildPath()`, `$buildSearch()`, and `$getPlainSearchParams()` accept a `URLSearchParams` object in the `untypedSearchParams` option for mixing in its untyped params.
+
+`$buildState()` accepts a state object in the `untypedState` option for mixing in its untyped fields.
+
 ### `parser()`
 
 The built-in parser is exposed as `parser()`. It should only be used for creating custom wrappers around `type()`.
