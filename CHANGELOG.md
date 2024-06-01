@@ -75,7 +75,7 @@ setTypedSearchParams((prevParams) => ({
 
 ### Fixed
 
--   For routes without pathname/search/state params, non-empty objects are no longer accepted as these params.
+- For routes without pathname/search/state params, non-empty objects are no longer accepted as these params.
 
 ## [1.2.1] - 2023-06-20
 
