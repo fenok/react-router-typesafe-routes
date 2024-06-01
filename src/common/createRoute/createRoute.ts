@@ -360,7 +360,7 @@ type NormalizePathnameTypes<TTypes, TPath extends PathConstraint> = Partial<
   Record<PathParam<TPath>, PathnameType<any>>
 > extends TTypes
   ? {}
-  : RequiredWithoutUndefined<TTypes>;
+  : Readable<RequiredWithoutUndefined<TTypes>>;
 
 type RequiredWithoutUndefined<T> = {
   [P in keyof T]-?: Exclude<T[P], undefined>;
