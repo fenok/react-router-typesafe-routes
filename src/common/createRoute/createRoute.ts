@@ -79,13 +79,8 @@ type InPathnameParams<TOptions extends RouteOptions> = Merge<
     ? IsAny<TResolvedTypes> extends true
       ? any
       : Merge<
-          Pick<RawParams<TResolvedTypes, "in">, PathParam<PathWithoutIntermediateStars<TOptions["path"]>, "all", "in">>,
-          Partial<
-            Pick<
-              RawParams<TResolvedTypes, "in">,
-              PathParam<PathWithoutIntermediateStars<TOptions["path"]>, "optional", "in">
-            >
-          >
+          Pick<RawParams<TResolvedTypes, "in">, PathParam<TOptions["path"], "all", "in">>,
+          Partial<Pick<RawParams<TResolvedTypes, "in">, PathParam<TOptions["path"], "optional", "in">>>
         >
     : never
   : never;
@@ -213,20 +208,6 @@ type SanitizePathnameTypes<TPath extends PathConstraint, TPathnameTypes> = {
 
 type Omit$<T> = T extends `$${infer TValid}` ? TValid : T;
 
-type ExtractPathParam<
-  TRawParam extends string,
-  TKind extends "all" | "optional" = "all",
-  TMode extends "in" | "out" = "out",
-> = TRawParam extends `${infer TParam}?`
-  ? TParam
-  : TKind extends "optional"
-  ? TRawParam extends "*"
-    ? TMode extends "in"
-      ? TRawParam
-      : never
-    : never
-  : TRawParam;
-
 type PathParam<
   TPath extends PathConstraint,
   TKind extends "all" | "optional" = "all",
@@ -234,14 +215,41 @@ type PathParam<
 > = string extends TPath
   ? never
   : TPath extends `${infer TBefore}*?${infer TAfter}`
-  ? ExtractPathParam<"*?", TKind, TMode> | PathParam<TBefore, TKind, TMode> | PathParam<TAfter, TKind, TMode>
+  ?
+      | ExtractPathParam<"*?", TKind, TMode, TAfter extends "" ? true : false>
+      | PathParam<TBefore, TKind, TMode>
+      | PathParam<TAfter, TKind, TMode>
   : TPath extends `${infer TBefore}*${infer TAfter}`
-  ? ExtractPathParam<"*", TKind, TMode> | PathParam<TBefore, TKind, TMode> | PathParam<TAfter, TKind, TMode>
+  ?
+      | ExtractPathParam<"*", TKind, TMode, TAfter extends "" ? true : false>
+      | PathParam<TBefore, TKind, TMode>
+      | PathParam<TAfter, TKind, TMode>
   : TPath extends `${infer TStart}:${infer TParam}/${infer TRest}`
   ? ExtractPathParam<TParam, TKind, TMode> | PathParam<TRest, TKind, TMode>
   : TPath extends `${infer TStart}:${infer TParam}`
   ? ExtractPathParam<TParam, TKind, TMode>
   : never;
+
+type ExtractPathParam<
+  TRawParam extends string,
+  TKind extends "all" | "optional" = "all",
+  TMode extends "in" | "out" = "out",
+  TEnd extends boolean = false,
+> = TRawParam extends `${infer TParam}?`
+  ? OmitIllegalStar<TParam, TMode, TEnd>
+  : TKind extends "optional"
+  ? TRawParam extends "*"
+    ? TMode extends "in"
+      ? OmitIllegalStar<TRawParam, TMode, TEnd>
+      : never
+    : never
+  : OmitIllegalStar<TRawParam, TMode, TEnd>;
+
+type OmitIllegalStar<
+  TParam extends string,
+  TMode extends "in" | "out" = "out",
+  TEnd extends boolean = false,
+> = TParam extends "*" ? (TMode extends "in" ? (TEnd extends false ? never : TParam) : TParam) : TParam;
 
 interface CreateRouteOptions {
   createSearchParams: (init?: Record<string, string | string[]> | URLSearchParams) => URLSearchParams;

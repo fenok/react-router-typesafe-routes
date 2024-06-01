@@ -11,6 +11,7 @@ import {
   SearchType,
   StateType,
   BaseRoute,
+  PathParam,
 } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 import { zod } from "../zod/index.js";
@@ -2350,6 +2351,40 @@ it("handles complex nested inlined routes", () => {
   });
 
   assert<IsExact<typeof routes.user.details.$path, "/user/:id/details/:lang?">>(true);
+});
+
+it("provides a helper for extracting pathname params", () => {
+  assert<IsExact<PathParam<"">, never>>(true);
+  assert<IsExact<PathParam<"test">, never>>(true);
+
+  assert<IsExact<PathParam<"test/:id">, "id">>(true);
+  assert<IsExact<PathParam<"test/:id/:subId">, "id" | "subId">>(true);
+  assert<IsExact<PathParam<"test/:id?">, "id">>(true);
+  assert<IsExact<PathParam<"test/:id?/:subId?">, "id" | "subId">>(true);
+
+  assert<IsExact<PathParam<"test/*">, "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*">, "id" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id?/*">, "id" | "*">>(true);
+
+  assert<IsExact<PathParam<"test/:id/*", "all", "out">, "id" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*", "all", "in">, "id" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*", "optional", "out">, never>>(true);
+  assert<IsExact<PathParam<"test/:id/*", "optional", "in">, "*">>(true);
+
+  assert<IsExact<PathParam<"test/:id/*?", "all", "out">, "id" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*?", "all", "in">, "id" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*?", "optional", "out">, "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*?", "optional", "in">, "*">>(true);
+
+  assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "all", "out">, "id" | "subId" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "all", "in">, "id" | "subId">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "optional", "out">, "subId">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "optional", "in">, "subId">>(true);
+
+  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "all", "out">, "id" | "subId" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "all", "in">, "id" | "subId">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "optional", "out">, "subId" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "optional", "in">, "subId">>(true);
 });
 
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {
