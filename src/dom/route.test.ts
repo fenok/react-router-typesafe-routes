@@ -1942,8 +1942,8 @@ it("allows to use unions", () => {
 
     searchParams: {
       a: union(1, true, "test"),
-      b: union([1, true, "test"] as const),
-      c: union([1, true, "test"] as const).defined(),
+      b: union([1, true, "test"]),
+      c: union([1, true, "test"]).defined(),
     },
   });
 

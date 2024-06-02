@@ -25,7 +25,7 @@ function date<T extends Date = Date>(validator = identity as Validator<T, Date>)
   return type((value: unknown) => (value === undefined ? value : validator(dateValidator(value))), parser("date"));
 }
 
-function union<T extends readonly (string | number | boolean)[]>(values: T): Type<T[number]>;
+function union<U extends string | number | boolean, T extends readonly U[]>(values: T): Type<T[number]>;
 function union<T extends readonly (string | number | boolean)[]>(...values: T): Type<T[number]>;
 function union<T extends readonly (string | number | boolean)[]>(value: T | T[number], ...restValues: T) {
   const values = Array.isArray(value) ? value : [value, ...restValues];
