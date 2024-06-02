@@ -13,9 +13,7 @@ type ParserType<T extends ParserHint> = T extends "unknown"
   ? Date
   : never;
 
-function parser(): Parser<unknown>;
-function parser<T extends ParserHint>(hint: T): Parser<ParserType<T>>;
-function parser<T extends ParserHint>(hint?: T): Parser<ParserType<T>> {
+function parser<T extends ParserHint = "unknown">(hint?: T): Parser<ParserType<T>> {
   return {
     stringify(value) {
       if (hint === "string" && typeof value === "string") {
