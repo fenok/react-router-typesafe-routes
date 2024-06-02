@@ -93,7 +93,7 @@ const root = route({
       // You can e.g. change implicit 'string().defined()' to explicit 'number().defined()'.
       params: { userId: number().defined() },
       // You can specify hash. To allow any hash, define it as 'string()'.
-      hash: union("info", "comments"),
+      hash: union(["info", "comments"]),
       // You can specify state parts. Without modifiers, types can return 'undefined' upon parsing.
       state: { fromUserList: boolean() },
       // Child routes inherit all parent params.
@@ -221,7 +221,7 @@ const { fromUserList } = useTypedState(root.user.post);
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, union, number } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
 
 const myRoute = route({
   searchParams: {
@@ -790,7 +790,7 @@ import { route, string, union } from "react-router-typesafe-routes/dom"; // Or /
 
 const routeWithAnyHash = route({ path: "route", hash: string() });
 
-const routeWithRestrictedHash = route({ path: "route", hash: union("about", "more") });
+const routeWithRestrictedHash = route({ path: "route", hash: union(["about", "more"]) });
 
 const routeWithInheritableValues = route({
   path: "route",
@@ -859,7 +859,7 @@ const myRoute = route({
   compose: [myFragment],
   params: { myPathnameParam: string() },
   searchParams: { mySearchParam: number() },
-  hash: union("my-hash", "my-other-hash"),
+  hash: union(["my-hash", "my-other-hash"]),
   state: { myStateParam: boolean() },
   children: { myChildRoute: route({ path: "child" }) },
 });
@@ -920,7 +920,7 @@ See [Typing: Type helpers](#type-helpers).
 There are built-in helpers for common types:
 
 - `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and type checks. Can accept validators that expect the corresponding types as an input.
-- `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values. Can accept a readonly array or individual values.
+- `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values. Can accept a readonly array, an enum, a readonly (`as const`) object, or individual values.
 
 There are also built-in helpers for third-party validation libraries:
 

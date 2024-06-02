@@ -26,9 +26,17 @@ function date<T extends Date = Date>(validator = identity as Validator<T, Date>)
 }
 
 function union<U extends string | number | boolean, T extends readonly U[]>(values: T): Type<T[number]>;
+function union<U extends string | number | boolean>(values: Record<string, U>): Type<U>;
 function union<T extends readonly (string | number | boolean)[]>(...values: T): Type<T[number]>;
-function union<T extends readonly (string | number | boolean)[]>(value: T | T[number], ...restValues: T) {
-  const values = Array.isArray(value) ? value : [value, ...restValues];
+function union<T extends readonly (string | number | boolean)[]>(
+  value: T | Record<string, T[number]> | T[number],
+  ...restValues: T
+) {
+  const values = Array.isArray(value)
+    ? value
+    : typeof value === "object"
+    ? Object.values(value)
+    : [value, ...restValues];
 
   const stringParser = parser("string");
   const defaultParser = parser();

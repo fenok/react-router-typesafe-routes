@@ -28,6 +28,7 @@ const [{ page }] = useTypedSearchParams(fragment);
 
 ### Changed
 
+- `union()` now accepts enums and readonly (`as const`) objects.
 - `union()` now properly infers values from an inline array without `as const`.
 - Pathname params without explicit types now use `string()` and `string().defined()` for optional and required params respectively instead of custom code.
 - State can now optionally be typed as a whole, so non-object states can now be typed.

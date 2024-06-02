@@ -2387,6 +2387,31 @@ it("provides a helper for extracting pathname params", () => {
   assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "optional", "in">, "subId">>(true);
 });
 
+it("supports enums in union()", () => {
+  enum Value {
+    A = "a",
+    B = "b",
+  }
+
+  const ValueObj = {
+    A: 1,
+    B: 2,
+  } as const;
+
+  const testRoute = route({
+    searchParams: {
+      testEnum: union(Value),
+      testObj: union(ValueObj),
+    },
+  });
+
+  assert<IsExact<ReturnType<typeof testRoute.$getTypedSearchParams>, { testEnum?: Value; testObj?: 1 | 2 }>>(true);
+
+  const testSearchParams = createSearchParams({ testEnum: "a", testObj: "2" });
+
+  expect(testRoute.$getTypedSearchParams(testSearchParams)).toStrictEqual({ testEnum: Value.A, testObj: ValueObj.B });
+});
+
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {
   const result: Record<string, string | string[]> = {};
 
