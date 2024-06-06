@@ -10,13 +10,16 @@ function string<T extends string = string>(validator = identity as Validator<T, 
 function number(): Type<number>;
 function number<T extends number>(validator: Validator<T, number>): Type<T>;
 function number<T extends number = number>(validator = identity as Validator<T, number>): Type<T> {
-  return type((value: unknown) => (value === undefined ? value : validator(numberValidator(value))));
+  return type((value: unknown) => (value === undefined ? value : validator(numberValidator(value))), parser("number"));
 }
 
 function boolean(): Type<boolean>;
 function boolean<T extends boolean>(validator: Validator<T, boolean>): Type<T>;
 function boolean<T extends boolean = boolean>(validator = identity as Validator<T, boolean>): Type<T> {
-  return type((value: unknown) => (value === undefined ? value : validator(booleanValidator(value))));
+  return type(
+    (value: unknown) => (value === undefined ? value : validator(booleanValidator(value))),
+    parser("boolean"),
+  );
 }
 
 function date(): Type<Date>;
@@ -38,7 +41,6 @@ function union<T extends readonly (string | number | boolean)[]>(
     ? Object.values(value)
     : [value, ...restValues];
 
-  const stringParser = parser("string");
   const defaultParser = parser();
 
   return type(
@@ -56,15 +58,18 @@ function union<T extends readonly (string | number | boolean)[]>(
       return value;
     },
     {
-      stringify(value: T[number]): string {
-        return typeof value === "string" ? stringParser.stringify(value) : defaultParser.stringify(value);
+      stringify(value: T[number], context): string {
+        return defaultParser.stringify(value, { ...context, hint: typeof value as "string" | "number" | "boolean" });
       },
-      parse(value: string): unknown {
+      parse(value: string, context): unknown {
         for (const canonicalValue of values) {
           try {
             if (
               canonicalValue ===
-              (typeof canonicalValue === "string" ? stringParser.parse(value) : defaultParser.parse(value))
+              defaultParser.parse(value, {
+                ...context,
+                hint: typeof canonicalValue as "string" | "number" | "boolean",
+              })
             ) {
               return canonicalValue;
             }

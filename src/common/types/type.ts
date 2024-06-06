@@ -41,17 +41,17 @@ interface Validator<T, TPrev = unknown> {
 }
 
 function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> = defaultParser()): Type<T> {
-  const getPlainParam = (value: Exclude<T, undefined>) => parser.stringify(value);
+  const getPlainParam = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "pathname" });
   const getTypedParam = (value: string | undefined) =>
-    validator(typeof value === "undefined" ? value : parser.parse(value));
-  const getPlainSearchParam = (value: Exclude<T, undefined>) => parser.stringify(value);
+    validator(typeof value === "undefined" ? value : parser.parse(value, { kind: "pathname" }));
+  const getPlainSearchParam = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "search" });
   const getTypedSearchParam = (value: string[]) =>
-    validator(typeof value[0] === "undefined" ? value[0] : parser.parse(value[0]));
+    validator(typeof value[0] === "undefined" ? value[0] : parser.parse(value[0], { kind: "search" }));
   const getPlainState = (value: T) => value;
   const getTypedState = (value: unknown) => validator(value);
-  const getPlainHash = (value: Exclude<T, undefined>) => parser.stringify(value);
+  const getPlainHash = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "hash" });
   const getTypedHash = (value: string | undefined) =>
-    validator(typeof value === "undefined" ? value : parser.parse(value));
+    validator(typeof value === "undefined" ? value : parser.parse(value, { kind: "hash" }));
 
   return Object.assign(
     {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
@@ -123,11 +123,11 @@ function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> 
 // TODO: Find a way to preserve <T,> without prettier-ignore
 // prettier-ignore
 const getArrayParamTypeBuilder =
-  <T,>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>>) =>
+  <T,>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>, never>) =>
   (): ArrayType<Exclude<T, undefined>> => {
-    const getPlainSearchParam = (values: T[]) => values.filter(isDefined).map((value) => parser.stringify(value));
+    const getPlainSearchParam = (values: T[]) => values.filter(isDefined).map((value) => parser.stringify(value, {kind: 'search'}));
     const getTypedSearchParam = (values: string[]) =>
-      values.map((item) => validator(parser.parse(item))).filter(isDefined);
+      values.map((item) => validator(parser.parse(item, {kind: 'search'}))).filter(isDefined);
     const getPlainState = (values: T[]) => values;
     const getTypedState = (values: unknown) =>
       (Array.isArray(values) ? values : []).map((item) => validator(item)).filter(isDefined);
