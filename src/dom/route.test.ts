@@ -12,6 +12,10 @@ import {
   StateType,
   BaseRoute,
   PathParam,
+  configure,
+  Parser,
+  ParserHint,
+  ParserType,
 } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
 import { zod } from "../zod/index.js";
@@ -2410,6 +2414,88 @@ it("supports enums in union()", () => {
   const testSearchParams = createSearchParams({ testEnum: "a", testObj: "2" });
 
   expect(testRoute.$getTypedSearchParams(testSearchParams)).toStrictEqual({ testEnum: Value.A, testObj: ValueObj.B });
+});
+
+it("allows to configure parser globally", () => {
+  type CustomParserHint = ParserHint | "entity";
+
+  type CustomParserType<T extends CustomParserHint> = T extends "entity"
+    ? { id: number }
+    : ParserType<Exclude<T, "entity">>;
+
+  function customParser<T extends CustomParserHint>(defaultHint?: T): Parser<CustomParserType<T>, CustomParserHint> {
+    return {
+      stringify(value, { hint }) {
+        const resolvedHint = hint ?? defaultHint;
+
+        if (resolvedHint === "string" && typeof value === "string") {
+          return "s:" + value;
+        }
+
+        if (resolvedHint === "number" && typeof value === "number") {
+          return "n:" + JSON.stringify(value);
+        }
+
+        if (resolvedHint === "boolean" && typeof value === "boolean") {
+          return "b:" + JSON.stringify(value);
+        }
+
+        if (resolvedHint === "date" && value instanceof Date) {
+          return "d:" + value.toISOString();
+        }
+
+        return JSON.stringify(value);
+      },
+      parse(value, { hint }) {
+        const resolvedHint = hint ?? defaultHint;
+
+        if (resolvedHint === "string") {
+          return value.replace(/^s:/, "");
+        }
+
+        if (resolvedHint === "number") {
+          return JSON.parse(value.replace(/^n:/, "")) as unknown;
+        }
+
+        if (resolvedHint === "boolean") {
+          return JSON.parse(value.replace(/^b:/, "")) as unknown;
+        }
+
+        if (resolvedHint === "date") {
+          return new Date(value.replace(/^d:/, ""));
+        }
+
+        return JSON.parse(value) as unknown;
+      },
+    };
+  }
+
+  const { string, number, boolean, date, union, type } = configure({ parserFactory: customParser });
+
+  const validator = (val: unknown) => Number(val);
+
+  const mRoute = route({
+    path: ":s/:n/:b/:d/:u/:t",
+    params: {
+      s: string(),
+      n: number(),
+      b: boolean(),
+      d: date(),
+      u: union([1, "test", true]),
+      t: type(validator),
+    },
+  });
+
+  const dateValue = new Date();
+
+  expect(mRoute.$getPlainParams({ s: "test", n: 1, b: true, d: dateValue, u: 1, t: 1 })).toStrictEqual({
+    s: "s:test",
+    n: "n:1",
+    b: "b:true",
+    d: "d:" + dateValue.toISOString(),
+    u: "n:1",
+    t: "1",
+  });
 });
 
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {

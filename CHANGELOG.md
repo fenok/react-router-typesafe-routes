@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `configure()` for configuring types parser globally.
+- Expose params kind (`"pathname" | "search" | "hash"`) for custom parsers to use.
 - Add pathless routes and route composition API.
 
 ```typescript
