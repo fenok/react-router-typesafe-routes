@@ -1945,7 +1945,7 @@ it("allows to use unions", () => {
     path: "",
 
     searchParams: {
-      a: union(1, true, "test"),
+      a: union([1, true, "test"]),
       b: union([1, true, "test"]),
       c: union([1, true, "test"]).defined(),
     },
@@ -2346,7 +2346,7 @@ it("handles complex nested inlined routes", () => {
         path: "user/:id",
         params: { id: number().defined() },
         state: { fromUserList: boolean() },
-        hash: union("info", "comments"),
+        hash: union(["info", "comments"]),
         children: {
           details: route({ path: "details/:lang?" }),
         },
@@ -2469,6 +2469,73 @@ it("allows to configure parser globally for yup", () => {
   });
 
   expect(testRoute.$getPlainParams({ id: 1 })).toStrictEqual({ id: "n:1" });
+});
+
+it("allows to configure parser locally", () => {
+  const stringValidator = (value: string) => {
+    if (!value.length) throw new Error("Must be non-empty");
+
+    return value;
+  };
+
+  const numberValidator = (value: number) => {
+    if (value < 0) throw new Error("Must be non-negative");
+
+    return value;
+  };
+
+  const booleanValidator = (value: boolean) => {
+    if (!value) throw new Error("Must be true");
+
+    return value;
+  };
+
+  const dateValidator = (value: Date) => {
+    if (value.getTime() < 0) throw new Error("Must be non-negative");
+
+    return value;
+  };
+
+  const testRoute = route({
+    path: ":s/:sv/:n/:nv/:b/:bv/:d/:dv/:u",
+    params: {
+      s: string(customParser("string")),
+      sv: string(stringValidator, customParser("string")),
+      n: number(customParser("number")),
+      nv: number(numberValidator, customParser("number")),
+      b: boolean(customParser("boolean")),
+      bv: boolean(booleanValidator, customParser("boolean")),
+      d: date(customParser("date")),
+      dv: date(dateValidator, customParser("date")),
+      u: union([1, "test", true], customParser()),
+    },
+  });
+
+  const dateValue = new Date();
+
+  expect(
+    testRoute.$getPlainParams({
+      s: "test",
+      sv: "test",
+      n: 1,
+      nv: 1,
+      b: true,
+      bv: true,
+      d: dateValue,
+      dv: dateValue,
+      u: 1,
+    }),
+  ).toStrictEqual({
+    s: "s:test",
+    sv: "s:test",
+    n: "n:1",
+    nv: "n:1",
+    b: "b:true",
+    bv: "b:true",
+    d: "d:" + dateValue.toISOString(),
+    dv: "d:" + dateValue.toISOString(),
+    u: "n:1",
+  });
 });
 
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {

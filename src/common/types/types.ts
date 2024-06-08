@@ -52,60 +52,88 @@ interface CreateTypeOptions {
 function configure({ parserFactory }: ConfigureOptions) {
   const type = createType({ parserFactory: parserFactory });
 
-  function string(): Type<string>;
-  function string<T extends string>(validator: Validator<T, string>): Type<T>;
-  function string<T extends string = string>(validator = identity as Validator<T, string>): Type<T> {
+  function string(parser?: Parser<string>): Type<string>;
+  function string<T extends string>(validator: Validator<T, string>, parser?: Parser<Exclude<T, undefined>>): Type<T>;
+  function string<T extends string = string>(
+    arg1?: Validator<T, string> | Parser<Exclude<T, undefined>>,
+    arg2?: Parser<Exclude<T, undefined>>,
+  ): Type<T> {
+    const resolvedValidator = typeof arg1 === "function" ? arg1 : (identity as Validator<T, string>);
+    const resolvedParser = typeof arg1 === "function" ? arg2 : arg1;
+
     return type(
-      (value: unknown) => (value === undefined ? value : validator(stringValidator(value))),
+      (value: unknown) => (value === undefined ? value : resolvedValidator(stringValidator(value))),
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      parserFactory("string"),
+      resolvedParser ?? parserFactory("string"),
     );
   }
 
-  function number(): Type<number>;
-  function number<T extends number>(validator: Validator<T, number>): Type<T>;
-  function number<T extends number = number>(validator = identity as Validator<T, number>): Type<T> {
+  function number(parser?: Parser<number>): Type<number>;
+  function number<T extends number>(validator: Validator<T, number>, parser?: Parser<Exclude<T, undefined>>): Type<T>;
+  function number<T extends number = number>(
+    arg1?: Validator<T, number> | Parser<Exclude<T, undefined>>,
+    arg2?: Parser<Exclude<T, undefined>>,
+  ): Type<T> {
+    const resolvedValidator = typeof arg1 === "function" ? arg1 : (identity as Validator<T, number>);
+    const resolvedParser = typeof arg1 === "function" ? arg2 : arg1;
+
     return type(
-      (value: unknown) => (value === undefined ? value : validator(numberValidator(value))),
+      (value: unknown) => (value === undefined ? value : resolvedValidator(numberValidator(value))),
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      parserFactory("number"),
+      resolvedParser ?? parserFactory("number"),
     );
   }
 
-  function boolean(): Type<boolean>;
-  function boolean<T extends boolean>(validator: Validator<T, boolean>): Type<T>;
-  function boolean<T extends boolean = boolean>(validator = identity as Validator<T, boolean>): Type<T> {
+  function boolean(parser?: Parser<boolean>): Type<boolean>;
+  function boolean<T extends boolean>(
+    validator: Validator<T, boolean>,
+    parser?: Parser<Exclude<T, undefined>>,
+  ): Type<T>;
+  function boolean<T extends boolean = boolean>(
+    arg1?: Validator<T, boolean> | Parser<Exclude<T, undefined>>,
+    arg2?: Parser<Exclude<T, undefined>>,
+  ): Type<T> {
+    const resolvedValidator = typeof arg1 === "function" ? arg1 : (identity as Validator<T, boolean>);
+    const resolvedParser = typeof arg1 === "function" ? arg2 : arg1;
+
     return type(
-      (value: unknown) => (value === undefined ? value : validator(booleanValidator(value))),
+      (value: unknown) => (value === undefined ? value : resolvedValidator(booleanValidator(value))),
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      parserFactory("boolean"),
+      resolvedParser ?? parserFactory("boolean"),
     );
   }
 
-  function date(): Type<Date>;
-  function date<T extends Date>(validator: Validator<T, Date>): Type<T>;
-  function date<T extends Date = Date>(validator = identity as Validator<T, Date>): Type<T> {
+  function date(parser?: Parser<Date>): Type<Date>;
+  function date<T extends Date>(validator: Validator<T, Date>, parser?: Parser<Exclude<T, undefined>>): Type<T>;
+  function date<T extends Date = Date>(
+    arg1?: Validator<T, Date> | Parser<Exclude<T, undefined>>,
+    arg2?: Parser<Exclude<T, undefined>>,
+  ): Type<T> {
+    const resolvedValidator = typeof arg1 === "function" ? arg1 : (identity as Validator<T, Date>);
+    const resolvedParser = typeof arg1 === "function" ? arg2 : arg1;
+
     return type(
-      (value: unknown) => (value === undefined ? value : validator(dateValidator(value))),
+      (value: unknown) => (value === undefined ? value : resolvedValidator(dateValidator(value))),
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      parserFactory("date"),
+      resolvedParser ?? parserFactory("date"),
     );
   }
 
-  function union<U extends string | number | boolean, T extends readonly U[]>(values: T): Type<T[number]>;
-  function union<U extends string | number | boolean>(values: Record<string, U>): Type<U>;
-  function union<T extends readonly (string | number | boolean)[]>(...values: T): Type<T[number]>;
+  function union<U extends string | number | boolean, T extends readonly U[]>(
+    values: T,
+    parser?: Parser<T[number], "string" | "number" | "boolean">,
+  ): Type<T[number]>;
+  function union<U extends string | number | boolean>(
+    values: Record<string, U>,
+    parser?: Parser<U, "string" | "number" | "boolean">,
+  ): Type<U>;
   function union<T extends readonly (string | number | boolean)[]>(
-    value: T | Record<string, T[number]> | T[number],
-    ...restValues: T
+    value: T | Record<string, T[number]>,
+    parser?: Parser<T[number], "string" | "number" | "boolean">,
   ) {
-    const values = Array.isArray(value)
-      ? value
-      : typeof value === "object"
-      ? Object.values(value)
-      : [value, ...restValues];
+    const values = Array.isArray(value) ? value : Object.values(value);
 
-    const defaultParser = parserFactory();
+    const defaultParser = parser ?? parserFactory();
 
     return type(
       (value: unknown): T[number] | undefined => {
