@@ -18,9 +18,9 @@ import {
   ParserType,
 } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
-import { zod } from "../zod/index.js";
+import { zod, configure as configureZod } from "../zod/index.js";
 import { z } from "zod";
-import { yup } from "../yup/index.js";
+import { yup, configure as configureYup } from "../yup/index.js";
 import * as y from "yup";
 
 it("provides absolute path", () => {
@@ -2417,59 +2417,6 @@ it("supports enums in union()", () => {
 });
 
 it("allows to configure parser globally", () => {
-  type CustomParserHint = ParserHint | "entity";
-
-  type CustomParserType<T extends CustomParserHint> = T extends "entity"
-    ? { id: number }
-    : ParserType<Exclude<T, "entity">>;
-
-  function customParser<T extends CustomParserHint>(defaultHint?: T): Parser<CustomParserType<T>, CustomParserHint> {
-    return {
-      stringify(value, { hint }) {
-        const resolvedHint = hint ?? defaultHint;
-
-        if (resolvedHint === "string" && typeof value === "string") {
-          return "s:" + value;
-        }
-
-        if (resolvedHint === "number" && typeof value === "number") {
-          return "n:" + JSON.stringify(value);
-        }
-
-        if (resolvedHint === "boolean" && typeof value === "boolean") {
-          return "b:" + JSON.stringify(value);
-        }
-
-        if (resolvedHint === "date" && value instanceof Date) {
-          return "d:" + value.toISOString();
-        }
-
-        return JSON.stringify(value);
-      },
-      parse(value, { hint }) {
-        const resolvedHint = hint ?? defaultHint;
-
-        if (resolvedHint === "string") {
-          return value.replace(/^s:/, "");
-        }
-
-        if (resolvedHint === "number") {
-          return JSON.parse(value.replace(/^n:/, "")) as unknown;
-        }
-
-        if (resolvedHint === "boolean") {
-          return JSON.parse(value.replace(/^b:/, "")) as unknown;
-        }
-
-        if (resolvedHint === "date") {
-          return new Date(value.replace(/^d:/, ""));
-        }
-
-        return JSON.parse(value) as unknown;
-      },
-    };
-  }
-
   const { string, number, boolean, date, union, type } = configure({ parserFactory: customParser });
 
   const validator = (val: unknown) => Number(val);
@@ -2498,6 +2445,32 @@ it("allows to configure parser globally", () => {
   });
 });
 
+it("allows to configure parser globally for zod", () => {
+  const { zod } = configureZod({ parserFactory: customParser });
+
+  const testRoute = route({
+    path: ":id",
+    params: {
+      id: zod(z.number()),
+    },
+  });
+
+  expect(testRoute.$getPlainParams({ id: 1 })).toStrictEqual({ id: "n:1" });
+});
+
+it("allows to configure parser globally for yup", () => {
+  const { yup } = configureYup({ parserFactory: customParser });
+
+  const testRoute = route({
+    path: ":id",
+    params: {
+      id: yup(y.number()),
+    },
+  });
+
+  expect(testRoute.$getPlainParams({ id: 1 })).toStrictEqual({ id: "n:1" });
+});
+
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {
   const result: Record<string, string | string[]> = {};
 
@@ -2514,4 +2487,57 @@ function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string
   }
 
   return result;
+}
+
+type CustomParserHint = ParserHint | "entity";
+
+type CustomParserType<T extends CustomParserHint> = T extends "entity"
+  ? { id: number }
+  : ParserType<Exclude<T, "entity">>;
+
+function customParser<T extends CustomParserHint>(defaultHint?: T): Parser<CustomParserType<T>, CustomParserHint> {
+  return {
+    stringify(value, { hint }) {
+      const resolvedHint = hint ?? defaultHint;
+
+      if (resolvedHint === "string" && typeof value === "string") {
+        return "s:" + value;
+      }
+
+      if (resolvedHint === "number" && typeof value === "number") {
+        return "n:" + JSON.stringify(value);
+      }
+
+      if (resolvedHint === "boolean" && typeof value === "boolean") {
+        return "b:" + JSON.stringify(value);
+      }
+
+      if (resolvedHint === "date" && value instanceof Date) {
+        return "d:" + value.toISOString();
+      }
+
+      return JSON.stringify(value);
+    },
+    parse(value, { hint }) {
+      const resolvedHint = hint ?? defaultHint;
+
+      if (resolvedHint === "string") {
+        return value.replace(/^s:/, "");
+      }
+
+      if (resolvedHint === "number") {
+        return JSON.parse(value.replace(/^n:/, "")) as unknown;
+      }
+
+      if (resolvedHint === "boolean") {
+        return JSON.parse(value.replace(/^b:/, "")) as unknown;
+      }
+
+      if (resolvedHint === "date") {
+        return new Date(value.replace(/^d:/, ""));
+      }
+
+      return JSON.parse(value) as unknown;
+    },
+  };
 }

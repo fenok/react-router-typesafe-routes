@@ -1,16 +1,34 @@
-import { type, Type, ParserHint, parser } from "../common/index.js";
-import { ZodType, ZodOptional, ZodString, ZodDate, ZodTypeAny } from "zod";
+import { type, Type, ParserHint, parser, Parser } from "../common/index.js";
+import { ZodType, ZodOptional, ZodString, ZodDate, ZodTypeAny, ZodNumber, ZodBoolean } from "zod";
 
-export function zod<T>(zodType: ZodType<T | undefined>): Type<T> {
-  const unwrappedZodType = zodType instanceof ZodOptional ? (zodType.unwrap() as ZodTypeAny) : zodType;
+interface ConfigureOptions {
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+  parserFactory: (hint?: ParserHint) => Parser<any, ParserHint>;
+}
 
-  let typeHint: ParserHint = "unknown";
+function configure({ parserFactory }: ConfigureOptions) {
+  function zod<T>(zodType: ZodType<T | undefined>): Type<T> {
+    const unwrappedZodType = zodType instanceof ZodOptional ? (zodType.unwrap() as ZodTypeAny) : zodType;
 
-  if (unwrappedZodType instanceof ZodString) {
-    typeHint = "string";
-  } else if (unwrappedZodType instanceof ZodDate) {
-    typeHint = "date";
+    let typeHint: ParserHint = "unknown";
+
+    if (unwrappedZodType instanceof ZodString) {
+      typeHint = "string";
+    } else if (unwrappedZodType instanceof ZodNumber) {
+      typeHint = "number";
+    } else if (unwrappedZodType instanceof ZodBoolean) {
+      typeHint = "boolean";
+    } else if (unwrappedZodType instanceof ZodDate) {
+      typeHint = "date";
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return type((value: unknown) => zodType.parse(value), parserFactory(typeHint));
   }
 
-  return type((value: unknown) => zodType.parse(value), parser(typeHint));
+  return { zod };
 }
+
+const { zod } = configure({ parserFactory: parser });
+
+export { configure, zod };
