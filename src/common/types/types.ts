@@ -1,4 +1,4 @@
-import { parser, Parser, ParserHint } from "./parser.js";
+import { parser, Parser } from "./parser.js";
 
 interface PathnameType<TOut, TIn = TOut> {
   getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
@@ -42,7 +42,7 @@ interface Validator<T, TPrev = unknown> {
 
 interface ConfigureOptions {
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  parserFactory: (hint?: ParserHint) => Parser<any, ParserHint>;
+  parserFactory: (hint?: "string" | "number" | "boolean" | "date") => Parser<any, "string" | "number" | "boolean">;
 }
 
 interface CreateTypeOptions {
