@@ -58,11 +58,8 @@ function configure({ parserFactory }: ConfigureOptions) {
   const type = createType({ parserFactory: parserFactory });
 
   function string(parser?: Parser<string>): Type<string>;
-  function string<T extends string>(validator: Validator<T, string>, parser?: Parser<Exclude<T, undefined>>): Type<T>;
-  function string<T extends string = string>(
-    arg1?: Validator<T, string> | Parser<Exclude<T, undefined>>,
-    arg2?: Parser<Exclude<T, undefined>>,
-  ): Type<T> {
+  function string<T extends string>(validator: Validator<T, string>, parser?: Parser<T>): Type<T>;
+  function string<T extends string = string>(arg1?: Validator<T, string> | Parser<T>, arg2?: Parser<T>): Type<T> {
     const resolvedValidator = typeof arg1 === "function" ? arg1 : (identity as Validator<T, string>);
     const resolvedParser = typeof arg1 === "function" ? arg2 : arg1;
 
@@ -73,11 +70,8 @@ function configure({ parserFactory }: ConfigureOptions) {
   }
 
   function number(parser?: Parser<number>): Type<number>;
-  function number<T extends number>(validator: Validator<T, number>, parser?: Parser<Exclude<T, undefined>>): Type<T>;
-  function number<T extends number = number>(
-    arg1?: Validator<T, number> | Parser<Exclude<T, undefined>>,
-    arg2?: Parser<Exclude<T, undefined>>,
-  ): Type<T> {
+  function number<T extends number>(validator: Validator<T, number>, parser?: Parser<T>): Type<T>;
+  function number<T extends number = number>(arg1?: Validator<T, number> | Parser<T>, arg2?: Parser<T>): Type<T> {
     const resolvedValidator = typeof arg1 === "function" ? arg1 : (identity as Validator<T, number>);
     const resolvedParser = typeof arg1 === "function" ? arg2 : arg1;
 
@@ -88,14 +82,8 @@ function configure({ parserFactory }: ConfigureOptions) {
   }
 
   function boolean(parser?: Parser<boolean>): Type<boolean>;
-  function boolean<T extends boolean>(
-    validator: Validator<T, boolean>,
-    parser?: Parser<Exclude<T, undefined>>,
-  ): Type<T>;
-  function boolean<T extends boolean = boolean>(
-    arg1?: Validator<T, boolean> | Parser<Exclude<T, undefined>>,
-    arg2?: Parser<Exclude<T, undefined>>,
-  ): Type<T> {
+  function boolean<T extends boolean>(validator: Validator<T, boolean>, parser?: Parser<T>): Type<T>;
+  function boolean<T extends boolean = boolean>(arg1?: Validator<T, boolean> | Parser<T>, arg2?: Parser<T>): Type<T> {
     const resolvedValidator = typeof arg1 === "function" ? arg1 : (identity as Validator<T, boolean>);
     const resolvedParser = typeof arg1 === "function" ? arg2 : arg1;
 
@@ -106,11 +94,8 @@ function configure({ parserFactory }: ConfigureOptions) {
   }
 
   function date(parser?: Parser<Date>): Type<Date>;
-  function date<T extends Date>(validator: Validator<T, Date>, parser?: Parser<Exclude<T, undefined>>): Type<T>;
-  function date<T extends Date = Date>(
-    arg1?: Validator<T, Date> | Parser<Exclude<T, undefined>>,
-    arg2?: Parser<Exclude<T, undefined>>,
-  ): Type<T> {
+  function date<T extends Date>(validator: Validator<T, Date>, parser?: Parser<T>): Type<T>;
+  function date<T extends Date = Date>(arg1?: Validator<T, Date> | Parser<T>, arg2?: Parser<T>): Type<T> {
     const resolvedValidator = typeof arg1 === "function" ? arg1 : (identity as Validator<T, Date>);
     const resolvedParser = typeof arg1 === "function" ? arg2 : arg1;
 
