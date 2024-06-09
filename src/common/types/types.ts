@@ -123,14 +123,20 @@ function configure({ parserFactory }: ConfigureOptions) {
     values: T,
     parser?: Parser<T[number], "string" | "number" | "boolean">,
   ): Type<T[number]>;
-  function union<U extends string | number | boolean>(
-    values: Record<string, U>,
-    parser?: Parser<U, "string" | "number" | "boolean">,
-  ): Type<U>;
-  function union<T extends readonly (string | number | boolean)[]>(
-    value: T | Record<string, T[number]>,
-    parser?: Parser<T[number], "string" | "number" | "boolean">,
-  ) {
+  function union<
+    T extends {
+      [k: string]: string | number;
+      [nu: number]: string;
+    },
+  >(values: T, parser?: Parser<T[keyof T], "string" | "number" | "boolean">): Type<T[keyof T]>;
+  function union<
+    T extends
+      | readonly (string | number | boolean)[]
+      | {
+          [k: string]: string | number;
+          [nu: number]: string;
+        },
+  >(value: T, parser?: Parser<T[keyof T], "string" | "number" | "boolean">) {
     const values = Array.isArray(value) ? value : Object.values(value);
 
     const defaultParser = parser ?? parserFactory();

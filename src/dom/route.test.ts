@@ -2397,6 +2397,11 @@ it("supports enums in union()", () => {
     B = "b",
   }
 
+  enum ValueNum {
+    A,
+    B,
+  }
+
   const ValueObj = {
     A: 1,
     B: 2,
@@ -2405,15 +2410,25 @@ it("supports enums in union()", () => {
   const testRoute = route({
     searchParams: {
       testEnum: union(Value),
+      testNum: union(ValueNum),
       testObj: union(ValueObj),
     },
   });
 
-  assert<IsExact<ReturnType<typeof testRoute.$getTypedSearchParams>, { testEnum?: Value; testObj?: 1 | 2 }>>(true);
+  assert<
+    IsExact<
+      ReturnType<typeof testRoute.$getTypedSearchParams>,
+      { testEnum?: Value; testNum?: ValueNum; testObj?: 1 | 2 }
+    >
+  >(true);
 
-  const testSearchParams = createSearchParams({ testEnum: "a", testObj: "2" });
+  const testSearchParams = createSearchParams({ testEnum: "a", testNum: "1", testObj: "2" });
 
-  expect(testRoute.$getTypedSearchParams(testSearchParams)).toStrictEqual({ testEnum: Value.A, testObj: ValueObj.B });
+  expect(testRoute.$getTypedSearchParams(testSearchParams)).toStrictEqual({
+    testEnum: Value.A,
+    testNum: ValueNum.B,
+    testObj: ValueObj.B,
+  });
 });
 
 it("allows to configure parser globally", () => {
