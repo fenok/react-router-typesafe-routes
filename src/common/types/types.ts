@@ -63,7 +63,6 @@ function configure({ parserFactory }: ConfigureOptions) {
 
     return type(
       (value: unknown) => (value === undefined ? value : resolvedValidator(stringValidator(value))),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       resolvedParser ?? parserFactory("string"),
     );
   }
@@ -79,7 +78,6 @@ function configure({ parserFactory }: ConfigureOptions) {
 
     return type(
       (value: unknown) => (value === undefined ? value : resolvedValidator(numberValidator(value))),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       resolvedParser ?? parserFactory("number"),
     );
   }
@@ -98,7 +96,6 @@ function configure({ parserFactory }: ConfigureOptions) {
 
     return type(
       (value: unknown) => (value === undefined ? value : resolvedValidator(booleanValidator(value))),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       resolvedParser ?? parserFactory("boolean"),
     );
   }
@@ -114,7 +111,6 @@ function configure({ parserFactory }: ConfigureOptions) {
 
     return type(
       (value: unknown) => (value === undefined ? value : resolvedValidator(dateValidator(value))),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       resolvedParser ?? parserFactory("date"),
     );
   }
