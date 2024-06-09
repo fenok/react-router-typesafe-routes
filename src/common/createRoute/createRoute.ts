@@ -1,4 +1,4 @@
-import { PathnameType, SearchType, StateType, HashType, Type, DefType, string } from "../types/index.js";
+import { PathnameType, SearchType, StateType, HashType, string } from "../types/index.js";
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
 
@@ -127,8 +127,8 @@ type InHash<TOptions extends RouteOptions> = RawHash<TOptions["hash"], "in">;
 type OutHash<TOptions extends RouteOptions> = RawHash<TOptions["hash"], "out">;
 
 type InferredPathnameTypes<TPath extends PathConstraint> = Merge<
-  Record<PathParam<TPath>, DefType<string>>,
-  Record<PathParam<TPath, "optional">, Type<string>>
+  Record<PathParam<TPath>, PathnameType<string>>,
+  Record<PathParam<TPath, "optional">, PathnameType<string | undefined>>
 >;
 
 type RawParams<TTypes extends PathnameTypesConstraint, TMode extends "in" | "out"> = {

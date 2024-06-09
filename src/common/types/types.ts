@@ -387,7 +387,6 @@ export {
   date,
   union,
   Type,
-  DefType,
   Validator,
   PathnameType,
   SearchType,
