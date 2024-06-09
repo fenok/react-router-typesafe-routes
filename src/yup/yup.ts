@@ -15,7 +15,7 @@ interface SchemaLike<T> {
 }
 
 function configure({ parserFactory }: ConfigureOptions) {
-  function yup<T>(schema: SchemaLike<T | undefined>): Type<T> {
+  function yup<T>(schema: SchemaLike<T | undefined>, parser?: Parser<T>): Type<T> {
     let typeHint: ParserHint = "unknown";
 
     if (!schema.spec.nullable) {
@@ -31,7 +31,7 @@ function configure({ parserFactory }: ConfigureOptions) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return type((value: unknown) => schema.validateSync(value), parserFactory(typeHint));
+    return type((value: unknown) => schema.validateSync(value), parser ?? parserFactory(typeHint));
   }
 
   return { yup };

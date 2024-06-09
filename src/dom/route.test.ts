@@ -2554,6 +2554,28 @@ it("allows to configure parser locally", () => {
   });
 });
 
+it("allows to configure parser locally for zod", () => {
+  const testRoute = route({
+    path: ":id",
+    params: {
+      id: zod(z.number(), customParser("number")),
+    },
+  });
+
+  expect(testRoute.$getPlainParams({ id: 1 })).toStrictEqual({ id: "n:1" });
+});
+
+it("allows to configure parser locally for yup", () => {
+  const testRoute = route({
+    path: ":id",
+    params: {
+      id: yup(y.number(), customParser("number")),
+    },
+  });
+
+  expect(testRoute.$getPlainParams({ id: 1 })).toStrictEqual({ id: "n:1" });
+});
+
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {
   const result: Record<string, string | string[]> = {};
 

@@ -7,7 +7,7 @@ interface ConfigureOptions {
 }
 
 function configure({ parserFactory }: ConfigureOptions) {
-  function zod<T>(zodType: ZodType<T | undefined>): Type<T> {
+  function zod<T>(zodType: ZodType<T | undefined>, parser?: Parser<T>): Type<T> {
     const unwrappedZodType = zodType instanceof ZodOptional ? (zodType.unwrap() as ZodTypeAny) : zodType;
 
     let typeHint: ParserHint = "unknown";
@@ -23,7 +23,7 @@ function configure({ parserFactory }: ConfigureOptions) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return type((value: unknown) => zodType.parse(value), parserFactory(typeHint));
+    return type((value: unknown) => zodType.parse(value), parser ?? parserFactory(typeHint));
   }
 
   return { zod };
