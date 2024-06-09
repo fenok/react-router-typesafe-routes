@@ -2411,6 +2411,7 @@ it("supports enums in union()", () => {
     searchParams: {
       testEnum: union(Value),
       testNum: union(ValueNum),
+      testNumInvalid: union(ValueNum),
       testObj: union(ValueObj),
     },
   });
@@ -2418,11 +2419,11 @@ it("supports enums in union()", () => {
   assert<
     IsExact<
       ReturnType<typeof testRoute.$getTypedSearchParams>,
-      { testEnum?: Value; testNum?: ValueNum; testObj?: 1 | 2 }
+      { testEnum?: Value; testNum?: ValueNum; testNumInvalid?: ValueNum; testObj?: 1 | 2 }
     >
   >(true);
 
-  const testSearchParams = createSearchParams({ testEnum: "a", testNum: "1", testObj: "2" });
+  const testSearchParams = createSearchParams({ testEnum: "a", testNum: "1", testNumInvalid: "B", testObj: "2" });
 
   expect(testRoute.$getTypedSearchParams(testSearchParams)).toStrictEqual({
     testEnum: Value.A,

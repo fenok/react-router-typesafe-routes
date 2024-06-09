@@ -49,6 +49,11 @@ interface CreateTypeOptions {
   parserFactory: () => Parser<unknown>;
 }
 
+interface EnumLike {
+  [s: string]: string | number;
+  [n: number]: string;
+}
+
 function configure({ parserFactory }: ConfigureOptions) {
   const type = createType({ parserFactory: parserFactory });
 
@@ -119,21 +124,16 @@ function configure({ parserFactory }: ConfigureOptions) {
     values: T,
     parser?: Parser<T[number], "string" | "number" | "boolean">,
   ): Type<T[number]>;
-  function union<
-    T extends {
-      [k: string]: string | number;
-      [nu: number]: string;
-    },
-  >(values: T, parser?: Parser<T[keyof T], "string" | "number" | "boolean">): Type<T[keyof T]>;
-  function union<
-    T extends
-      | readonly (string | number | boolean)[]
-      | {
-          [k: string]: string | number;
-          [nu: number]: string;
-        },
-  >(value: T, parser?: Parser<T[keyof T], "string" | "number" | "boolean">) {
-    const values = Array.isArray(value) ? value : Object.values(value);
+  function union<T extends EnumLike>(
+    values: T,
+    parser?: Parser<T[keyof T], "string" | "number" | "boolean">,
+  ): Type<T[keyof T]>;
+  function union<T extends readonly (string | number | boolean)[] | EnumLike>(
+    value: T,
+    parser?: Parser<T[keyof T], "string" | "number" | "boolean">,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+    const values: T[number][] = Array.isArray(value) ? value : getEnumValues(value as EnumLike);
 
     const defaultParser = parser ?? parserFactory();
 
@@ -377,6 +377,12 @@ function dateValidator(value: unknown): Date {
   }
 
   return value;
+}
+
+function getEnumValues(enumObj: EnumLike) {
+  return Object.keys(enumObj)
+    .filter((key) => typeof enumObj[enumObj[key]] !== "number")
+    .map((key) => enumObj[key]);
 }
 
 function identity<T>(value: T): T {
