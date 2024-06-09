@@ -36,6 +36,7 @@ const [{ page }] = useTypedSearchParams(fragment);
 - Pathname params without explicit types now use `string()` and `string().defined()` for optional and required params respectively instead of custom code.
 - State can now optionally be typed as a whole, so non-object states can now be typed.
 - **Breaking**: Functions in state type object are renamed to `getPlainState` and `getTypedState`.
+- **Breaking**: `union()` no longer accepts its values as multiple arguments.
 - **Breaking**: Types for pathname `params` are now stricter and don't allow params which are not specified in the path pattern. This also fixes autocomplete for such params.
 - **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
 - **Breaking**: The `types` field is renamed to `$options`, and it now also contains an unmodified `path` option of the route.
