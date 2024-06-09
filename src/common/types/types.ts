@@ -1,4 +1,4 @@
-import { parser, Parser } from "./parser.js";
+import { parser, Parser, ParserHint } from "./parser.js";
 
 interface PathnameType<TOut, TIn = TOut> {
   getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
@@ -42,11 +42,13 @@ interface Validator<T, TPrev = unknown> {
 
 interface ConfigureOptions {
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  parserFactory: (hint?: "string" | "number" | "boolean" | "date") => Parser<any, "string" | "number" | "boolean">;
+  parserFactory: (hint: ParserHint) => Parser<any, DynamicParserHint>;
 }
 
+type DynamicParserHint = Extract<ParserHint, "string" | "number" | "boolean">;
+
 interface CreateTypeOptions {
-  parserFactory: () => Parser<unknown>;
+  parserFactory: (hint: "unknown") => Parser<unknown>;
 }
 
 interface EnumLike {
@@ -107,20 +109,17 @@ function configure({ parserFactory }: ConfigureOptions) {
 
   function union<U extends string | number | boolean, T extends readonly U[]>(
     values: T,
-    parser?: Parser<T[number], "string" | "number" | "boolean">,
+    parser?: Parser<T[number], DynamicParserHint>,
   ): Type<T[number]>;
-  function union<T extends EnumLike>(
-    values: T,
-    parser?: Parser<T[keyof T], "string" | "number" | "boolean">,
-  ): Type<T[keyof T]>;
+  function union<T extends EnumLike>(values: T, parser?: Parser<T[keyof T], DynamicParserHint>): Type<T[keyof T]>;
   function union<T extends readonly (string | number | boolean)[] | EnumLike>(
     value: T,
-    parser?: Parser<T[keyof T], "string" | "number" | "boolean">,
+    parser?: Parser<T[keyof T], DynamicParserHint>,
   ) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
     const values: T[number][] = Array.isArray(value) ? value : getEnumValues(value as EnumLike);
 
-    const defaultParser = parser ?? parserFactory();
+    const defaultParser = parser ?? parserFactory("unknown");
 
     return type(
       (value: unknown): T[number] | undefined => {
@@ -138,7 +137,7 @@ function configure({ parserFactory }: ConfigureOptions) {
       },
       {
         stringify(value: T[number], context): string {
-          return defaultParser.stringify(value, { ...context, hint: typeof value as "string" | "number" | "boolean" });
+          return defaultParser.stringify(value, { ...context, hint: typeof value as DynamicParserHint });
         },
         parse(value: string, context): unknown {
           for (const canonicalValue of values) {
@@ -147,7 +146,7 @@ function configure({ parserFactory }: ConfigureOptions) {
                 canonicalValue ===
                 defaultParser.parse(value, {
                   ...context,
-                  hint: typeof canonicalValue as "string" | "number" | "boolean",
+                  hint: typeof canonicalValue as DynamicParserHint,
                 })
               ) {
                 return canonicalValue;
@@ -176,7 +175,10 @@ function configure({ parserFactory }: ConfigureOptions) {
 }
 
 function createType({ parserFactory }: CreateTypeOptions) {
-  return function type<T>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>> = parserFactory()): Type<T> {
+  return function type<T>(
+    validator: Validator<T>,
+    parser: Parser<Exclude<T, undefined>> = parserFactory("unknown"),
+  ): Type<T> {
     const getPlainParam = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "pathname" });
     const getTypedParam = (value: string | undefined) =>
       validator(typeof value === "undefined" ? value : parser.parse(value, { kind: "pathname" }));
