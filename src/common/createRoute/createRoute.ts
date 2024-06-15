@@ -2,8 +2,10 @@ import { PathnameType, SearchType, StateType, HashType, string } from "../types/
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
 
-type Route<TSpec extends RouteSpec = RouteSpec<PathConstraint, any, any, any>, TChildren = {}> = RouteApi<TSpec> &
-  RouteChildren<TSpec, TChildren> & { $: RouteChildren<OmitPathname<TSpec>, TChildren> };
+type Route<
+  TSpec extends RouteSpec = RouteSpec<PathConstraint, any, any, HashTypesConstraint, any>,
+  TChildren = {},
+> = RouteApi<TSpec> & RouteChildren<TSpec, TChildren> & { $: RouteChildren<OmitPathname<TSpec>, TChildren> };
 
 type RouteChildren<TSpec extends RouteSpec, TChildren> = {
   [TKey in keyof TChildren]: TChildren[TKey] extends Route<infer TChildOptions, infer TChildChildren>
@@ -11,18 +13,18 @@ type RouteChildren<TSpec extends RouteSpec, TChildren> = {
     : TChildren[TKey];
 };
 
-interface RouteApi<TSpec extends RouteSpec = RouteSpec<PathConstraint, any, any, any>> {
+interface RouteApi<TSpec extends RouteSpec = RouteSpec<PathConstraint, any, any, HashTypesConstraint, any>> {
   $path: AbsolutePath<TSpec["path"]>;
   $relativePath: PathWithoutIntermediateStars<TSpec["path"]>;
   $buildPath: (opts: PathBuilderOptions<TSpec>) => string;
   $buildPathname: (params: InPathnameParams<TSpec>, opts?: PathnameBuilderOptions) => string;
   $buildSearch: (searchParams: InSearchParams<TSpec>, opts?: SearchBuilderOptions) => string;
-  $buildState: (state: InState<TSpec>, opts?: StateBuilderOptions) => PlainState<TSpec["state"]>;
   $buildHash: (hash: InHash<TSpec>) => string;
+  $buildState: (state: InState<TSpec>, opts?: StateBuilderOptions) => PlainState<TSpec["state"]>;
   $getTypedParams: (params: Record<string, string | undefined>) => OutPathnameParams<TSpec>;
   $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSpec>;
-  $getTypedState: (state: unknown) => OutState<TSpec>;
   $getTypedHash: (hash: string) => OutHash<TSpec>;
+  $getTypedState: (state: unknown) => OutState<TSpec>;
   $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
   $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
   $getUntypedState: (state: unknown) => UntypedPlainState<TSpec["state"]>;
@@ -103,6 +105,10 @@ type OutSearchParams<TSpec extends RouteSpec> = Readable<
   PartialUndefined<RawSearchParams<TSpec["searchParams"], "out">>
 >;
 
+type InHash<TSpec extends RouteSpec> = RawHash<TSpec["hash"], "in">;
+
+type OutHash<TSpec extends RouteSpec> = RawHash<TSpec["hash"], "out">;
+
 type InState<TSpec extends RouteSpec> = IsAny<TSpec["state"]> extends true
   ? any
   : TSpec["state"] extends StateTypesObjectConstraint
@@ -116,10 +122,6 @@ type OutState<TSpec extends RouteSpec> = TSpec["state"] extends StateTypesObject
   : TSpec["state"] extends StateTypesUnknownConstraint
   ? RawState<TSpec["state"], "out">
   : never;
-
-type InHash<TSpec extends RouteSpec> = RawHash<TSpec["hash"], "in">;
-
-type OutHash<TSpec extends RouteSpec> = RawHash<TSpec["hash"], "out">;
 
 type InferredPathnameTypes<TPath extends PathConstraint> = Merge<
   Record<PathParam<TPath>, PathnameType<string>>,
@@ -151,14 +153,6 @@ type RawState<TTypes extends StateTypesUnknownConstraint, TMode extends "in" | "
     : TOut
   : never;
 
-type RawStateParams<TTypes extends StateTypesObjectConstraint, TMode extends "in" | "out"> = {
-  [TKey in keyof TTypes]: TTypes[TKey] extends StateType<infer TOut, infer TIn>
-    ? TMode extends "in"
-      ? Exclude<TIn, undefined>
-      : TOut
-    : never;
-};
-
 type RawHash<THash, TMode extends "in" | "out"> = THash extends string[]
   ? TMode extends "in"
     ? [THash[number]] extends [never]
@@ -170,6 +164,14 @@ type RawHash<THash, TMode extends "in" | "out"> = THash extends string[]
     ? Exclude<TIn, undefined>
     : TOut
   : undefined;
+
+type RawStateParams<TTypes extends StateTypesObjectConstraint, TMode extends "in" | "out"> = {
+  [TKey in keyof TTypes]: TTypes[TKey] extends StateType<infer TOut, infer TIn>
+    ? TMode extends "in"
+      ? Exclude<TIn, undefined>
+      : TOut
+    : never;
+};
 
 type AbsolutePath<T extends PathConstraint> = T extends string ? `/${T}` : T;
 
@@ -255,14 +257,14 @@ interface RouteSpec<
   TPath extends PathConstraint = PathConstraint,
   TPathnameTypes extends PathnameTypesConstraint = PathnameTypesConstraint,
   TSearchTypes extends SearchTypesConstraint = SearchTypesConstraint,
-  TStateTypes extends StateTypesConstraint = StateTypesConstraint,
   THash extends HashTypesConstraint = HashTypesConstraint,
+  TStateTypes extends StateTypesConstraint = StateTypesConstraint,
 > {
   path: TPath;
   params: TPathnameTypes;
   searchParams: TSearchTypes;
-  state: TStateTypes;
   hash: THash;
+  state: TStateTypes;
 }
 
 type PathConstraint = string | undefined;
@@ -301,15 +303,15 @@ type MergeOptionsPair<T, U, TMode extends "inherit" | "compose"> = T extends Rou
   infer TPath,
   infer TPathnameTypes,
   infer TSearchTypes,
-  infer TState,
-  infer THash
+  infer THash,
+  infer TState
 >
   ? U extends RouteSpec<
       infer TChildPath,
       infer TChildPathTypes,
       infer TChildSearchTypes,
-      infer TChildState,
-      infer TChildHash
+      infer TChildHash,
+      infer TChildState
     >
     ? RouteSpec<
         TMode extends "inherit"
@@ -321,12 +323,12 @@ type MergeOptionsPair<T, U, TMode extends "inherit" | "compose"> = T extends Rou
           : TChildPath,
         Merge<TPathnameTypes, TChildPathTypes>,
         Merge<TSearchTypes, TChildSearchTypes>,
+        TChildHash extends string[] ? (THash extends string[] ? [...THash, ...TChildHash] : THash) : TChildHash,
         TChildState extends StateTypesObjectConstraint
           ? TState extends StateTypesObjectConstraint
             ? Merge<TState, TChildState>
             : TState
-          : TChildState,
-        TChildHash extends string[] ? (THash extends string[] ? [...THash, ...TChildHash] : THash) : TChildHash
+          : TChildState
       >
     : never
   : never;
@@ -337,10 +339,10 @@ type OmitPathname<T extends RouteSpec> = T extends RouteSpec<
   infer _TPath,
   infer TPathnameTypes,
   infer TSearchTypes,
-  infer TStateTypes,
-  infer THash
+  infer THash,
+  infer TStateTypes
 >
-  ? RouteSpec<"", TPathnameTypes, TSearchTypes, TStateTypes, THash>
+  ? RouteSpec<"", TPathnameTypes, TSearchTypes, THash, TStateTypes>
   : never;
 
 type Merge<T, U> = Readable<Omit<T, keyof U> & U>;
@@ -377,29 +379,29 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       Record<PathParam<TPath>, PathnameType<any>>
     >,
     TSearchTypes extends SearchTypesConstraint = {},
-    TStateTypes extends StateTypesConstraint = {},
     // Allows to infer hash values from array without const.
     THashString extends string = string,
     THash extends HashTypesConstraint<THashString> = [],
+    TStateTypes extends StateTypesConstraint = {},
     // Only allow to compose pathless routes
-    TComposedRoutes extends [...RouteApi<RouteSpec<undefined, any, any, any>>[]] = [],
+    TComposedRoutes extends [...RouteApi<RouteSpec<undefined, any, any, HashTypesConstraint, any>>[]] = [],
     // This should be restricted to Record<string, BaseRoute>, but it breaks types for nested routes,
     // even without names validity check
     TChildren = {},
   >(opts: {
     path?: SanitizePath<TPath>;
-    compose?: [...TComposedRoutes];
     // Forbid undefined values and non-existent keys (but allow all keys for pathless routes)
     params?: TPath extends undefined ? PathnameTypesConstraint : SanitizePathnameTypes<TPath, TPathnameTypes>;
     searchParams?: TSearchTypes;
-    state?: TStateTypes;
     hash?: THash;
+    state?: TStateTypes;
+    compose?: [...TComposedRoutes];
     children?: SanitizeChildren<TChildren>;
   }): Route<
     MergeOptions<
       [
         ...ExtractOptions<TComposedRoutes>,
-        RouteSpec<TPath, NormalizePathnameTypes<TPathnameTypes, TPath>, TSearchTypes, TStateTypes, THash>,
+        RouteSpec<TPath, NormalizePathnameTypes<TPathnameTypes, TPath>, TSearchTypes, THash, TStateTypes>,
       ],
       "compose"
     >,
@@ -411,8 +413,8 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       path: opts.path,
       params: opts?.params ?? {},
       searchParams: opts?.searchParams ?? {},
-      state: opts?.state ?? {},
       hash: opts?.hash ?? [],
+      state: opts?.state ?? {},
     };
 
     const resolvedOptions = mergeOptions([...composedOptions, ownOptions], "compose");
@@ -431,11 +433,11 @@ function omitPathname<
   TPath extends PathConstraint,
   TPathnameTypes extends PathnameTypesConstraint,
   TSearchTypes extends SearchTypesConstraint,
-  TStateTypes extends StateTypesConstraint,
   THash extends HashTypesConstraint,
+  TStateTypes extends StateTypesConstraint,
 >(
-  options: RouteSpec<TPath, TPathnameTypes, TSearchTypes, TStateTypes, THash>,
-): OmitPathname<RouteSpec<TPath, TPathnameTypes, TSearchTypes, TStateTypes, THash>> {
+  options: RouteSpec<TPath, TPathnameTypes, TSearchTypes, THash, TStateTypes>,
+): OmitPathname<RouteSpec<TPath, TPathnameTypes, TSearchTypes, THash, TStateTypes>> {
   return {
     ...options,
     path: "",
@@ -625,7 +627,6 @@ function getRoute<TSpec extends RouteSpec>(options: TSpec, creatorOptions: Creat
     $relativePath: relativePath,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
-    $getPlainParams: getPlainParams,
     $buildSearch: buildSearch,
     $buildHash: buildHash,
     $buildState: buildState,
@@ -636,6 +637,7 @@ function getRoute<TSpec extends RouteSpec>(options: TSpec, creatorOptions: Creat
     $getUntypedParams: getUntypedParams,
     $getUntypedSearchParams: getUntypedSearchParams,
     $getUntypedState: getUntypedState,
+    $getPlainParams: getPlainParams,
     $getPlainSearchParams: getPlainSearchParams,
     $spec: options,
   };
@@ -861,9 +863,9 @@ export {
   OutPathnameParams,
   InSearchParams,
   OutSearchParams,
-  InState,
-  OutState,
   InHash,
   OutHash,
+  InState,
+  OutState,
   ErrorMessage,
 };
