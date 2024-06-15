@@ -187,7 +187,7 @@ type SanitizePath<T> = T extends `/${string}`
   ? ErrorMessage<"Trailing slashes are forbidden">
   : T;
 
-type SanitizeChildren<T> = Readable<{
+type SanitizeRouteChildren<T> = Readable<{
   [TKey in keyof T]: TKey extends Omit$<TKey>
     ? T[TKey] extends RouteApi
       ? T[TKey]
@@ -396,7 +396,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     hash?: THash;
     state?: TStateTypes;
     compose?: [...TComposedRoutes];
-    children?: SanitizeChildren<TChildren>;
+    children?: SanitizeRouteChildren<TChildren>;
   }): Route<
     MergeOptions<
       [
@@ -405,7 +405,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
       ],
       "compose"
     >,
-    SanitizeChildren<TChildren>
+    SanitizeRouteChildren<TChildren>
   > {
     const composedOptions = (opts.compose ?? []).map(({ $spec }) => $spec) as ExtractOptions<TComposedRoutes>;
 
@@ -857,7 +857,7 @@ export {
   RouteSpec,
   PathParam,
   SanitizePath,
-  SanitizeChildren,
+  SanitizeRouteChildren,
   InPathParams,
   InPathnameParams,
   OutPathnameParams,
