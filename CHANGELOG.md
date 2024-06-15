@@ -39,7 +39,7 @@ const [{ page }] = useTypedSearchParams(fragment);
 - **Breaking**: `union()` no longer accepts its values as multiple arguments.
 - **Breaking**: Types for pathname `params` are now stricter and don't allow params which are not specified in the path pattern. This also fixes autocomplete for such params.
 - **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
-- **Breaking**: The `types` field is renamed to `$options`, and it now also contains an unmodified `path` option of the route.
+- **Breaking**: The `types` field is renamed to `$spec`, and it now also contains an unmodified `path` option of the route.
 - **Breaking**: Path and state generation API is changed.
   - `$buildPath` (formerly `buildPath`) now accepts all params as a single argument.
   - `$buildPathname` is added.
