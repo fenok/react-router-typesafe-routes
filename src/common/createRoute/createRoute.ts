@@ -221,9 +221,9 @@ type PathParam<
       | ExtractPathParam<"*", TKind, TMode, TAfter extends "" ? true : false>
       | PathParam<TBefore, TKind, TMode>
       | PathParam<TAfter, TKind, TMode>
-  : TPath extends `${infer TStart}:${infer TParam}/${infer TRest}`
+  : TPath extends `${infer _TStart}:${infer TParam}/${infer TRest}`
   ? ExtractPathParam<TParam, TKind, TMode> | PathParam<TRest, TKind, TMode>
-  : TPath extends `${infer TStart}:${infer TParam}`
+  : TPath extends `${infer _TStart}:${infer TParam}`
   ? ExtractPathParam<TParam, TKind, TMode>
   : never;
 
