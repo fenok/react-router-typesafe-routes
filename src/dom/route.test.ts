@@ -2099,15 +2099,22 @@ it("provides a base type that any route is assignable to", () => {
 
   const PATHLESS_ROUTE = route({});
 
+  const ROUTE_WITH_ATOMIC_STATE = route({
+    path: "test",
+    state: number(),
+  });
+
   const test1: Route = TEST_ROUTE;
   const test2: Route = TEST_ROUTE.CHILD;
   const test3: Route = EMPTY_ROUTE;
   const test4: Route = PATHLESS_ROUTE;
+  const test5: Route = ROUTE_WITH_ATOMIC_STATE;
 
   expect(test1).toBeTruthy();
   expect(test2).toBeTruthy();
   expect(test3).toBeTruthy();
   expect(test4).toBeTruthy();
+  expect(test5).toBeTruthy();
 });
 
 it("checks that leading and trailing slashes are forbidden", () => {
