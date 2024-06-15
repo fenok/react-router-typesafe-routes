@@ -281,7 +281,7 @@ type StateUnknownConstraint = StateType<any>;
 
 type HashConstraint<T extends string = string> = T[] | HashType<any>;
 
-type ExtractRouteSpec<TTuple extends [...RouteApi[]]> = {
+type ExtractRouteSpecList<TTuple extends [...RouteApi[]]> = {
   [TIndex in keyof TTuple]: TTuple[TIndex]["$spec"];
 };
 
@@ -454,14 +454,14 @@ function createRoute(creatorOptions: CreateRouteOptions) {
   }): Route<
     MergeRouteSpecList<
       [
-        ...ExtractRouteSpec<TComposedRoutes>,
+        ...ExtractRouteSpecList<TComposedRoutes>,
         RouteSpec<TPath, NormalizePathnameParams<TPathnameParams, TPath>, TSearchParams, THash, TState>,
       ],
       "compose"
     >,
     SanitizeRouteChildren<TChildren>
   > {
-    const composedSpecList = (opts.compose ?? []).map(({ $spec }) => $spec) as ExtractRouteSpec<TComposedRoutes>;
+    const composedSpecList = (opts.compose ?? []).map(({ $spec }) => $spec) as ExtractRouteSpecList<TComposedRoutes>;
 
     const ownSpec = {
       path: opts.path,
