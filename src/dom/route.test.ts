@@ -10,7 +10,7 @@ import {
   PathnameType,
   SearchType,
   StateType,
-  BaseRoute,
+  Route,
   PathParam,
   configure,
   Parser,
@@ -2099,10 +2099,10 @@ it("provides a base type that any route is assignable to", () => {
 
   const PATHLESS_ROUTE = route({});
 
-  const test1: BaseRoute = TEST_ROUTE;
-  const test2: BaseRoute = TEST_ROUTE.CHILD;
-  const test3: BaseRoute = EMPTY_ROUTE;
-  const test4: BaseRoute = PATHLESS_ROUTE;
+  const test1: Route = TEST_ROUTE;
+  const test2: Route = TEST_ROUTE.CHILD;
+  const test3: Route = EMPTY_ROUTE;
+  const test4: Route = PATHLESS_ROUTE;
 
   expect(test1).toBeTruthy();
   expect(test2).toBeTruthy();
