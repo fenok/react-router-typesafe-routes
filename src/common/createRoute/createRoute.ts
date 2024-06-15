@@ -371,6 +371,10 @@ type RequiredWithoutUndefined<T> = {
   [P in keyof T]-?: Exclude<T[P], undefined>;
 };
 
+/**
+ * Internal helper for creating the `route` helper. Most likely, you should import `route` from a platform-specific
+ * entry point instead of using this helper.
+ */
 function createRoute(creatorOptions: CreateRouteOptions) {
   function route<
     TPath extends PathConstraint = undefined,
@@ -389,13 +393,63 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     // even without names validity check
     TChildren = {},
   >(opts: {
+    /**
+     * A path pattern, just like in React Router. The only difference is that leading and trailing slashes are
+     * forbidden.
+     */
     path?: SanitizePath<TPath>;
     // Forbid undefined values and non-existent keys (but allow all keys for pathless routes)
+    /**
+     * Pathname params. Use a record of types to override params
+     * inferred from `path`, partially or completely:
+     *
+     * ```ts
+     * params: { id: number() }
+     * ```
+     *
+     * If there is no `path`, you can specify any params.
+     *
+     * */
     params?: TPath extends undefined ? PathnameTypesConstraint : SanitizePathnameTypes<TPath, TPathnameTypes>;
+    /**
+     * Search params. Use a record of types to define them:
+     *
+     * ```ts
+     * searchParams: { page: number() }
+     * ```
+     * */
     searchParams?: TSearchTypes;
+    /**
+     * Hash. Use a type to define it:
+     *
+     * ```ts
+     * hash: union(["info", "stats"])
+     * ```
+     *
+     * If you want to extend it in a child route, specify it as an array of string values instead:
+     *
+     * ```ts
+     * hash: ["info", "stats"]
+     * ```
+     */
     hash?: THash;
+    /**
+     * State. Use a record of types to define it:
+     *
+     * ```ts
+     * state: { expired: boolean() }
+     * ```
+     *
+     * As an escape hatch, you can use a single type (not recommended):
+     *
+     * ```ts
+     * state: boolean()
+     * ```
+     */
     state?: TStateTypes;
+    /** An array of pathless routes whose params will be composed into the route. */
     compose?: [...TComposedRoutes];
+    /** Child routes that will inherit all params. */
     children?: SanitizeRouteChildren<TChildren>;
   }): Route<
     MergeOptions<

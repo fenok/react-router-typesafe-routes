@@ -1,5 +1,6 @@
 module.exports = {
   printWidth: 120,
+  pluginSearchDirs: false,
   overrides: [
     {
       files: "*.md",
@@ -8,5 +9,4 @@ module.exports = {
       },
     },
   ],
-  plugins: [import("prettier-plugin-jsdoc")],
 };
