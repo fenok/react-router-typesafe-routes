@@ -2,13 +2,8 @@ import { PathnameType, SearchType, StateType, HashType, string } from "../types/
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
 
-type Route<TSpec extends RouteSpec = RouteSpec<PathConstraint, any, any, any>, TChildren = {}> = RouteChildren<
-  TSpec,
-  TChildren
-> &
-  RouteApi<TSpec> & {
-    $: RouteChildren<OmitPathname<TSpec>, TChildren>;
-  };
+type Route<TSpec extends RouteSpec = RouteSpec<PathConstraint, any, any, any>, TChildren = {}> = RouteApi<TSpec> &
+  RouteChildren<TSpec, TChildren> & { $: RouteChildren<OmitPathname<TSpec>, TChildren> };
 
 type RouteChildren<TSpec extends RouteSpec, TChildren> = {
   [TKey in keyof TChildren]: TChildren[TKey] extends Route<infer TChildOptions, infer TChildChildren>
