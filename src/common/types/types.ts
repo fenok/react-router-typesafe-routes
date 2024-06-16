@@ -305,7 +305,7 @@ function ensureNoUndefined<TFn extends (...args: never[]) => unknown>(
     if (result === undefined) {
       if (def === undefined) {
         throw new Error(
-          "Can't return 'undefined' for a .defined() param. Use .default() instead. Remember, required pathname params use .defined() by default.",
+          "Can't return 'undefined' for a .defined() param. Use .default() (or omit the modifier) instead. Remember, required pathname params use .defined() by default.",
         );
       }
 

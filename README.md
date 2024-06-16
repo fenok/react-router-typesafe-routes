@@ -1,20 +1,22 @@
 # React Router Typesafe Routes 🍣
 
-Comprehensive and extensible type-safe routes for React Router v6 with first-class support for nested routes and param validation.
+Comprehensive and extensible type safety via validation for all route params in React Router v6.
 
-[![npm](https://img.shields.io/npm/v/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
+[![NPM Version](https://img.shields.io/npm/v/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
+[![NPM Downloads](https://img.shields.io/npm/dw/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
 
-> ⚠ You're viewing the documentation for the upcoming version 2.0.0, which is currently unstable. If you're looking for the documentation for the current version, please refer to the [main branch](https://github.com/fenok/react-router-typesafe-routes/tree/main).
+> [!WARNING]  
+> You're viewing the documentation for the upcoming version 2.0.0, which is currently unstable. If you have any feedback, please [open an issue](https://github.com/fenok/react-router-typesafe-routes/issues/new/choose). For the current version, please refer to the [main branch](https://github.com/fenok/react-router-typesafe-routes/tree/main).
 
 The library provides type safety for all route params (path params, search params (including multiple keys), state, and hash) on building and parsing URL parts and state. There are no unsafe type casts whatsoever.
 
-If you want, you can use a validation library. There is first-party support for [Zod](https://github.com/colinhacks/zod) and [Yup](https://github.com/jquense/yup), and other libraries are easily integratable. If not, you can use other built-in types and fine-tune their validation instead.
+If you want, you can use a validation library. There is first-party support for [Zod](https://github.com/colinhacks/zod) and [Yup](https://github.com/jquense/yup), and other libraries can be integrated with ease. Otherwise, you can use other built-in types and fine-tune their validation instead.
 
 In built-in types, parsing and validation errors are caught and replaced with `undefined`. You can also return a default value or throw an error in case of an absent or invalid param. All these adjustments reflect in types, too!
 
 If you need more control, you can build completely custom types, which means that parsing, serializing, and typing are fully customizable.
 
-The library doesn't restrict or alter React Router API in any way, including nested routes and relative links. It's also gradually adoptable.
+The library doesn't restrict or alter React Router API in any way, including nested routes and relative links. It can also be gradually adopted.
 
 ## Installation
 
@@ -22,7 +24,7 @@ The library doesn't restrict or alter React Router API in any way, including nes
 yarn add react-router-typesafe-routes@next
 ```
 
-You'll need to use one of platform-specific entry points, each of which requires `react` as a peer dependency:
+You have to use one of the platform-specific entry points, each of which requires `react` as a peer dependency:
 
 - `react-router-typesafe-routes/dom` for web, `react-router-dom` is a peer dependency;
 - `react-router-typesafe-routes/native` for React Native, `react-router-native` is a peer dependency.
@@ -34,12 +36,12 @@ Additionally, there are optional entry points for types based on third-party val
 
 The library is targeting ES6 (ES2015). ESM is used by default, and CommonJS is only usable in environments that support the `exports` field in `package.json`.
 
-The minimal required version of TypeScript is `5.0` and `strict` mode must be enabled.
+The minimal required version of TypeScript is `5.0`, and `strict` mode must be enabled.
 
 ## Limitations & Caveats
 
-- Since React Router only considers pathname on route matching, search parameters, hash, and state are considered optional upon URL or state building.
-- For convenience, absent and invalid params are considered virtually the same by built-in types (but you have full control with custom types).
+- React Router only considers pathnames during route matching, so search params, hash, and state are always optional upon URL or state building.
+- For convenience, absent and invalid params are considered virtually the same by built-in types. However, you retain full control with custom types.
 - To emphasize that route relativity is governed by the library, leading slashes in path patterns are forbidden. Trailing slashes are also forbidden due to being purely cosmetic.
 
 ## How is it different from existing solutions?
@@ -73,32 +75,30 @@ You might also want to use some other router with built-in type safety:
 
 ## Quick usage example
 
-Define routes:
+Define library routes:
 
 ```tsx
-import { route, number, boolean, union } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, number, boolean, union } from "react-router-typesafe-routes/dom";
 
-// Types specify how params are serialized and parsed.
-// All params are optional, except for required pathname params.
-// You can optionally start with a pathless route to specify params for all routes.
+// Start with a pathless route to specify global params.
 const root = route({
-  // E.g. this search param is global and also non-undefined, since it has a default value.
+  // This global search param has a default value that is used as a fallback upon parsing.
   searchParams: { utm_campaign: string().default("default_campaign") },
   // Child routes inherit all parent params.
   children: {
     user: route({
-      // Pattern can't start or end with a slash. Pathname params are inferred from it.
-      // Implicit required params use 'string().defined()', so they can throw upon parsing.
+      // Pathname params are inferred and can be overridden partially or completely.
+      // Required params implicitly use 'string().defined()' that can throw upon parsing.
       path: "user/:userId",
-      // You can e.g. change implicit 'string().defined()' to explicit 'number().defined()'.
-      params: { userId: number().defined() },
-      // You can specify hash. To allow any hash, define it as 'string()'.
+      // Without modifiers, 'undefined' can be returned upon parsing.
+      params: { userId: number() },
+      // Specify hash. To allow any hash, define it as 'string()'.
       hash: union(["info", "comments"]),
-      // You can specify state parts. Without modifiers, types can return 'undefined' upon parsing.
+      // Specify state parts.
       state: { fromUserList: boolean() },
       // Child routes inherit all parent params.
       children: {
-        // Optional pathname params are also supported and implicitly use 'string()' type.
+        // Optional pathname params implicitly use 'string()'.
         post: route({ path: "post/:postId?" }),
       },
     }),
@@ -106,12 +106,10 @@ const root = route({
 });
 ```
 
-Use `Route` components as usual:
-
-> ❗Routes can (and probably should!) be defined as objects that are passed to e.g. [`createBrowserRouter`](https://reactrouter.com/en/main/routers/create-browser-router). However, we will use the JSX style throughout the doc because it's not deprecated and also more nuanced.
+Define React Router routes:
 
 ```tsx
-import { Route, Routes } from "react-router-dom"; // Or -native
+import { Route, Routes } from "react-router-dom";
 import { root } from "./path/to/routes";
 
 // Absolute paths
@@ -134,10 +132,13 @@ import { root } from "./path/to/routes";
 </Routes>;
 ```
 
+> [!NOTE]  
+> We will use the JSX style of defining routes throughout the documentation, but you can easily define them as route objects as well. See the [Route](https://reactrouter.com/en/main/route/route#route) documentation for more information.
+
 Use `Link` components as usual:
 
 ```tsx
-import { Link } from "react-router-dom"; // Or -native
+import { Link } from "react-router-dom";
 import { root } from "./path/to/routes";
 
 // Absolute link
@@ -169,47 +170,31 @@ import { root } from "./path/to/routes";
 </Link>;
 ```
 
-Get typed path params with `useTypedParams()`:
+Get typed params:
 
 ```tsx
-import { useTypedParams } from "react-router-typesafe-routes/dom"; // Or /native
+import {
+  useTypedParams,
+  useTypedSearchParams,
+  useTypedHash,
+  useTypedState,
+} from "react-router-typesafe-routes/dom";
 import { root } from "./path/to/routes";
 
-// The type here is { userId: number; postId?: string | undefined; }.
-// If userId is absent/invalid, an error will be thrown.
+// { userId?: number; postId?: string; }
+// Uses root.user.post.$getTypedParams internally.
 const { userId, postId } = useTypedParams(root.user.post);
-```
 
-Get typed search params with `useTypedSearchParams()`:
-
-```tsx
-import { useTypedSearchParams } from "react-router-typesafe-routes/dom"; // Or /native
-import { root } from "./path/to/routes";
-
-// The type here is { utm_campaign: string }.
-// If utm_campaign is absent/invalid, the default value will be used ("default_campaign").
+// { utm_campaign: string }.
+// Uses root.user.post.$getTypedSearchParams internally.
 const [{ utm_campaign }, setTypedSearchParams] = useTypedSearchParams(root.user.post);
-```
 
-Get typed hash with `useTypedHash()`:
-
-```tsx
-import { useTypedHash } from "react-router-typesafe-routes/dom"; // Or /native
-import { root } from "./path/to/routes";
-
-// The type here is "info" | "comments" | undefined.
-// If hash is absent/invalid, 'undefined' is used instead.
+// "info" | "comments" | undefined.
+// Uses root.user.post.$getTypedHash internally.
 const hash = useTypedHash(root.user.post);
-```
 
-Get typed state with `useTypedState()`:
-
-```tsx
-import { useTypedState } from "react-router-typesafe-routes/dom"; // Or /native
-import { root } from "./path/to/routes";
-
-// The type here is { fromUserList: boolean | undefined }.
-// If fromUserList is absent/invalid, 'undefined' is used instead.
+// { fromUserList: boolean | undefined }.
+// Uses root.user.post.$getTypedState internally.
 const { fromUserList } = useTypedState(root.user.post);
 ```
 
@@ -221,14 +206,14 @@ const { fromUserList } = useTypedState(root.user.post);
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, number } from "react-router-typesafe-routes/dom";
 
 const myRoute = route({
   searchParams: {
     // Every built-in type can be made an array. Arrays can only be used in search and state.
-    // Upon parsing, 'undefined' values are omitted, and absent/invalid array is normalized to [].
+    // Upon parsing, 'undefined' values are omitted. Absent/invalid array is normalized to [].
     selectedIds: number().array(),
-    // In niche cases we might want to use '.default()' or '.defined()' for items.
+    // In niche cases you might want to use '.default()' or '.defined()' for items.
     // '.defined()' means that an invalid item makes the whole array invalid.
     selectedItems: number().default(-1).array(),
   },
@@ -275,17 +260,15 @@ const [{ utm_campaign }] = useTypedSearchParams(root);
 
 </details>
 
-### Inherit hash values
+### Extend hash values
 
 <details>
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, string } from "react-router-typesafe-routes/dom";
 
-// Child types for params with the same name take precedence. Since hash, unlike other route parts,
-// is a param itself, it can't normally inherit parent types. To solve this, there is a
-// hash-specific way of specifying values as an array of strings instead of a type.
+// Hash can only be extended by child routes if it's specified as an array of strings.
 const myRoute = route({
   path: "user",
   // This route hash is just "info"
@@ -298,9 +281,7 @@ const myRoute = route({
       children: {
         misc: route({
           path: "misc",
-          // This route hash is simply string. Hash arrays in its children will be ignored, and
-          // types should be used with caution, because they will override the parent one.
-          // Generally, every route chain should only have one type for hash which is terminating.
+          // A type overwrites parent hash completely, and subsequent arrays are ignored.
           hash: string(),
         }),
       },
@@ -319,9 +300,7 @@ const myRoute = route({
 ```tsx
 import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
 
-// State can be typed as a whole, in which case it becomes a single param like hash.
-// Similar to hash, child routes can't type separate state fields, and types for the whole state
-// will override the parent one.
+// A type overwrites parent state completely, and subsequest state objects are ignored.
 const myRoute = route({
   path: "user",
   state: string(),
@@ -340,8 +319,7 @@ const myRoute = route({
 ```tsx
 import { route, string, number } from "react-router-typesafe-routes/dom"; // Or /native
 
-// Note that we don't need to check that value is a number.
-// This is possible because number() helper has this check built-it.
+// You don't need to check that this value is a number.
 const integer = (value: number) => {
   if (!Number.isInteger(value)) {
     throw new Error(`Expected ${value} to be integer.`);
@@ -350,7 +328,7 @@ const integer = (value: number) => {
   return value;
 };
 
-// We can construct validators however we want.
+// You can construct validators via factories.
 const regExp = (regExp: RegExp) => (value: string) => {
   if (value.match(regExp)?.[0] !== value) {
     throw new Error(`"${value}" does not match ${String(regExp)}`);
@@ -361,9 +339,9 @@ const regExp = (regExp: RegExp) => (value: string) => {
 
 const myRoute = route({
   path: ":id",
-  // string() only accepts validators that return strings.
+  // 'string()' only accepts validators that return strings.
   params: { id: string(regExp(/\d+/)) },
-  // number() only accepts validators that return numbers.
+  // 'number()' only accepts validators that return numbers.
   searchParams: { page: number(integer) },
 });
 ```
@@ -417,24 +395,20 @@ const ROUTE = route({
 
 ```tsx
 import { type, parser, Type, ParserHint } from "react-router-typesafe-routes/dom"; // Or /native
-// Schema is a library-specific interface.
+// Some abstract third-party library.
 import { v, Schema } from "third-party-library";
 
 function valid<T>(schema: Schema<T>): Type<T> {
   return type(
-    // We use library-specific validation logic.
+    // Library-specific validation logic.
     (value: unknown) => schema.validate(value),
-    // We can optionally provide a parser.
-    // Built-in parser is used to remove wrapping quotes where possible.
-    // We could also supply a custom parser.
+    // You could also supply a custom parser.
     parser(getTypeHint(schema)),
   );
 }
 
 function getTypeHint(schema: Schema): ParserHint {
-  // We determine if the schema type is assignable to 'string' or 'date'.
-  // If so, we return the corresponding hint, and 'unknown' otherwise.
-  // The type can also be optional, e.g. 'string | undefined' should use 'string' hint.
+  // Type hint is determined based on the schema type, excluding 'undefined'.
   return schema.type;
 }
 
@@ -442,6 +416,45 @@ const myRoute = route({
   path: ":id",
   params: { id: valid(v.string().uuid()) },
 });
+```
+
+</details>
+
+### Create a custom parser
+
+<details>
+  <summary>Click to expand</summary>
+
+```tsx
+// Extend built-in 'ParserHint' if needed.
+type CustomParserHint = ParserHint | "entity";
+
+// If 'ParserHint' is extended, you need to extend 'ParserType' as well.
+type CustomParserType<T extends CustomParserHint> = T extends "entity"
+  ? { id: number }
+  : ParserType<Exclude<T, "entity">>;
+
+// This factory can be used in place of built-in 'parser()'
+function customParser<T extends CustomParserHint>(
+  defaultHint?: T,
+): Parser<CustomParserType<T>, CustomParserHint> {
+  return {
+    stringify(value, { hint, kind }) {
+      const resolvedHint = hint ?? defaultHint;
+
+      // Customize serialization based on 'resolvedHint' and 'kind'.
+
+      return JSON.stringify(value);
+    },
+    parse(value, { hint, kind }) {
+      const resolvedHint = hint ?? defaultHint;
+
+      // Customize parsing based on 'resolvedHint' and 'kind'.
+
+      return JSON.parse(value) as unknown;
+    },
+  };
+}
 ```
 
 </details>
@@ -455,15 +468,15 @@ const myRoute = route({
 import { route, PathnameType } from "react-router-typesafe-routes/dom"; // Or /native
 
 // This type accepts 'string | number | boolean' and returns 'string'.
-// We only implement ParamType interface, so this type can only be used for path params.
-// For other params, we would need to implement SearchParamType and StateParamType.
+// It only implements 'PathnameType', so it can only be used for pathname params.
+// Implement 'SearchType', 'HashType', and 'StateType' to cover other cases.
 const looseString: PathnameType<string, string | number | boolean> = {
   getPlainParam(value) {
     // It's always guaranteed that value is not 'undefined' here.
     return String(value);
   },
   getTypedParam(value) {
-    // We could treat 'undefined' in a special way to distinguish absent and invalid params.
+    // You could treat 'undefined' in a special way to distinguish absent and invalid params.
     if (typeof value !== "string") {
       throw new Error("Expected string");
     }
@@ -491,7 +504,7 @@ Any route can be a child of another route. Child routes inherit everything from 
 Most of the time, it's easier to simply inline child routes:
 
 ```tsx
-import { route } from "react-router-typesafe-routes/dom"; // Or /native
+import { route } from "react-router-typesafe-routes/dom";
 
 const user = route({ path: "user/:id", children: { details: route("details") } });
 
@@ -502,7 +515,7 @@ console.log(user.details.path); // "/user/:id/details"
 They can also be uninlined, most likely for usage in multiple places:
 
 ```tsx
-import { route } from "react-router-typesafe-routes/dom"; // Or /native
+import { route } from "react-router-typesafe-routes/dom";
 
 const details = route("details");
 
@@ -516,14 +529,15 @@ console.log(details.path); // "/details"
 
 To reiterate, `details` and `user.details` are separate routes, which will usually behave differently. `details` doesn't know anything about `user`, but `user.details` does. `details` is a standalone route, but `user.details` is a child of `user`.
 
-> ❗Child routes can't start with `$` to prevent overlapping with route API.
+> [!WARNING]  
+> Child routes can't start with `$` to prevent overlapping with route API.
 
-#### Using library routes in React Router `<Route />` components
+#### Using library routes in React Router routes
 
 Routes structure _usually_ corresponds to the structure of `<Route />` components:
 
 ```tsx
-import { Route, Routes } from "react-router-dom"; // Or -native
+import { Route, Routes } from "react-router-dom";
 
 <Routes>
   {/* '/user/:id' */}
@@ -534,7 +548,8 @@ import { Route, Routes } from "react-router-dom"; // Or -native
 </Routes>;
 ```
 
-> ❗As a reminder, you have to render an `<Outlet />` in the parent component.
+> [!WARNING]  
+> As a reminder, you have to render an `<Outlet />` in the parent component.
 
 However, nothing stops you from specifying additional routes as you see fit.
 
@@ -542,12 +557,13 @@ Note that we're using the `path` field here, which returns an absolute path patt
 
 You're encouraged to use absolute path patterns whenever possible because they are easier to reason about.
 
-> ❗ At the time of writing, there are [quirks](https://github.com/remix-run/react-router/issues/9925) with optional path segments that may force the use of relative path patterns.
+> [!WARNING]  
+> At the time of writing, there are [quirks](https://github.com/remix-run/react-router/issues/9925) with optional path segments that may force the use of relative path patterns.
 
 Relative paths can be used like this:
 
 ```tsx
-import { Route, Routes } from "react-router-dom"; // Or -native
+import { Route, Routes } from "react-router-dom";
 
 <Routes>
   {/* 'user/:id' */}
@@ -567,8 +583,8 @@ The `path` property contains a combined path with a leading slash (`/`), and `re
 If your `<Route/>` is rendered in a nested `<Routes />`, you have to not only add a `*` to the parent path, but also exclude the parent path from the subsequent paths. This might change if [this proposal](https://github.com/remix-run/react-router/discussions/9841) goes through.
 
 ```tsx
-import { Route, Routes } from "react-router-dom"; // Or -native
-import { route } from "react-router-typesafe-routes/dom"; // Or /native
+import { Route, Routes } from "react-router-dom";
+import { route } from "react-router-typesafe-routes/dom";
 
 const user = route({ path: "user/:id/*", children: { details: route("details") } });
 
@@ -584,9 +600,11 @@ const user = route({ path: "user/:id/*", children: { details: route("details") }
 </Routes>;
 ```
 
-> ❗ Star doesn't prevent subsequent routes from being rendered as direct children.
+> [!NOTE]  
+> Star doesn't prevent subsequent routes from being rendered as direct children.
 
-> ❗At the time of writing, there are [some issues](https://github.com/remix-run/react-router/issues/9929) with nested `<Routes />` if dynamic segments are used.
+> [!WARNING]  
+> At the time of writing, there are [some issues](https://github.com/remix-run/react-router/issues/9929) with nested `<Routes />` if dynamic segments are used.
 
 ### Typing
 
@@ -620,7 +638,8 @@ interface HashType<TOut, TIn = TOut> {
 }
 ```
 
-> ❗ It's guaranteed that `undefined` will never be passed as `originalValue`.
+> [!NOTE]  
+> It's guaranteed that `undefined` will never be passed as `originalValue`.
 
 These interfaces allow to express pretty much anything, though normally you should use the built-in helpers for constructing these objects. Manual construction should only be used if you're hitting some limitations.
 
@@ -641,15 +660,21 @@ With this in mind, we can think about type objects in terms of parsers and valid
 Parser is simply a group of functions for transforming a value to `string` and back:
 
 ```typescript
-interface Parser<T> {
-  stringify: (value: T) => string;
-  // There are edge cases when this value can be different from T.
-  // We always validate this value anyway.
-  parse: (value: string) => unknown;
+interface Parser<T, THint extends string = never> {
+  stringify: (value: T, context: ParserContext<THint>) => string;
+  // Return value can be different from T in some edge cases. We always validate it anyway.
+  parse: (value: string, context: ParserContext<THint>) => unknown;
+}
+
+interface ParserContext<THint extends string = never> {
+  // This field is used to change the behavior of the parser dynamically.
+  hint?: THint;
+  // This field isn't used by the library, but you can use it in custom parsers.
+  kind: "pathname" | "search" | "hash";
 }
 ```
 
-The library provides `parser()` helper for accessing the built-in parser. It can accept an optional type hint. By default, it simply behaves as `JSON`. It also has a special behavior for strings and dates, where it omits wrapping quotes in such serialized values.
+The library provides the `parser()` helper for accessing the built-in parser. It can accept an optional type hint. By default, it simply behaves as `JSON`. It also has a special behavior for strings and dates, where it omits wrapping quotes in such serialized values.
 
 ##### `Validator`
 
@@ -670,7 +695,7 @@ The important thing is that it has to handle both the original value and whateve
 The `type()` helper is used for creating all kinds of type objects. The resulting param type is inferred from the given validator.
 
 ```typescript
-import { type, parser, Validator } from "react-router-typesafe-routes/dom"; // Or /native
+import { type, parser, Validator } from "react-router-typesafe-routes/dom";
 
 const positiveNumber: Validator<number> = (value: unknown): number => {
   if (typeof value !== "number" || value <= 0) {
@@ -680,14 +705,14 @@ const positiveNumber: Validator<number> = (value: unknown): number => {
   return value;
 };
 
-// The following types are equivalent (we use JSON as a parser).
-// We could also supply a custom parser.
+// The following types are equivalent (JSON is used as a parser).
+// You could also supply a custom parser.
 type(positiveNumber, parser("unknown"));
 type(positiveNumber, parser());
 type(positiveNumber);
 ```
 
-The resulting type object will return undefined upon a parsing (or validation) error. We can change how absent/invalid params are treated:
+The resulting type object will return undefined upon a parsing (or validation) error. You can change how absent/invalid params are treated:
 
 ```typescript
 // This will throw an error.
@@ -696,9 +721,9 @@ type(positiveNumber).defined();
 type(positiveNumber).default(1);
 ```
 
-The `.defined()`/`.default()` modifiers guarantee that the parsing result is not `undefined`, even if the given validator can return it. Default values passed to `.default()` are validated.
+The `.defined()`/`.default()` modifiers guarantee that the parsing result is not `undefined`. Default values passed to `.default()` are validated.
 
-We can also construct type objects for arrays:
+You can also construct type objects for arrays:
 
 ```typescript
 // Upon parsing all variants will give 'number[]'.
@@ -722,7 +747,7 @@ Most of the time, you should use type-specific helpers: `string()`, `number()`, 
 For instance:
 
 ```typescript
-import { number, Validator } from "react-router-typesafe-routes/dom"; // Or /native
+import { number, Validator } from "react-router-typesafe-routes/dom";
 
 const positive: Validator<number, number> = (value: number): number => {
   if (value <= 0) {
@@ -732,17 +757,13 @@ const positive: Validator<number, number> = (value: number): number => {
   return value;
 };
 
+// You could also supply a custom parser.
 number(positive);
 ```
 
 ##### Third-party validation libraries
 
-You can use Zod and Yup out-of-box, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
-
-Gotchas:
-
-- It doesn't matter if a validator can accept or return `undefined` or not - it will be normalized by `type()` anyway.
-- A validator can receive `undefined`, which means that it can define its own default value, for example.
+You can use Zod and Yup out of the box, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
 
 #### Pathname params
 
@@ -753,7 +774,7 @@ Just as usual segments, dynamic segments (pathname params) can be made optional 
 Inferred params will implicitly use `string().defined()` and `string()` for required and optional params respectively.
 
 ```tsx
-import { route, number } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, number } from "react-router-typesafe-routes/dom";
 
 // Here, id is overridden to be a number, and subId and optionalId are strings
 const myRoute = route({
@@ -766,27 +787,28 @@ Upon building, pathname params are required or optional based on the `?` modifie
 
 Parsing behavior is determined by the type objects. Note that React Router parses star parameter (`*`) as an empty string if there are no segments to match.
 
-> ❗ You most likely will never need it, but it's technically possible to provide a type object for the star parameter as well.
+> [!NOTE]  
+> You most likely will never need it, but it's technically possible to provide a type object for the star parameter as well.
 
 #### Search params
 
 Search params are determined by the provided search type objects.
 
 ```tsx
-import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, string } from "react-router-typesafe-routes/dom";
 
 // Here, we define a search parameter 'filter' of 'string' type
 const myRoute = route({ path: "route", searchParams: { filter: string() } });
 ```
 
-Upon building, all search parameters are optional. Parsing behavior is determined by the type objects.
+Upon building, all search params are optional. Parsing behavior is determined by the type objects.
 
 #### Hash
 
 Hash is determined by the provided hash type object. It's also possible to provide an array of possible `string` values if you want to inherit parent values.
 
 ```tsx
-import { route, string, union } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, string, union } from "react-router-typesafe-routes/dom";
 
 const routeWithAnyHash = route({ path: "route", hash: string() });
 
@@ -805,7 +827,7 @@ Upon building, hash is optional. Parsing behavior is determined by the type obje
 State fields are determined by the provided state type objects. It's also possible to use a type object to define the whole state.
 
 ```tsx
-import { route, boolean, string } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, boolean, string } from "react-router-typesafe-routes/dom";
 
 // Here, we define a state field 'fromList' of 'boolean' type
 const myRoute = route({ path: "route", state: { fromList: boolean() } });
@@ -818,7 +840,7 @@ Upon building, all state fields (and the whole state) are optional. Parsing beha
 
 #### Types inheritance
 
-Child routes inherit all type objects from their parent. For parameters with the same name, child type objects take precedence.
+Child routes inherit all type objects from their parent. For params with the same name, child type objects take precedence.
 
 Separate hash values can be inherited only if they are defined as an array of strings.
 
@@ -826,7 +848,7 @@ Separate hash values can be inherited only if they are defined as an array of st
 
 Pathless routes can be composed to other routes to share types. Please refer to [Advanced examples: Share types between routes](#share-types-between-routes).
 
-Multiple routes can be composed. For parameters with the same name, the rightmost route takes precedence.
+Multiple routes can be composed. For params with the same name, the rightmost route takes precedence.
 
 #### Types priority
 
@@ -841,7 +863,8 @@ If hash type is defined as an array of strings and a hash type at the same time,
 
 If state type is defined as a set of its fields' types and a whole state type at the same time, the whole state type always wins regardless of the rules above.
 
-> ❗ Parameters with the same name are discouraged.
+> [!WARNING]  
+> Params with the same name are discouraged.
 
 ## API
 
@@ -884,14 +907,13 @@ The `children` option specifies child routes of the route. See [Nesting](#nestin
 The `route()` helper returns a route object, which has the following fields:
 
 - `$path` and `$relativePath`, where `$path` contains a combined path pattern with a leading slash (`/`), and `$relativePath` contains a combined path pattern **without intermediate stars (`*`)** and a leading slash (`/`). They can be passed to e.g. the `path` prop of React Router `<Route/>`.
-  > ❗ At the time of writing, patterns with optional segments [can't](https://github.com/remix-run/react-router/discussions/9862) be used in `matchPath`/`useMatch`.
 - `$buildPath()` for building parametrized URL paths (pathname + search + hash) which can be passed to e.g. the `to` prop of React Router `<Link />`.
 - `$buildState()` for building typed states, which can be passed to e.g. the `state` prop of React Router `<Link />`.
 - `$buildPathname()`, `$buildSearch()`, and `$buildHash()` for building parametrized URL parts. They can be used (in conjunction with `$buildState()`) to e.g. build a parametrized `Location` object.
 - `$getTypedParams()`, `$getTypedSearchParams()`, `$getTypedHash()`, and `$getTypedState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
 - `$getUntypedParams()`, `$getUntypedSearchParams()`, and `$getUntypedState()` for retrieving untyped params from React Router primitives. Typed params are omitted. Note that the hash is always typed, as well as the state when it's typed as a whole.
 - `$getPlainParams()` and `$getPlainSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `$buildHash()` and `$buildState()` can be used instead.
-- `$options`, which contains resolved type objects (and possibly hash values) of the route, as well as its `path` option.
+- `$spec`, which contains resolved type objects (and possibly hash values) of the route, as well as its `path` option.
 - `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
 - Any number of child routes (that can't start with a `$`).
 
@@ -910,6 +932,7 @@ It accepts the following type hints:
 - `'unknown'` - the value is processed by `JSON`. This is the default.
 - `'string'` - the value is not transformed in any way.
 - `'date'` - the value is transformed to an ISO string.
+- `'number'` and `'boolean'`, which behave identically to `'unknown'` and exist only for technical reasons.
 
 ### `type()`
 
@@ -919,26 +942,30 @@ See [Typing: Type helpers](#type-helpers).
 
 There are built-in helpers for common types:
 
-- `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and type checks. Can accept validators that expect the corresponding types as an input.
-- `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values. Can accept a readonly array, an enum, a readonly (`as const`) object, or individual values.
+- `string()`, `number()`, `boolean()`, `date()` - simple wrappers around `type()`, embed the corresponding parsers and type checks. Can accept validators that expect the corresponding types as an input and/or custom parsers.
+- `union()` - a wrapper around `type()` that describes unions of `string`, `number`, or `boolean` values. Accepts a readonly array or an enum (or an enum-like readonly (`as const`) object). Can accept a custom parser as well.
 
 There are also built-in helpers for third-party validation libraries:
 
 - `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
 - `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
 
-All of them use the built-in parser with auto-detected hint.
+All of them use the built-in parser with auto-detected hint by default, and all of them allow to supply a custom parser.
 
 All built-in helpers catch parsing and validation errors and replace them with `undefined`. This behavior can be altered with the following modifiers:
 
 - `.default()` - accepts a default value that is used instead of an absent/invalid param;
 - `.defined()` - specifies that an error is thrown in case of an absent/invalid param. For invalid params, the original error is used.
 
+### `configure()`
+
+All entry points expose the `configure()` helper that sets a parser for the corresponding type helpers globally. It accepts a parser factory like the built-in `parser()`.
+
 ### Useful types
 
+- `Route` is a base type that any route object is assignable to.
 - `PathParam` is similar to `PathParam` from React Router, but it allows a slightly more nuanced params extraction.
-- `BaseRoute` is a base type that any route object is assignable to.
-- `InPathParams`, `InPathnameParams`, `OutPathnameParams`, `InSearchParams`, `OutSearchParams`, `InState`, `OutState`, `InHash`, and `OutHash` can be used to extract the corresponding params from route options (`$options`).
+- `InPathParams`, `InPathnameParams`, `OutPathnameParams`, `InSearchParams`, `OutSearchParams`, `InState`, `OutState`, `InHash`, and `OutHash` can be used to extract the corresponding params from the route spec (`$spec`).
 
 ### Hooks
 
@@ -954,7 +981,7 @@ The `useTypedParams()` hook is a thin wrapper around React Router `useParams()`.
 
 The `useTypedSearchParams()` hook is a (somewhat) thin wrapper around React Router `useSearchParams()`. It accepts a route object as the first parameter, and the rest of the API is basically the same, but everything is properly typed.
 
-The only notable difference is that `setTypedSearchParams()` has an additional `untypedSearchParams` option. If `true`, existing untyped (by the given route) search parameters will remain intact. Note that this option does not affect the `state` option. That is, there is no way to preserve untyped state fields.
+The only notable difference is that `setTypedSearchParams()` has an additional `untypedSearchParams` option. If `true`, existing untyped (by the given route) search params will remain intact. Note that this option does not affect the `state` option. That is, there is no way to preserve untyped state fields.
 
 The reason for this is that `useTypedSearchParams()` is intended to be a simple wrapper around `useSearchParams()`, and the latter doesn't provide any access to the current state. If [this proposal](https://github.com/remix-run/react-router/discussions/9950) goes through, it would be very easy to implement, but for now, the only way to achieve this is to create a custom hook.
 
