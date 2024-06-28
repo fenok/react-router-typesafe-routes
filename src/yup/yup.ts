@@ -30,7 +30,6 @@ function configure({ parserFactory }: ConfigureOptions) {
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return type((value: unknown) => schema.validateSync(value), parser ?? parserFactory(typeHint));
   }
 

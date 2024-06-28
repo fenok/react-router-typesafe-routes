@@ -116,7 +116,7 @@ function configure({ parserFactory }: ConfigureOptions) {
     value: T,
     parser?: Parser<T[keyof T], DynamicParserHint>,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const values: T[number][] = Array.isArray(value) ? value : getEnumValues(value as EnumLike);
 
     const defaultParser = parser ?? parserFactory("unknown");

@@ -22,7 +22,6 @@ function configure({ parserFactory }: ConfigureOptions) {
       typeHint = "date";
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return type((value: unknown) => zodType.parse(value), parser ?? parserFactory(typeHint));
   }
 
