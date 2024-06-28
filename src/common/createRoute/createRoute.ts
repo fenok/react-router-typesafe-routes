@@ -77,7 +77,9 @@ type InPathnameParams<TSpec extends RouteSpec> = Merge<
       ? any
       : Merge<
           Pick<RawParams<TResolvedPathnameParams, "in">, PathParam<TSpec["path"], "all", "in">>,
-          Partial<Pick<RawParams<TResolvedPathnameParams, "in">, PathParam<TSpec["path"], "optional", "in">>>
+          PartialWithUndefined<
+            Pick<RawParams<TResolvedPathnameParams, "in">, PathParam<TSpec["path"], "optional", "in">>
+          >
         >
     : never
   : never;
@@ -88,7 +90,7 @@ type OutPathnameParams<TSpec extends RouteSpec> = Merge<
 > extends infer TResolvedPathnameParams
   ? TResolvedPathnameParams extends PathnameParamsConstraint
     ? Readable<
-        PartialUndefined<
+        UndefinedToPartial<
           undefined extends TSpec["path"]
             ? RawParams<TResolvedPathnameParams, "out">
             : Pick<RawParams<TResolvedPathnameParams, "out">, PathParam<TSpec["path"]>>
@@ -99,10 +101,10 @@ type OutPathnameParams<TSpec extends RouteSpec> = Merge<
 
 type InSearchParams<TSpec extends RouteSpec> = IsAny<TSpec["searchParams"]> extends true
   ? any
-  : Readable<Partial<RawSearchParams<TSpec["searchParams"], "in">>>;
+  : Readable<PartialWithUndefined<RawSearchParams<TSpec["searchParams"], "in">>>;
 
 type OutSearchParams<TSpec extends RouteSpec> = Readable<
-  PartialUndefined<RawSearchParams<TSpec["searchParams"], "out">>
+  UndefinedToPartial<RawSearchParams<TSpec["searchParams"], "out">>
 >;
 
 type InHash<TSpec extends RouteSpec> = RawHash<TSpec["hash"], "in">;
@@ -112,13 +114,13 @@ type OutHash<TSpec extends RouteSpec> = RawHash<TSpec["hash"], "out">;
 type InState<TSpec extends RouteSpec> = IsAny<TSpec["state"]> extends true
   ? any
   : TSpec["state"] extends StateObjectConstraint
-  ? Readable<Partial<RawStateParams<TSpec["state"], "in">>>
+  ? Readable<PartialWithUndefined<RawStateParams<TSpec["state"], "in">>>
   : TSpec["state"] extends StateUnknownConstraint
   ? RawState<TSpec["state"], "in">
   : never;
 
 type OutState<TSpec extends RouteSpec> = TSpec["state"] extends StateObjectConstraint
-  ? Readable<PartialUndefined<RawStateParams<TSpec["state"], "out">>>
+  ? Readable<UndefinedToPartial<RawStateParams<TSpec["state"], "out">>>
   : TSpec["state"] extends StateUnknownConstraint
   ? RawState<TSpec["state"], "out">
   : never;
@@ -355,10 +357,14 @@ declare const brand: unique symbol;
 
 type IsAny<T> = 0 extends 1 & T ? true : false;
 
-type PartialUndefined<T> = Merge<T, Undefined<T>>;
+type UndefinedToPartial<T> = Merge<T, Undefined<T>>;
 
 type Undefined<T> = {
-  [K in keyof T as undefined extends T[K] ? K : never]?: T[K];
+  [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>;
+};
+
+type PartialWithUndefined<T> = {
+  [K in keyof T]?: T[K] | undefined;
 };
 
 type NormalizePathnameParams<TPathnameParams, TPath extends PathConstraint> = Partial<

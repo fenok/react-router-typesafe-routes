@@ -11,6 +11,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "exactOptionalPropertyTypes": true,
     /** @see https://github.com/Microsoft/TypeScript/issues/26238 */
     "noErrorTruncation": true
   }
