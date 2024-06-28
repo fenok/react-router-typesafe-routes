@@ -42,7 +42,7 @@ interface PathnameBuilderOptions {
 }
 
 interface SearchBuilderOptions {
-  untypedSearchParams?: URLSearchParams;
+  untypedSearchParams?: URLSearchParams | undefined;
 }
 
 interface StateBuilderOptions {
