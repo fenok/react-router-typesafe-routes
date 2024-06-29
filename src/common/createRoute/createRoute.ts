@@ -2,10 +2,8 @@ import { PathnameType, SearchType, StateType, HashType, string } from "../types/
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
 
-type Route<
-  TSpec extends RouteSpec = RouteSpec<PathConstraint, any, any, HashConstraint, any>,
-  TChildren = {},
-> = RouteApi<TSpec> & RouteChildren<TSpec, TChildren> & { $: RouteChildren<OmitPath<TSpec>, TChildren> };
+type Route<TSpec extends RouteSpec = RouteSpec, TChildren = {}> = RouteApi<TSpec> &
+  RouteChildren<TSpec, TChildren> & { $: RouteChildren<OmitPath<TSpec>, TChildren> };
 
 type RouteChildren<TSpec extends RouteSpec, TChildren> = {
   [TKey in keyof TChildren]: TChildren[TKey] extends Route<infer TChildOptions, infer TChildChildren>
@@ -13,7 +11,7 @@ type RouteChildren<TSpec extends RouteSpec, TChildren> = {
     : TChildren[TKey];
 };
 
-interface RouteApi<TSpec extends RouteSpec = RouteSpec<PathConstraint, any, any, HashConstraint, any>> {
+interface RouteApi<TSpec extends RouteSpec = RouteSpec> {
   $path: AbsolutePath<TSpec["path"]>;
   $relativePath: PathWithoutIntermediateStars<TSpec["path"]>;
   $buildPath: (opts: PathBuilderOptions<TSpec>) => string;
@@ -257,10 +255,10 @@ interface CreateRouteOptions {
 
 interface RouteSpec<
   TPath extends PathConstraint = PathConstraint,
-  TPathnameParams extends PathnameParamsConstraint = PathnameParamsConstraint,
-  TSearchParams extends SearchParamsConstraint = SearchParamsConstraint,
+  TPathnameParams extends PathnameParamsConstraint = any,
+  TSearchParams extends SearchParamsConstraint = any,
   THash extends HashConstraint = HashConstraint,
-  TState extends StateConstraint = StateConstraint,
+  TState extends StateConstraint = any,
 > {
   path: TPath;
   params: TPathnameParams;
@@ -394,7 +392,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     THash extends HashConstraint<THashString> = [],
     TState extends StateConstraint = {},
     // Only allow to compose pathless routes
-    TComposedRoutes extends [...RouteApi<RouteSpec<undefined, any, any, HashConstraint, any>>[]] = [],
+    TComposedRoutes extends [...RouteApi<RouteSpec<undefined>>[]] = [],
     // This should be restricted to Record<string, BaseRoute>, but it breaks types for nested routes,
     // even without names validity check
     TChildren = {},
@@ -559,7 +557,15 @@ function decorateChildren<TSpec extends RouteSpec, TChildren>(
   return result as RouteChildren<TSpec, TChildren>;
 }
 
-function getRoute<TSpec extends RouteSpec>(spec: TSpec, creatorOptions: CreateRouteOptions): RouteApi<TSpec> {
+function getRoute<
+  TSpec extends RouteSpec<
+    PathConstraint,
+    PathnameParamsConstraint,
+    SearchParamsConstraint,
+    HashConstraint,
+    StateConstraint
+  >,
+>(spec: TSpec, creatorOptions: CreateRouteOptions): RouteApi<TSpec> {
   const [allPathParams] = getPathParams(spec.path as TSpec["path"]);
   const relativePath = removeIntermediateStars(spec.path as TSpec["path"]);
   const resolvedTypes = { ...spec, params: { ...getInferredPathnameTypes(spec.path), ...spec.params } };
@@ -781,11 +787,15 @@ function getPlainStateByType(state: unknown, type: StateType<any>): unknown {
   return type.getPlainState(state);
 }
 
-function getTypedParamsByTypes<TSpec extends RouteSpec>(
-  params: Record<string, string | undefined>,
-  spec: TSpec,
-  keys: PathParam<TSpec["path"]>[],
-): OutPathnameParams<TSpec> {
+function getTypedParamsByTypes<
+  TSpec extends RouteSpec<
+    PathConstraint,
+    PathnameParamsConstraint,
+    SearchParamsConstraint,
+    HashConstraint,
+    StateConstraint
+  >,
+>(params: Record<string, string | undefined>, spec: TSpec, keys: PathParam<TSpec["path"]>[]): OutPathnameParams<TSpec> {
   const types = spec.params;
 
   const result: Record<string, unknown> = {};
@@ -804,10 +814,15 @@ function getTypedParamsByTypes<TSpec extends RouteSpec>(
   return result as OutPathnameParams<TSpec>;
 }
 
-function getTypedSearchParamsByTypes<TSpec extends RouteSpec>(
-  searchParams: URLSearchParams,
-  spec: TSpec,
-): OutSearchParams<TSpec> {
+function getTypedSearchParamsByTypes<
+  TSpec extends RouteSpec<
+    PathConstraint,
+    PathnameParamsConstraint,
+    SearchParamsConstraint,
+    HashConstraint,
+    StateConstraint
+  >,
+>(searchParams: URLSearchParams, spec: TSpec): OutSearchParams<TSpec> {
   const result: Record<string, unknown> = {};
   const types = spec.searchParams;
 
@@ -825,7 +840,15 @@ function getTypedSearchParamsByTypes<TSpec extends RouteSpec>(
   return result as OutSearchParams<TSpec>;
 }
 
-function getTypedStateByTypes<TSpec extends RouteSpec>(state: unknown, spec: TSpec): OutState<TSpec> {
+function getTypedStateByTypes<
+  TSpec extends RouteSpec<
+    PathConstraint,
+    PathnameParamsConstraint,
+    SearchParamsConstraint,
+    HashConstraint,
+    StateConstraint
+  >,
+>(state: unknown, spec: TSpec): OutState<TSpec> {
   if (isStateType(spec.state)) {
     return spec.state.getTypedState(state);
   }
