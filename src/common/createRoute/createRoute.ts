@@ -14,11 +14,13 @@ type RouteChildren<TSpec extends RouteSpec, TChildren> = {
 interface RouteApi<TSpec extends RouteSpec = RouteSpec> {
   $path: AbsolutePath<TSpec["path"]>;
   $relativePath: PathWithoutIntermediateStars<TSpec["path"]>;
-  $buildPath: (opts: PathBuilderOptions<TSpec>) => string;
-  $buildPathname: (params: InPathnameParams<TSpec>, opts?: PathnameBuilderOptions) => string;
-  $buildSearch: (searchParams: InSearchParams<TSpec>, opts?: SearchBuilderOptions) => string;
-  $buildHash: (hash: InHash<TSpec>) => string;
-  $buildState: (state: InState<TSpec>, opts?: StateBuilderOptions) => PlainState<TSpec["state"]>;
+  $buildPath: (opts: BuildPathOptions<TSpec>) => string;
+  $buildPathname: (opts: BuildPathnameOptions<TSpec>) => string;
+  $buildPathnameParams: (opts: BuildPathnameOptions<TSpec>) => Record<string, string | undefined>;
+  $buildSearch: (opts: BuildSearchOptions<TSpec>) => string;
+  $buildSearchParams: (opts: BuildSearchOptions<TSpec>) => URLSearchParams;
+  $buildHash: (opts: BuildHashOptions<TSpec>) => string;
+  $buildState: (opts: BuildStateOptions<TSpec>) => PlainState<TSpec["state"]>;
   $getTypedParams: (params: Record<string, string | undefined>) => OutPathnameParams<TSpec>;
   $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSpec>;
   $getTypedHash: (hash: string) => OutHash<TSpec>;
@@ -26,14 +28,24 @@ interface RouteApi<TSpec extends RouteSpec = RouteSpec> {
   $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
   $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
   $getUntypedState: (state: unknown) => UntypedPlainState<TSpec["state"]>;
-  $getPlainParams: (params: InPathnameParams<TSpec>) => Record<string, string | undefined>;
-  $getPlainSearchParams: (searchParams: InSearchParams<TSpec>, opts?: SearchBuilderOptions) => URLSearchParams;
   $spec: TSpec;
 }
 
-type PathBuilderOptions<TSpec extends RouteSpec> = Readable<
+type BuildPathOptions<TSpec extends RouteSpec> = Readable<
   InPathParams<TSpec> & PathnameBuilderOptions & SearchBuilderOptions
 >;
+
+type BuildPathnameOptions<TSpec extends RouteSpec> = Readable<
+  { params: InPathnameParams<TSpec> } & PathnameBuilderOptions
+>;
+
+type BuildSearchOptions<TSpec extends RouteSpec> = Readable<
+  { searchParams: InSearchParams<TSpec> } & SearchBuilderOptions
+>;
+
+type BuildHashOptions<TSpec extends RouteSpec> = Readable<{ hash: InHash<TSpec> }>;
+
+type BuildStateOptions<TSpec extends RouteSpec> = Readable<{ state: InState<TSpec> } & StateBuilderOptions>;
 
 interface PathnameBuilderOptions {
   relative?: boolean;
@@ -570,29 +582,31 @@ function getRoute<
   const relativePath = removeIntermediateStars(spec.path as TSpec["path"]);
   const resolvedTypes = { ...spec, params: { ...getInferredPathnameTypes(spec.path), ...spec.params } };
 
-  function getPlainParams(params: InPathnameParams<TSpec>) {
-    return getPlainParamsByTypes(allPathParams, params, spec.params);
+  function getPlainParams(opts: BuildPathnameOptions<TSpec>) {
+    return getPlainParamsByTypes(allPathParams, opts.params, spec.params);
   }
 
-  function buildPathname(params: InPathnameParams<TSpec>, opts?: PathnameBuilderOptions) {
-    const rawBuiltPath = creatorOptions.generatePath(relativePath ?? "", getPlainParams(params));
+  function buildPathname(opts: BuildPathnameOptions<TSpec>) {
+    const rawBuiltPath = creatorOptions.generatePath(relativePath ?? "", getPlainParams(opts));
     const relativePathname = rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
 
     return `${opts?.relative ? "" : "/"}${relativePathname}`;
   }
 
-  function buildPath(opts: PathBuilderOptions<TSpec>) {
-    const pathnameParams = opts.params ?? ({} as InPathnameParams<TSpec>);
+  function buildPath(opts: BuildPathOptions<TSpec>) {
+    const params = opts.params ?? ({} as InPathnameParams<TSpec>);
     const searchParams = opts.searchParams ?? ({} as InSearchParams<TSpec>);
     const hash = opts.hash;
 
-    return `${buildPathname(pathnameParams, opts)}${buildSearch(searchParams, opts)}${
-      hash !== undefined ? buildHash(hash) : ""
+    return `${buildPathname({ params, ...opts })}${buildSearch({ searchParams, ...opts })}${
+      hash !== undefined ? buildHash({ hash }) : ""
     }`;
   }
 
-  function getPlainSearchParams(params: InSearchParams<TSpec>, opts?: SearchBuilderOptions) {
-    const plainParams = creatorOptions.createSearchParams(getPlainSearchParamsByTypes(params, spec.searchParams));
+  function getPlainSearchParams(opts: BuildSearchOptions<TSpec>) {
+    const plainParams = creatorOptions.createSearchParams(
+      getPlainSearchParamsByTypes(opts.searchParams, spec.searchParams),
+    );
 
     if (opts?.untypedSearchParams) {
       appendSearchParams(plainParams, getUntypedSearchParams(opts?.untypedSearchParams));
@@ -601,24 +615,24 @@ function getRoute<
     return plainParams;
   }
 
-  function buildSearch(params: InSearchParams<TSpec>, opts?: SearchBuilderOptions) {
-    const searchString = creatorOptions.createSearchParams(getPlainSearchParams(params, opts)).toString();
+  function buildSearch(opts: BuildSearchOptions<TSpec>) {
+    const searchString = creatorOptions.createSearchParams(getPlainSearchParams(opts)).toString();
 
     return searchString ? `?${searchString}` : "";
   }
 
-  function buildHash(hash: InHash<TSpec>) {
+  function buildHash(opts: BuildHashOptions<TSpec>) {
     if (isHashType(spec.hash)) {
-      return `#${spec.hash.getPlainHash(hash)}`;
+      return `#${spec.hash.getPlainHash(opts.hash)}`;
     }
-    return `#${String(hash)}`;
+    return `#${String(opts.hash)}`;
   }
 
-  function buildState(params: InState<TSpec>, opts?: StateBuilderOptions) {
+  function buildState(opts: BuildStateOptions<TSpec>) {
     return (
       isStateType(spec.state)
-        ? getPlainStateByType(params, spec.state)
-        : Object.assign(getPlainStateParamsByTypes(params, spec.state), getUntypedState(opts?.untypedState))
+        ? getPlainStateByType(opts.state, spec.state)
+        : Object.assign(getPlainStateParamsByTypes(opts.state, spec.state), getUntypedState(opts?.untypedState))
     ) as PlainState<TSpec["state"]>;
   }
 
@@ -703,8 +717,8 @@ function getRoute<
     $getUntypedParams: getUntypedParams,
     $getUntypedSearchParams: getUntypedSearchParams,
     $getUntypedState: getUntypedState,
-    $getPlainParams: getPlainParams,
-    $getPlainSearchParams: getPlainSearchParams,
+    $buildPathnameParams: getPlainParams,
+    $buildSearchParams: getPlainSearchParams,
     $spec: spec,
   };
 }
@@ -941,7 +955,6 @@ export {
   PathParam,
   SanitizePath,
   SanitizeRouteChildren,
-  InPathParams,
   InPathnameParams,
   OutPathnameParams,
   InSearchParams,

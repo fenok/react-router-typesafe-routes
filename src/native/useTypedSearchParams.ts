@@ -18,7 +18,7 @@ function useTypedSearchParams<TSpec extends RouteSpec>(
   ) => void,
 ] {
   const defaultInit = useMemo(
-    () => (typedDefaultInit ? route.$getPlainSearchParams(typedDefaultInit) : undefined),
+    () => (typedDefaultInit ? route.$buildSearchParams({ searchParams: typedDefaultInit }) : undefined),
     [route, typedDefaultInit],
   );
 
@@ -33,14 +33,14 @@ function useTypedSearchParams<TSpec extends RouteSpec>(
     ) => {
       setSearchParams(
         (prevParams) => {
-          return route.$getPlainSearchParams(
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            typeof params === "function" ? params(route.$getTypedSearchParams(prevParams)) : params,
-            { untypedSearchParams: untypedSearchParams ? prevParams : undefined },
-          );
+          return route.$buildSearchParams({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            searchParams: typeof params === "function" ? params(route.$getTypedSearchParams(prevParams)) : params,
+            untypedSearchParams: untypedSearchParams ? prevParams : undefined,
+          });
         },
         {
-          ...(state ? { state: route.$buildState(state) } : {}),
+          ...(state ? { state: route.$buildState({ state }) } : {}),
           ...restNavigateOptions,
         },
       );
