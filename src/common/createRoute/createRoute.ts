@@ -21,13 +21,10 @@ interface RouteApi<TSpec extends RouteSpec = RouteSpec> {
   $buildSearchParams: (opts: BuildSearchOptions<TSpec>) => URLSearchParams;
   $buildHash: (opts: BuildHashOptions<TSpec>) => string;
   $buildState: (opts: BuildStateOptions<TSpec>) => PlainState<TSpec["state"]>;
-  $getTypedParams: (params: PathnameParams) => OutPathnameParams<TSpec>;
-  $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSpec>;
-  $getTypedHash: (hash: string) => OutHash<TSpec>;
-  $getTypedState: (state: unknown) => OutState<TSpec>;
-  $getUntypedParams: (params: PathnameParams) => PathnameParams;
-  $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
-  $getUntypedState: (state: unknown) => UntypedPlainState<TSpec["state"]>;
+  $validateParams: (params: PathnameParams) => OutPathnameParams<TSpec>;
+  $validateSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSpec>;
+  $validateHash: (hash: string) => OutHash<TSpec>;
+  $validateState: (state: unknown) => OutState<TSpec>;
   $spec: TSpec;
 }
 
@@ -642,18 +639,6 @@ function getRoute<
     return getTypedParamsByTypes(params, resolvedTypes, allPathParams);
   }
 
-  function getUntypedParams(params: PathnameParams) {
-    const result: PathnameParams = {};
-
-    Object.keys(params).forEach((key) => {
-      if (!resolvedTypes.params[key]) {
-        result[key] = params[key];
-      }
-    });
-
-    return result;
-  }
-
   function getTypedSearchParams(params: URLSearchParams) {
     return getTypedSearchParamsByTypes(params, spec);
   }
@@ -709,18 +694,15 @@ function getRoute<
     $relativePath: relativePath,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
+    $buildPathnameParams: getPlainParams,
     $buildSearch: buildSearch,
+    $buildSearchParams: getPlainSearchParams,
     $buildHash: buildHash,
     $buildState: buildState,
-    $getTypedParams: getTypedParams,
-    $getTypedSearchParams: getTypedSearchParams,
-    $getTypedHash: getTypedHash,
-    $getTypedState: getTypedState,
-    $getUntypedParams: getUntypedParams,
-    $getUntypedSearchParams: getUntypedSearchParams,
-    $getUntypedState: getUntypedState,
-    $buildPathnameParams: getPlainParams,
-    $buildSearchParams: getPlainSearchParams,
+    $validateParams: getTypedParams,
+    $validateSearchParams: getTypedSearchParams,
+    $validateHash: getTypedHash,
+    $validateState: getTypedState,
     $spec: spec,
   };
 }

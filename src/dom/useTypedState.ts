@@ -4,5 +4,5 @@ import { useMemo } from "react";
 
 export function useTypedState<TSpec extends RouteSpec>(route: Route<TSpec>): OutState<TSpec> {
   const location = useLocation();
-  return useMemo(() => route.$getTypedState(location.state), [route, location.state]);
+  return useMemo(() => route.$validateState(location.state), [route, location.state]);
 }

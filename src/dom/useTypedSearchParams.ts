@@ -24,7 +24,7 @@ function useTypedSearchParams<TSpec extends RouteSpec>(
 
   const [searchParams, setSearchParams] = useSearchParams(defaultInit);
 
-  const typedSearchParams = useMemo(() => route.$getTypedSearchParams(searchParams), [route, searchParams]);
+  const typedSearchParams = useMemo(() => route.$validateSearchParams(searchParams), [route, searchParams]);
 
   const setTypedSearchParams = useCallback(
     (
@@ -35,7 +35,7 @@ function useTypedSearchParams<TSpec extends RouteSpec>(
         (prevParams) => {
           return route.$buildSearchParams({
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            searchParams: typeof params === "function" ? params(route.$getTypedSearchParams(prevParams)) : params,
+            searchParams: typeof params === "function" ? params(route.$validateSearchParams(prevParams)) : params,
             untypedSearchParams: untypedSearchParams ? prevParams : undefined,
           });
         },
