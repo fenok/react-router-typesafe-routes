@@ -1700,7 +1700,7 @@ it("ensures that required path params stay required if a custom type allows unde
 
   assert<
     IsExact<
-      Parameters<typeof TEST_ROUTE.$buildPathnameParams>[0]["params"],
+      Parameters<typeof TEST_ROUTE.$buildParams>[0]["params"],
       {
         id: string;
       }
@@ -2034,7 +2034,7 @@ it("allows to define different types for different route parts", () => {
 
   assert<
     IsExact<
-      Parameters<typeof TEST_ROUTE.$buildPathnameParams>[0]["params"],
+      Parameters<typeof TEST_ROUTE.$buildParams>[0]["params"],
       {
         id: number;
       }
@@ -2086,7 +2086,7 @@ it("allows to define different types for different route parts", () => {
     >
   >(true);
 
-  expect(TEST_ROUTE.$buildPathnameParams({ params: { id: 1 } })).toStrictEqual({ id: "path plain" });
+  expect(TEST_ROUTE.$buildParams({ params: { id: 1 } })).toStrictEqual({ id: "path plain" });
   expect(TEST_ROUTE.$validateParams({ id: "" })).toStrictEqual({ id: "path typed" });
   expect(urlSearchParamsToRecord(TEST_ROUTE.$buildSearchParams({ searchParams: { id: "" } }))).toStrictEqual({
     id: "search plain",
@@ -2488,16 +2488,14 @@ it("allows to configure parser globally", () => {
 
   const dateValue = new Date();
 
-  expect(mRoute.$buildPathnameParams({ params: { s: "test", n: 1, b: true, d: dateValue, u: 1, t: 1 } })).toStrictEqual(
-    {
-      s: "s:test",
-      n: "n:1",
-      b: "b:true",
-      d: "d:" + dateValue.toISOString(),
-      u: "n:1",
-      t: "1",
-    },
-  );
+  expect(mRoute.$buildParams({ params: { s: "test", n: 1, b: true, d: dateValue, u: 1, t: 1 } })).toStrictEqual({
+    s: "s:test",
+    n: "n:1",
+    b: "b:true",
+    d: "d:" + dateValue.toISOString(),
+    u: "n:1",
+    t: "1",
+  });
 });
 
 it("allows to configure parser globally for zod", () => {
@@ -2510,7 +2508,7 @@ it("allows to configure parser globally for zod", () => {
     },
   });
 
-  expect(testRoute.$buildPathnameParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
+  expect(testRoute.$buildParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
 });
 
 it("allows to configure parser globally for yup", () => {
@@ -2523,7 +2521,7 @@ it("allows to configure parser globally for yup", () => {
     },
   });
 
-  expect(testRoute.$buildPathnameParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
+  expect(testRoute.$buildParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
 });
 
 it("allows to configure parser locally", () => {
@@ -2569,7 +2567,7 @@ it("allows to configure parser locally", () => {
   const dateValue = new Date();
 
   expect(
-    testRoute.$buildPathnameParams({
+    testRoute.$buildParams({
       params: {
         s: "test",
         sv: "test",
@@ -2603,7 +2601,7 @@ it("allows to configure parser locally for zod", () => {
     },
   });
 
-  expect(testRoute.$buildPathnameParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
+  expect(testRoute.$buildParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
 });
 
 it("allows to configure parser locally for yup", () => {
@@ -2614,7 +2612,7 @@ it("allows to configure parser locally for yup", () => {
     },
   });
 
-  expect(testRoute.$buildPathnameParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
+  expect(testRoute.$buildParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
 });
 
 function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {

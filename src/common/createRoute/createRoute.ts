@@ -16,7 +16,7 @@ interface RouteApi<TSpec extends RouteSpec = RouteSpec> {
   $relativePath: PathWithoutIntermediateStars<TSpec["path"]>;
   $buildPath: (opts: BuildPathOptions<TSpec>) => string;
   $buildPathname: (opts: BuildPathnameOptions<TSpec>) => string;
-  $buildPathnameParams: (opts: BuildPathnameOptions<TSpec>) => PathnameParams;
+  $buildParams: (opts: BuildPathnameOptions<TSpec>) => PathnameParams;
   $buildSearch: (opts: BuildSearchOptions<TSpec>) => string;
   $buildSearchParams: (opts: BuildSearchOptions<TSpec>) => URLSearchParams;
   $buildHash: (opts: BuildHashOptions<TSpec>) => string;
@@ -694,7 +694,7 @@ function getRoute<
     $relativePath: relativePath,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
-    $buildPathnameParams: getPlainParams,
+    $buildParams: getPlainParams,
     $buildSearch: buildSearch,
     $buildSearchParams: getPlainSearchParams,
     $buildHash: buildHash,
