@@ -1,56 +1,56 @@
-interface Parser<T> {
-    stringify: (value: T) => string;
-    parse: (value: string) => unknown;
+interface Parser<T, THint extends string = never> {
+  stringify: (value: T, context: ParserContext<THint>) => string;
+  parse: (value: string, context: ParserContext<THint>) => unknown;
 }
 
-type ParserHint = "string" | "date" | "unknown";
+interface ParserContext<THint extends string = never> {
+  hint?: THint;
+  kind: "pathname" | "search" | "hash";
+}
+
+type ParserHint = "string" | "number" | "boolean" | "date" | "unknown";
 
 type ParserType<T extends ParserHint> = T extends "unknown"
-    ? unknown
-    : T extends "string"
-    ? string
-    : T extends "date"
-    ? Date
-    : never;
+  ? unknown
+  : T extends "string"
+  ? string
+  : T extends "date"
+  ? Date
+  : T extends "number"
+  ? number
+  : T extends "boolean"
+  ? boolean
+  : never;
 
-function parser(): Parser<unknown>;
-function parser<T extends ParserHint>(hint: T): Parser<ParserType<T>>;
-function parser<T extends ParserHint>(hint?: T): Parser<ParserType<T>> {
-    return {
-        stringify(value) {
-            if (hint === "string" && typeof value === "string") {
-                return stringParser.stringify(value);
-            }
+function parser<T extends ParserHint = "unknown">(defaultHint?: T): Parser<ParserType<T>, ParserHint> {
+  return {
+    stringify(value, { hint }) {
+      const resolvedHint = hint ?? defaultHint;
 
-            if (hint === "date" && value instanceof Date) {
-                return dateParser.stringify(value);
-            }
+      if (resolvedHint === "string" && typeof value === "string") {
+        return value;
+      }
 
-            return defaultParser.stringify(value);
-        },
-        parse(value: string) {
-            if (hint === "string") {
-                return stringParser.parse(value);
-            }
-
-            if (hint === "date") {
-                return dateParser.parse(value);
-            }
-
-            return defaultParser.parse(value);
-        },
-    };
-}
-
-const defaultParser: Parser<unknown> = JSON;
-const stringParser: Parser<string> = { stringify: (value: string) => value, parse: (value: string) => value };
-const dateParser: Parser<Date> = {
-    stringify(value: Date): string {
+      if (resolvedHint === "date" && value instanceof Date) {
         return value.toISOString();
+      }
+
+      return JSON.stringify(value);
     },
-    parse(value: string) {
+    parse(value, { hint }) {
+      const resolvedHint = hint ?? defaultHint;
+
+      if (resolvedHint === "string") {
+        return value;
+      }
+
+      if (resolvedHint === "date") {
         return new Date(value);
+      }
+
+      return JSON.parse(value) as unknown;
     },
-};
+  };
+}
 
 export { parser, Parser, ParserHint, ParserType };
