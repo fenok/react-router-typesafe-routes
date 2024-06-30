@@ -16,20 +16,22 @@ interface RouteApi<TSpec extends RouteSpec = RouteSpec> {
   $relativePath: PathWithoutIntermediateStars<TSpec["path"]>;
   $buildPath: (opts: BuildPathOptions<TSpec>) => string;
   $buildPathname: (opts: BuildPathnameOptions<TSpec>) => string;
-  $buildPathnameParams: (opts: BuildPathnameOptions<TSpec>) => Record<string, string | undefined>;
+  $buildPathnameParams: (opts: BuildPathnameOptions<TSpec>) => PathnameParams;
   $buildSearch: (opts: BuildSearchOptions<TSpec>) => string;
   $buildSearchParams: (opts: BuildSearchOptions<TSpec>) => URLSearchParams;
   $buildHash: (opts: BuildHashOptions<TSpec>) => string;
   $buildState: (opts: BuildStateOptions<TSpec>) => PlainState<TSpec["state"]>;
-  $getTypedParams: (params: Record<string, string | undefined>) => OutPathnameParams<TSpec>;
+  $getTypedParams: (params: PathnameParams) => OutPathnameParams<TSpec>;
   $getTypedSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSpec>;
   $getTypedHash: (hash: string) => OutHash<TSpec>;
   $getTypedState: (state: unknown) => OutState<TSpec>;
-  $getUntypedParams: (params: Record<string, string | undefined>) => Record<string, string | undefined>;
+  $getUntypedParams: (params: PathnameParams) => PathnameParams;
   $getUntypedSearchParams: (searchParams: URLSearchParams) => URLSearchParams;
   $getUntypedState: (state: unknown) => UntypedPlainState<TSpec["state"]>;
   $spec: TSpec;
 }
+
+type PathnameParams = Record<string, string | undefined>;
 
 type BuildPathOptions<TSpec extends RouteSpec> = Readable<
   InPathParams<TSpec> & PathnameBuilderOptions & SearchBuilderOptions
@@ -262,7 +264,7 @@ type OmitIllegalStar<
 
 interface CreateRouteOptions {
   createSearchParams: (init?: Record<string, string | string[]> | URLSearchParams) => URLSearchParams;
-  generatePath: (path: string, params?: Record<string, string | undefined>) => string;
+  generatePath: (path: string, params?: PathnameParams) => string;
 }
 
 interface RouteSpec<
@@ -636,12 +638,12 @@ function getRoute<
     ) as PlainState<TSpec["state"]>;
   }
 
-  function getTypedParams(params: Record<string, string | undefined>) {
+  function getTypedParams(params: PathnameParams) {
     return getTypedParamsByTypes(params, resolvedTypes, allPathParams);
   }
 
-  function getUntypedParams(params: Record<string, string | undefined>) {
-    const result: Record<string, string | undefined> = {};
+  function getUntypedParams(params: PathnameParams) {
+    const result: PathnameParams = {};
 
     Object.keys(params).forEach((key) => {
       if (!resolvedTypes.params[key]) {
@@ -809,7 +811,7 @@ function getTypedParamsByTypes<
     HashConstraint,
     StateConstraint
   >,
->(params: Record<string, string | undefined>, spec: TSpec, keys: PathParam<TSpec["path"]>[]): OutPathnameParams<TSpec> {
+>(params: PathnameParams, spec: TSpec, keys: PathParam<TSpec["path"]>[]): OutPathnameParams<TSpec> {
   const types = spec.params;
 
   const result: Record<string, unknown> = {};
