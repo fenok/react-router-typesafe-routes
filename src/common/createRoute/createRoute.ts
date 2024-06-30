@@ -628,7 +628,7 @@ function getRouteApi<
 
   function buildHash(opts: BuildHashOptions<TSpec>) {
     if (isHashType(resolvedSpec.hash)) {
-      return `#${resolvedSpec.hash.getPlainHash(opts.hash)}`;
+      return `#${resolvedSpec.hash.buildHash(opts.hash)}`;
     }
     return `#${String(opts.hash)}`;
   }
@@ -685,7 +685,7 @@ function getRouteApi<
     const normalizedHash = hash?.substring(1, hash?.length);
 
     if (isHashType(resolvedSpec.hash)) {
-      return resolvedSpec.hash.getTypedHash(normalizedHash);
+      return resolvedSpec.hash.validateHash(normalizedHash);
     }
 
     if (normalizedHash && resolvedSpec.hash.indexOf(normalizedHash) !== -1) {
@@ -755,7 +755,7 @@ function getPlainParamsByTypes(
     const value = params[key];
 
     if (type && keys.indexOf(key) !== -1 && value !== undefined) {
-      result[key] = type.getPlainParam(value as never);
+      result[key] = type.buildParam(value as never);
     }
   });
 
@@ -772,7 +772,7 @@ function getPlainSearchParamsByTypes(
     const type = types[key];
 
     if (type && params[key] !== undefined) {
-      result[key] = type.getPlainSearchParam(params[key] as never);
+      result[key] = type.buildSearchParam(params[key] as never);
     }
   });
 
@@ -790,7 +790,7 @@ function getPlainStateParamsByTypes(
     const value = params[key];
 
     if (type && value !== undefined) {
-      result[key] = type.getPlainState(value as never);
+      result[key] = type.buildState(value as never);
     }
   });
 
@@ -798,7 +798,7 @@ function getPlainStateParamsByTypes(
 }
 
 function getPlainStateByType(state: unknown, type: StateType<any>): unknown {
-  return type.getPlainState(state);
+  return type.buildState(state);
 }
 
 function getTypedParamsByTypes<
@@ -818,7 +818,7 @@ function getTypedParamsByTypes<
     const type = types[key];
 
     if (type) {
-      const typedSearchParam = type.getTypedParam(params[key]);
+      const typedSearchParam = type.validateParam(params[key]);
       if (typedSearchParam !== undefined) {
         result[key] = typedSearchParam;
       }
@@ -844,7 +844,7 @@ function getTypedSearchParamsByTypes<
     const type = types[key];
 
     if (type) {
-      const typedSearchParam = type.getTypedSearchParam(searchParams.getAll(key));
+      const typedSearchParam = type.validateSearchParam(searchParams.getAll(key));
       if (typedSearchParam !== undefined) {
         result[key] = typedSearchParam;
       }
@@ -864,7 +864,7 @@ function getTypedStateByTypes<
   >,
 >(state: unknown, spec: TSpec): OutState<TSpec> {
   if (isStateType(spec.state)) {
-    return spec.state.getTypedState(state);
+    return spec.state.validateState(state);
   }
 
   const result: Record<string, unknown> = {};
@@ -875,7 +875,7 @@ function getTypedStateByTypes<
       const type = types[key];
 
       if (type) {
-        const typedStateParam = type.getTypedState(state[key]);
+        const typedStateParam = type.validateState(state[key]);
         if (typedStateParam !== undefined) {
           result[key] = typedStateParam;
         }
@@ -934,7 +934,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isStateType<T extends StateType<any>>(value: T | Record<string, StateType<any>>): value is T {
-  return typeof (value as StateType<any>).getPlainState === "function";
+  return typeof (value as StateType<any>).buildState === "function";
 }
 
 function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {

@@ -1,23 +1,23 @@
 import { parser, Parser, ParserHint } from "./parser.js";
 
 interface PathnameType<TOut, TIn = TOut> {
-  getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
-  getTypedParam: (plainValue: string | undefined) => TOut;
+  buildParam: (originalValue: Exclude<TIn, undefined>) => string;
+  validateParam: (plainValue: string | undefined) => TOut;
 }
 
 interface SearchType<TOut, TIn = TOut> {
-  getPlainSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
-  getTypedSearchParam: (plainValue: string[]) => TOut;
+  buildSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
+  validateSearchParam: (plainValue: string[]) => TOut;
 }
 
 interface StateType<TOut, TIn = TOut> {
-  getPlainState: (originalValue: Exclude<TIn, undefined>) => unknown;
-  getTypedState: (plainValue: unknown) => TOut;
+  buildState: (originalValue: Exclude<TIn, undefined>) => unknown;
+  validateState: (plainValue: unknown) => TOut;
 }
 
 interface HashType<TOut, TIn = TOut> {
-  getPlainHash: (originalValue: Exclude<TIn, undefined>) => string;
-  getTypedHash: (plainValue: string) => TOut;
+  buildHash: (originalValue: Exclude<TIn, undefined>) => string;
+  validateHash: (plainValue: string) => TOut;
 }
 
 type AnyType<TOut, TIn = TOut> = PathnameType<TOut, TIn> &
@@ -194,14 +194,14 @@ function createType({ parserFactory }: CreateTypeOptions) {
     return Object.assign(
       {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
       {
-        getPlainParam,
-        getTypedParam: ensureNoError(getTypedParam),
-        getPlainSearchParam,
-        getTypedSearchParam: ensureNoError(getTypedSearchParam),
-        getPlainState: getPlainState,
-        getTypedState: ensureNoError(getTypedState),
-        getPlainHash,
-        getTypedHash: ensureNoError(getTypedHash),
+        buildParam: getPlainParam,
+        validateParam: ensureNoError(getTypedParam),
+        buildSearchParam: getPlainSearchParam,
+        validateSearchParam: ensureNoError(getTypedSearchParam),
+        buildState: getPlainState,
+        validateState: ensureNoError(getTypedState),
+        buildHash: getPlainHash,
+        validateHash: ensureNoError(getTypedHash),
       },
       {
         array: getArrayParamTypeBuilder(ensureNoError(validator), {
@@ -216,14 +216,14 @@ function createType({ parserFactory }: CreateTypeOptions) {
           return Object.assign(
             {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
             {
-              getPlainParam,
-              getTypedParam: ensureNoUndefined(ensureNoError(getTypedParam), validDef),
-              getPlainSearchParam,
-              getTypedSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validDef),
-              getPlainState: getPlainState,
-              getTypedState: ensureNoUndefined(ensureNoError(getTypedState), validDef),
-              getPlainHash,
-              getTypedHash: ensureNoUndefined(ensureNoError(getTypedHash), validDef),
+              buildParam: getPlainParam,
+              validateParam: ensureNoUndefined(ensureNoError(getTypedParam), validDef),
+              buildSearchParam: getPlainSearchParam,
+              validateSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validDef),
+              buildState: getPlainState,
+              validateState: ensureNoUndefined(ensureNoError(getTypedState), validDef),
+              buildHash: getPlainHash,
+              validateHash: ensureNoUndefined(ensureNoError(getTypedHash), validDef),
             },
             {
               array: getArrayParamTypeBuilder(ensureNoUndefined(ensureNoError(validator), validDef), {
@@ -237,14 +237,14 @@ function createType({ parserFactory }: CreateTypeOptions) {
           return Object.assign(
             {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
             {
-              getPlainParam,
-              getTypedParam: ensureNoUndefined(getTypedParam),
-              getPlainSearchParam,
-              getTypedSearchParam: ensureNoUndefined(getTypedSearchParam),
-              getPlainState: getPlainState,
-              getTypedState: ensureNoUndefined(getTypedState),
-              getPlainHash,
-              getTypedHash: ensureNoUndefined(getTypedHash),
+              buildParam: getPlainParam,
+              validateParam: ensureNoUndefined(getTypedParam),
+              buildSearchParam: getPlainSearchParam,
+              validateSearchParam: ensureNoUndefined(getTypedSearchParam),
+              buildState: getPlainState,
+              validateState: ensureNoUndefined(getTypedState),
+              buildHash: getPlainHash,
+              validateHash: ensureNoUndefined(getTypedHash),
             },
             {
               array: getArrayParamTypeBuilder(ensureNoUndefined(validator), {
@@ -272,10 +272,10 @@ const getArrayParamTypeBuilder =
               (Array.isArray(values) ? values : []).map((item) => validator(item)).filter(isDefined);
 
           return {
-            getPlainSearchParam,
-            getTypedSearchParam,
-            getPlainState: getPlainState,
-            getTypedState: getTypedState,
+            buildSearchParam: getPlainSearchParam,
+            validateSearchParam: getTypedSearchParam,
+            buildState: getPlainState,
+            validateState: getTypedState,
           };
         };
 

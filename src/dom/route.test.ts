@@ -2017,12 +2017,12 @@ it("allows to use unions", () => {
 
 it("allows to define different types for different route parts", () => {
   const testType: PathnameType<string, number> & SearchType<number, string> & StateType<boolean, Date> = {
-    getPlainParam: (value) => "path plain",
-    getTypedParam: (value) => "path typed",
-    getPlainSearchParam: (value) => "search plain",
-    getTypedSearchParam: (value) => -1,
-    getPlainState: (value) => "state",
-    getTypedState: (value) => false,
+    buildParam: (value) => "path plain",
+    validateParam: (value) => "path typed",
+    buildSearchParam: (value) => "search plain",
+    validateSearchParam: (value) => -1,
+    buildState: (value) => "state",
+    validateState: (value) => false,
   };
 
   const TEST_ROUTE = route({
