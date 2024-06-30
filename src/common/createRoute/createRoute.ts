@@ -490,7 +490,7 @@ function createRoute(creatorOptions: CreateRouteOptions) {
 
     return {
       ...decorateChildren(resolvedSpec, creatorOptions, opts.children),
-      ...getRoute(resolvedSpec, creatorOptions),
+      ...getRouteApi(resolvedSpec, creatorOptions),
       $: decorateChildren(omitPath(resolvedSpec), creatorOptions, opts.children),
     };
   }
@@ -558,7 +558,7 @@ function decorateChildren<TSpec extends RouteSpec, TChildren>(
       result[key] = isRoute(value)
         ? {
             ...decorateChildren(spec, creatorOptions, value),
-            ...getRoute(mergeSpecList([spec, value.$spec], "inherit"), creatorOptions),
+            ...getRouteApi(mergeSpecList([spec, value.$spec], "inherit"), creatorOptions),
             $: decorateChildren(omitPath(spec), creatorOptions, value.$),
           }
         : value;
@@ -568,7 +568,7 @@ function decorateChildren<TSpec extends RouteSpec, TChildren>(
   return result as RouteChildren<TSpec, TChildren>;
 }
 
-function getRoute<
+function getRouteApi<
   TSpec extends RouteSpec<
     PathConstraint,
     PathnameParamsConstraint,
@@ -579,10 +579,16 @@ function getRoute<
 >(spec: TSpec, creatorOptions: CreateRouteOptions): RouteApi<TSpec> {
   const [allPathParams] = getPathParams(spec.path as TSpec["path"]);
   const relativePath = removeIntermediateStars(spec.path as TSpec["path"]);
-  const resolvedTypes = { ...spec, params: { ...getInferredPathnameTypes(spec.path), ...spec.params } };
+  const resolvedSpec = {
+    ...spec,
+    params: {
+      ...getInferredPathnameTypes(spec.path),
+      ...(spec.path === undefined ? spec.params : pickKnownKeys(spec.params, allPathParams)),
+    },
+  };
 
   function getPlainParams(opts: BuildPathnameOptions<TSpec>) {
-    return getPlainParamsByTypes(allPathParams, opts.params, spec.params);
+    return getPlainParamsByTypes(allPathParams, opts.params, resolvedSpec.params);
   }
 
   function buildPathname(opts: BuildPathnameOptions<TSpec>) {
@@ -604,7 +610,7 @@ function getRoute<
 
   function getPlainSearchParams(opts: BuildSearchOptions<TSpec>) {
     const plainParams = creatorOptions.createSearchParams(
-      getPlainSearchParamsByTypes(opts.searchParams, spec.searchParams),
+      getPlainSearchParamsByTypes(opts.searchParams, resolvedSpec.searchParams),
     );
 
     if (opts?.untypedSearchParams) {
@@ -621,34 +627,34 @@ function getRoute<
   }
 
   function buildHash(opts: BuildHashOptions<TSpec>) {
-    if (isHashType(spec.hash)) {
-      return `#${spec.hash.getPlainHash(opts.hash)}`;
+    if (isHashType(resolvedSpec.hash)) {
+      return `#${resolvedSpec.hash.getPlainHash(opts.hash)}`;
     }
     return `#${String(opts.hash)}`;
   }
 
   function buildState(opts: BuildStateOptions<TSpec>) {
     return (
-      isStateType(spec.state)
-        ? getPlainStateByType(opts.state, spec.state)
-        : Object.assign(getPlainStateParamsByTypes(opts.state, spec.state), getUntypedState(opts?.untypedState))
+      isStateType(resolvedSpec.state)
+        ? getPlainStateByType(opts.state, resolvedSpec.state)
+        : Object.assign(getPlainStateParamsByTypes(opts.state, resolvedSpec.state), getUntypedState(opts?.untypedState))
     ) as PlainState<TSpec["state"]>;
   }
 
   function getTypedParams(params: PathnameParams) {
-    return getTypedParamsByTypes(params, resolvedTypes, allPathParams);
+    return getTypedParamsByTypes(params, resolvedSpec);
   }
 
   function getTypedSearchParams(params: URLSearchParams) {
-    return getTypedSearchParamsByTypes(params, spec);
+    return getTypedSearchParamsByTypes(params, resolvedSpec);
   }
 
   function getUntypedSearchParams(params: URLSearchParams) {
     const result = creatorOptions.createSearchParams(params);
 
-    if (!spec.searchParams) return result;
+    if (!resolvedSpec.searchParams) return result;
 
-    Object.keys(spec.searchParams).forEach((key) => {
+    Object.keys(resolvedSpec.searchParams).forEach((key) => {
       result.delete(key);
     });
 
@@ -656,15 +662,15 @@ function getRoute<
   }
 
   function getTypedState(state: unknown) {
-    return getTypedStateByTypes(state, spec);
+    return getTypedStateByTypes(state, resolvedSpec);
   }
 
   function getUntypedState(state: unknown) {
-    const result = (isStateType(spec.state) ? undefined : {}) as UntypedPlainState<TSpec["state"]>;
+    const result = (isStateType(resolvedSpec.state) ? undefined : {}) as UntypedPlainState<TSpec["state"]>;
 
     if (!isRecord(state) || !result) return result;
 
-    const typedKeys = spec.state ? Object.keys(spec.state) : [];
+    const typedKeys = resolvedSpec.state ? Object.keys(resolvedSpec.state) : [];
 
     Object.keys(state).forEach((key) => {
       if (typedKeys.indexOf(key) === -1) {
@@ -678,11 +684,11 @@ function getRoute<
   function getTypedHash(hash: string): OutHash<TSpec> {
     const normalizedHash = hash?.substring(1, hash?.length);
 
-    if (isHashType(spec.hash)) {
-      return spec.hash.getTypedHash(normalizedHash);
+    if (isHashType(resolvedSpec.hash)) {
+      return resolvedSpec.hash.getTypedHash(normalizedHash);
     }
 
-    if (normalizedHash && spec.hash.indexOf(normalizedHash) !== -1) {
+    if (normalizedHash && resolvedSpec.hash.indexOf(normalizedHash) !== -1) {
       return normalizedHash as OutHash<TSpec>;
     }
 
@@ -690,7 +696,7 @@ function getRoute<
   }
 
   return {
-    $path: makeAbsolute(spec.path as TSpec["path"]),
+    $path: makeAbsolute(resolvedSpec.path as TSpec["path"]),
     $relativePath: relativePath,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
@@ -725,6 +731,18 @@ function getInferredPathnameTypes<T extends PathConstraint>(path: T): InferredPa
   return params as InferredPathnameParams<T>;
 }
 
+function pickKnownKeys<T extends Record<string, unknown>, TKey extends string>(obj: T, keys: TKey[]): Pick<T, TKey> {
+  const result: Record<string, unknown> = {};
+
+  keys.forEach((key) => {
+    if (obj[key] !== undefined) {
+      result[key] = obj[key];
+    }
+  });
+
+  return result as Pick<T, TKey>;
+}
+
 function getPlainParamsByTypes(
   keys: string[],
   params: Record<string, unknown>,
@@ -738,8 +756,6 @@ function getPlainParamsByTypes(
 
     if (type && keys.indexOf(key) !== -1 && value !== undefined) {
       result[key] = type.getPlainParam(value as never);
-    } else if (typeof value === "string") {
-      result[key] = value;
     }
   });
 
@@ -793,7 +809,7 @@ function getTypedParamsByTypes<
     HashConstraint,
     StateConstraint
   >,
->(params: PathnameParams, spec: TSpec, keys: PathParam<TSpec["path"]>[]): OutPathnameParams<TSpec> {
+>(params: PathnameParams, spec: TSpec): OutPathnameParams<TSpec> {
   const types = spec.params;
 
   const result: Record<string, unknown> = {};
@@ -801,7 +817,7 @@ function getTypedParamsByTypes<
   Object.keys(types).forEach((key) => {
     const type = types[key];
 
-    if (type && keys.includes(key as PathParam<TSpec["path"]>)) {
+    if (type) {
       const typedSearchParam = type.getTypedParam(params[key]);
       if (typedSearchParam !== undefined) {
         result[key] = typedSearchParam;

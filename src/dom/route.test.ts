@@ -2323,6 +2323,31 @@ it("preserves pathless routes in chains", () => {
   expect(test.$.child.grandchild.$path).toBe(undefined);
 });
 
+it("allows to parse params with pathless routes", () => {
+  const pathlessRoute = route({ params: { id: number() } });
+
+  expect(pathlessRoute.$validateParams({ id: "1" })).toStrictEqual({ id: 1 });
+});
+
+it("builds empty pathnames with pathless routes", () => {
+  const pathlessRoute = route({ params: { id: number() } });
+
+  expect(pathlessRoute.$buildPathname({ params: { id: 1 } })).toStrictEqual("/");
+  expect(pathlessRoute.$buildParams({ params: { id: 1 } })).toStrictEqual({});
+});
+
+it("prevents excessive plain pathname params for routes without dynamic segments", () => {
+  const pathlessRoute = route({ params: { id: number(), sid: string() } });
+
+  const emptyRoute = route({ path: "", compose: [pathlessRoute] });
+
+  expect(pathlessRoute.$buildPathname({ params: { id: 1, sid: "1", nid: "2" } })).toStrictEqual("/");
+  expect(pathlessRoute.$buildParams({ params: { id: 1, sid: "1", nid: "2" } })).toStrictEqual({});
+
+  expect(emptyRoute.$buildPathname({ params: { id: 1, sid: "1", nid: "2" } })).toStrictEqual("/");
+  expect(emptyRoute.$buildParams({ params: { id: 1, sid: "1", nid: "2" } })).toStrictEqual({});
+});
+
 it("ensures that types of non-existent pathname params are ignored", () => {
   const excessParams = route({ params: { id: number(), fake: number() } });
 
