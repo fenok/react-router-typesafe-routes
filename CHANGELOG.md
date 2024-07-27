@@ -41,10 +41,10 @@ const [{ page }] = useTypedSearchParams(fragment);
 - **Breaking**: The `types` field is renamed to `$spec`, and it now also contains an unmodified `path` option of the route.
 - **Breaking**: Naming scheme was changed from `getPlain`/`getTyped` to `serialize`/`deserialize` for clarity.
 - **Breaking**: Path and state generation API is changed.
-  - `$buildPath` (formerly `buildPath`) now accepts all params as a single argument.
+  - `$buildPath` (formerly `buildPath`) now accepts all params as a single argument. Signatures of all `build*` functions were updated accordingly.
   - `$buildPathname` is added.
   - `buildRelativePath` is removed, and instead `$buildPath` and `$buildPathname` now accept a `relative` option.
-  - `getUntypedParams`, `getUntypedSearchParams`, and `getUntypedState` were removed. Instead, `$buildPath`, `$buildSearch`, `$serializeSearchParams`, and `$buildState` now accept `untypedSearchParams` or `untypedState` options where applicable. When provided, the corresponding untyped parts will be added to the resulting path (the search part) or state. The corresponding option in `useTypedSearchParams` is also renamed.
+  - `getUntypedParams`, `getUntypedSearchParams`, and `getUntypedState` were removed. Instead, `$buildPath`, `$buildSearch`, `$serializeSearchParams`, and `$buildState` now accept `untypedSearchParams` or `untypedState` options where applicable. When provided, the corresponding untyped parts are added to the resulting path (the search part) or state. The corresponding option in `useTypedSearchParams` is also renamed.
   - `$serializeSearchParams` (formerly `getPlainSearchParams`) now returns a `URLSearchParams` instance for consistency with the rest of the API.
 - **Breaking**: `route` API is changed. It now accepts a single argument with optional types, path, composed routes and children. By default, path is `undefined` (which means a pathless route).
 - **Breaking**: Hash should now be specified as an array of strings or a type. Empty array now means "nothing" instead of "any string". For example:
