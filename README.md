@@ -8,13 +8,13 @@ Comprehensive and extensible type safety via validation for all route params in 
 > [!WARNING]  
 > You're viewing the documentation for the upcoming version 2.0.0, which is currently unstable. If you have any feedback, please [open an issue](https://github.com/fenok/react-router-typesafe-routes/issues/new/choose). For the current version, please refer to the [main branch](https://github.com/fenok/react-router-typesafe-routes/tree/main).
 
-The library provides type safety for all route params (path params, search params (including multiple keys), state, and hash) on building and parsing URL parts and state. There are no unsafe type casts whatsoever.
+The library provides type safety for all route params (path params, search params (including multiple keys), state, and hash) on building and parsing/validating URL parts and state. There are no unsafe type casts whatsoever.
 
 If you want, you can use a validation library. There is first-party support for [Zod](https://github.com/colinhacks/zod) and [Yup](https://github.com/jquense/yup), and other libraries can be integrated with ease. Otherwise, you can use other built-in types and fine-tune their validation instead.
 
 In built-in types, parsing and validation errors are caught and replaced with `undefined`. You can also return a default value or throw an error in case of an absent or invalid param. All these adjustments reflect in types, too!
 
-If you need more control, you can build completely custom types, which means that parsing, serializing, and typing are fully customizable.
+Built-in types allow to customize stringification and parsing as well. If you need more control, you can build completely custom types, which means that params serialization and deserialization are fully customizable.
 
 The library doesn't restrict or alter React Router API in any way, including nested routes and relative links. It can also be gradually adopted.
 
@@ -182,19 +182,19 @@ import {
 import { root } from "./path/to/routes";
 
 // { userId?: number; postId?: string; }
-// Uses root.user.post.$getTypedParams internally.
+// Uses root.user.post.$deserializeParams internally.
 const { userId, postId } = useTypedParams(root.user.post);
 
 // { utm_campaign: string }.
-// Uses root.user.post.$getTypedSearchParams internally.
+// Uses root.user.post.$deserializeSearchParams internally.
 const [{ utm_campaign }, setTypedSearchParams] = useTypedSearchParams(root.user.post);
 
 // "info" | "comments" | undefined.
-// Uses root.user.post.$getTypedHash internally.
+// Uses root.user.post.$deserializeHash internally.
 const hash = useTypedHash(root.user.post);
 
 // { fromUserList: boolean | undefined }.
-// Uses root.user.post.$getTypedState internally.
+// Uses root.user.post.$deserializeState internally.
 const { fromUserList } = useTypedState(root.user.post);
 ```
 
@@ -471,11 +471,11 @@ import { route, PathnameType } from "react-router-typesafe-routes/dom"; // Or /n
 // It only implements 'PathnameType', so it can only be used for pathname params.
 // Implement 'SearchType', 'HashType', and 'StateType' to cover other cases.
 const looseString: PathnameType<string, string | number | boolean> = {
-  getPlainParam(value) {
+  serializeParam(value) {
     // It's always guaranteed that value is not 'undefined' here.
     return String(value);
   },
-  getTypedParam(value) {
+  deserializeParam(value) {
     // You could treat 'undefined' in a special way to distinguish absent and invalid params.
     if (typeof value !== "string") {
       throw new Error("Expected string");
@@ -608,52 +608,26 @@ const user = route({ path: "user/:id/*", children: { details: route("details") }
 
 ### Typing
 
-#### Type objects
+#### Terminology
 
-Path params, search params, hash, and state (separate fields or state as a whole) serializing, parsing, validation, and typing are done via type objects. Validation is done during parsing.
+Params can undergo the following transformations:
 
-```typescript
-// Can be used for pathname params
-interface PathnameType<TOut, TIn = TOut> {
-  getPlainParam: (originalValue: Exclude<TIn, undefined>) => string;
-  getTypedParam: (plainValue: string | undefined) => TOut;
-}
+- _Serialization_, which consists of:
+  - _Intermediate serialization_ (for the lack of a better name) - converting a JS value into a serializable format.
+  - _Stringification_ - converting the transformed JS value into a string.
+- _Deserialization_, which consists of:
+  - _Parsing_ - converting a string into a JS value.
+  - _Validation_ - checking the type and constraints of the JS value.
 
-// Can be used for search params
-interface SearchType<TOut, TIn = TOut> {
-  getPlainSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
-  getTypedSearchParam: (plainValue: string[]) => TOut;
-}
+Notes:
 
-// Can be used for state fields or the whole state
-interface StateType<TOut, TIn = TOut> {
-  getPlainState: (originalValue: Exclude<TIn, undefined>) => unknown;
-  getTypedState: (plainValue: unknown) => TOut;
-}
+- Despite the name, it's allowed to change the value to make it valid during _validation_ (for convenience).
+- State doesn't require _stringification_ and _parsing_, because route state can contain any serializable values.
+- _Intermediate serialization_ should be extremely rare.
 
-// Can be used for hash
-interface HashType<TOut, TIn = TOut> {
-  getPlainHash: (originalValue: Exclude<TIn, undefined>) => string;
-  getTypedHash: (plainValue: string) => TOut;
-}
-```
+#### Built-in types
 
-> [!NOTE]  
-> It's guaranteed that `undefined` will never be passed as `originalValue`.
-
-These interfaces allow to express pretty much anything, though normally you should use the built-in helpers for constructing these objects. Manual construction should only be used if you're hitting some limitations.
-
-#### Type helpers
-
-To make type objects construction and usage easier, we impose a set of reasonable restrictions / design choices:
-
-- `TIn` and `TOut` are the same, for all params.
-- Type objects for arrays are constructed based on helpers for individual values. Array params can never be parsed/validated into `undefined`.
-- By default, parsing/validation errors result in `undefined`. We can also opt in to returning a default value or throwing an error in case of an absent/invalid param.
-- State is only validated and not transformed in any way.
-- Type objects for individual values can be used for any param. Type objects for arrays can only be used for search params and state fields.
-
-With this in mind, we can think about type objects in terms of parsers and validators.
+Built-in types are only concerned about _stringification_, _parsing_, and _validation_. They use `Parser` and `Validator` for that.
 
 ##### `Parser`
 
@@ -690,9 +664,9 @@ It returns a valid value or throws (or returns `undefined`) if that's impossible
 
 The important thing is that it has to handle both the original value and whatever the corresponding parser returns.
 
-##### Generic helper
+##### `type()`
 
-The `type()` helper is used for creating all kinds of type objects. The resulting param type is inferred from the given validator.
+The `type()` helper is a built-in type that all other built-in types are based on. The resulting param type is inferred from the given validator.
 
 ```typescript
 import { type, parser, Validator } from "react-router-typesafe-routes/dom";
@@ -712,7 +686,7 @@ type(positiveNumber, parser());
 type(positiveNumber);
 ```
 
-The resulting type object will return undefined upon a parsing (or validation) error. You can change how absent/invalid params are treated:
+By default, if deserialization results in `undefined` or throws, `undefined` is returned. This can be changed by the following modifiers:
 
 ```typescript
 // This will throw an error.
@@ -723,10 +697,10 @@ type(positiveNumber).default(1);
 
 The `.defined()`/`.default()` modifiers guarantee that the parsing result is not `undefined`. Default values passed to `.default()` are validated.
 
-You can also construct type objects for arrays:
+You can also make an array:
 
 ```typescript
-// Upon parsing all variants will give 'number[]'.
+// Deserialization will always return 'number[]'.
 
 // Absent/invalid values will be omitted.
 type(positiveNumber).array();
@@ -738,32 +712,59 @@ type(positiveNumber).default(-1).array();
 type(positiveNumber).defined().array();
 ```
 
-Arrays can only be used in search params and state fields, because there is no standard way to store arrays in path params or hash. For state, if a value is not an array, it's parsed as an empty array.
-
-##### Type-specific helpers
-
-Most of the time, you should use type-specific helpers: `string()`, `number()`, `boolean()`, or `date()`. They are built on top of `type()` and have the corresponding parsers and type checks built-in.
-
-For instance:
-
-```typescript
-import { number, Validator } from "react-router-typesafe-routes/dom";
-
-const positive: Validator<number, number> = (value: number): number => {
-  if (value <= 0) {
-    throw new Error("Expected positive number");
-  }
-
-  return value;
-};
-
-// You could also supply a custom parser.
-number(positive);
-```
+Arrays can only be used in search params and state, because there is no standard way to store arrays in path params or hash. For state, if a value is not an array, it's parsed as an empty array.
 
 ##### Third-party validation libraries
 
-You can use Zod and Yup out of the box, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
+If you can, you should use a validation library for all types. You can use Zod and Yup out of the box via the `zod()` and `yup()` helpers, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
+
+##### Type-specific helpers
+
+For simple cases, you can use type-specific helpers: `string()`, `number()`, `boolean()`, and `date()`. They are built on top of `type()` and have the corresponding parsers and type checks built-in, at the same time allowing to customize both of them.
+
+There is also somewhat specific `union()` helper that accepts an enum (or an enum-like object) or an array instead of a validator.
+
+#### Type objects
+
+Under the hood, built-in types create type objects that describe how to serialize and deserialize params:
+
+```typescript
+// Can be used for pathname params
+interface PathnameType<TOut, TIn = TOut> {
+  serializeParam: (originalValue: Exclude<TIn, undefined>) => string;
+  deserializeParam: (plainValue: string | undefined) => TOut;
+}
+
+// Can be used for search params
+interface SearchType<TOut, TIn = TOut> {
+  serializeSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
+  deserializeSearchParam: (plainValue: string[]) => TOut;
+}
+
+// Can be used for state fields or the whole state
+interface StateType<TOut, TIn = TOut> {
+  serializeState: (originalValue: Exclude<TIn, undefined>) => unknown;
+  deserializeState: (plainValue: unknown) => TOut;
+}
+
+// Can be used for hash
+interface HashType<TOut, TIn = TOut> {
+  serializeHash: (originalValue: Exclude<TIn, undefined>) => string;
+  deserializeHash: (plainValue: string) => TOut;
+}
+```
+
+> [!NOTE]  
+> It's guaranteed that `undefined` will never be passed as `originalValue`.
+
+There are some limitations in type objects that can be produced by built-in types, for instance:
+
+- `TIn` and `TOut` are the same.
+- Arrays are somewhat limited.
+- Errors and `undefined` values can't be distinguished during deserialization.
+- Input values must be serializable.
+
+Normally these limitations shouldn't get in your way, but if they do, you can get yourself unstuck by creating type objects manually.
 
 #### Pathname params
 
@@ -910,16 +911,15 @@ The `route()` helper returns a route object, which has the following fields:
 - `$buildPath()` for building parametrized URL paths (pathname + search + hash) which can be passed to e.g. the `to` prop of React Router `<Link />`.
 - `$buildState()` for building typed states, which can be passed to e.g. the `state` prop of React Router `<Link />`.
 - `$buildPathname()`, `$buildSearch()`, and `$buildHash()` for building parametrized URL parts. They can be used (in conjunction with `$buildState()`) to e.g. build a parametrized `Location` object.
-- `$getTypedParams()`, `$getTypedSearchParams()`, `$getTypedHash()`, and `$getTypedState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
-- `$getUntypedParams()`, `$getUntypedSearchParams()`, and `$getUntypedState()` for retrieving untyped params from React Router primitives. Typed params are omitted. Note that the hash is always typed, as well as the state when it's typed as a whole.
-- `$getPlainParams()` and `$getPlainSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `$buildHash()` and `$buildState()` can be used instead.
+- `$deserializeParams()`, `$deserializeSearchParams()`, `$deserializeHash()`, and `$deserializeState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
+- `$serializeParams()` and `$serializeSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `$buildHash()` and `$buildState()` can be used instead.
 - `$spec`, which contains resolved type objects (and possibly hash values) of the route, as well as its `path` option.
 - `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
 - Any number of child routes (that can't start with a `$`).
 
 `$buildPath()` and `$buildPathname()` accept the `relative` option for building relative paths.
 
-`$buildPath()`, `$buildSearch()`, and `$getPlainSearchParams()` accept a `URLSearchParams` object in the `untypedSearchParams` option for mixing in its untyped params.
+`$buildPath()`, `$buildSearch()`, and `$serializeSearchParams()` accept a `URLSearchParams` object in the `untypedSearchParams` option for mixing in its untyped params.
 
 `$buildState()` accepts a state object in the `untypedState` option for mixing in its untyped fields.
 
