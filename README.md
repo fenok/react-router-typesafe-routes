@@ -8,7 +8,7 @@ Comprehensive and extensible type safety via validation for all route params in 
 > [!WARNING]  
 > You're viewing the documentation for the upcoming version 2.0.0, which is currently unstable. If you have any feedback, please [open an issue](https://github.com/fenok/react-router-typesafe-routes/issues/new/choose). For the current version, please refer to the [main branch](https://github.com/fenok/react-router-typesafe-routes/tree/main).
 
-The library provides type safety for all route params (path params, search params (including multiple keys), state, and hash) on building and parsing/validating URL parts and state. There are no unsafe type casts whatsoever.
+The library provides type safety for all route params (pathname params, search params (including multiple keys), state, and hash) on building and parsing/validating URL parts and state. There are no unsafe type casts whatsoever.
 
 If you want, you can use a validation library. There is first-party support for [Zod](https://github.com/colinhacks/zod) and [Yup](https://github.com/jquense/yup), and other libraries can be integrated with ease. Otherwise, you can use other built-in types and fine-tune their validation instead.
 
@@ -548,7 +548,7 @@ import { Route, Routes } from "react-router-dom";
 </Routes>;
 ```
 
-> [!WARNING]  
+> [!NOTE]  
 > As a reminder, you have to render an `<Outlet />` in the parent component.
 
 However, nothing stops you from specifying additional routes as you see fit.
@@ -636,7 +636,7 @@ Parser is simply a group of functions for transforming a value to `string` and b
 ```typescript
 interface Parser<T, THint extends string = never> {
   stringify: (value: T, context: ParserContext<THint>) => string;
-  // Return value can be different from T in some edge cases. We always validate it anyway.
+  // Return value can be different from T in some edge cases. It's always validated anyway.
   parse: (value: string, context: ParserContext<THint>) => unknown;
 }
 
@@ -712,7 +712,7 @@ type(positiveNumber).default(-1).array();
 type(positiveNumber).defined().array();
 ```
 
-Arrays can only be used in search params and state, because there is no standard way to store arrays in path params or hash. For state, if a value is not an array, it's parsed as an empty array.
+Arrays can only be used in search params and state, because there is no standard way to store arrays in pathname params or hash. For state, if a value is not an array, it's parsed as an empty array.
 
 ##### Third-party validation libraries
 
