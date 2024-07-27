@@ -179,29 +179,29 @@ function createType({ parserFactory }: CreateTypeOptions) {
     validator: Validator<T>,
     parser: Parser<Exclude<T, undefined>> = parserFactory("unknown"),
   ): Type<T> {
-    const getPlainParam = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "pathname" });
-    const getTypedParam = (value: string | undefined) =>
+    const serializeParam = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "pathname" });
+    const deserializeParam = (value: string | undefined) =>
       validator(typeof value === "undefined" ? value : parser.parse(value, { kind: "pathname" }));
-    const getPlainSearchParam = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "search" });
-    const getTypedSearchParam = (value: string[]) =>
+    const serializeSearchParam = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "search" });
+    const deserializeSearchParam = (value: string[]) =>
       validator(typeof value[0] === "undefined" ? value[0] : parser.parse(value[0], { kind: "search" }));
-    const getPlainState = (value: T) => value;
-    const getTypedState = (value: unknown) => validator(value);
-    const getPlainHash = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "hash" });
-    const getTypedHash = (value: string | undefined) =>
+    const serializeState = (value: T) => value;
+    const deserializeState = (value: unknown) => validator(value);
+    const serializeHash = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "hash" });
+    const deserializeHash = (value: string | undefined) =>
       validator(typeof value === "undefined" ? value : parser.parse(value, { kind: "hash" }));
 
     return Object.assign(
       {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
       {
-        serializeParam: getPlainParam,
-        deserializeParam: ensureNoError(getTypedParam),
-        serializeSearchParam: getPlainSearchParam,
-        deserializeSearchParam: ensureNoError(getTypedSearchParam),
-        serializeState: getPlainState,
-        deserializeState: ensureNoError(getTypedState),
-        serializeHash: getPlainHash,
-        deserializeHash: ensureNoError(getTypedHash),
+        serializeParam: serializeParam,
+        deserializeParam: ensureNoError(deserializeParam),
+        serializeSearchParam: serializeSearchParam,
+        deserializeSearchParam: ensureNoError(deserializeSearchParam),
+        serializeState: serializeState,
+        deserializeState: ensureNoError(deserializeState),
+        serializeHash: serializeHash,
+        deserializeHash: ensureNoError(deserializeHash),
       },
       {
         array: getArrayParamTypeBuilder(ensureNoError(validator), {
@@ -216,14 +216,14 @@ function createType({ parserFactory }: CreateTypeOptions) {
           return Object.assign(
             {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
             {
-              serializeParam: getPlainParam,
-              deserializeParam: ensureNoUndefined(ensureNoError(getTypedParam), validDef),
-              serializeSearchParam: getPlainSearchParam,
-              deserializeSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validDef),
-              serializeState: getPlainState,
-              deserializeState: ensureNoUndefined(ensureNoError(getTypedState), validDef),
-              serializeHash: getPlainHash,
-              deserializeHash: ensureNoUndefined(ensureNoError(getTypedHash), validDef),
+              serializeParam: serializeParam,
+              deserializeParam: ensureNoUndefined(ensureNoError(deserializeParam), validDef),
+              serializeSearchParam: serializeSearchParam,
+              deserializeSearchParam: ensureNoUndefined(ensureNoError(deserializeSearchParam), validDef),
+              serializeState: serializeState,
+              deserializeState: ensureNoUndefined(ensureNoError(deserializeState), validDef),
+              serializeHash: serializeHash,
+              deserializeHash: ensureNoUndefined(ensureNoError(deserializeHash), validDef),
             },
             {
               array: getArrayParamTypeBuilder(ensureNoUndefined(ensureNoError(validator), validDef), {
@@ -237,14 +237,14 @@ function createType({ parserFactory }: CreateTypeOptions) {
           return Object.assign(
             {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
             {
-              serializeParam: getPlainParam,
-              deserializeParam: ensureNoUndefined(getTypedParam),
-              serializeSearchParam: getPlainSearchParam,
-              deserializeSearchParam: ensureNoUndefined(getTypedSearchParam),
-              serializeState: getPlainState,
-              deserializeState: ensureNoUndefined(getTypedState),
-              serializeHash: getPlainHash,
-              deserializeHash: ensureNoUndefined(getTypedHash),
+              serializeParam: serializeParam,
+              deserializeParam: ensureNoUndefined(deserializeParam),
+              serializeSearchParam: serializeSearchParam,
+              deserializeSearchParam: ensureNoUndefined(deserializeSearchParam),
+              serializeState: serializeState,
+              deserializeState: ensureNoUndefined(deserializeState),
+              serializeHash: serializeHash,
+              deserializeHash: ensureNoUndefined(deserializeHash),
             },
             {
               array: getArrayParamTypeBuilder(ensureNoUndefined(validator), {
@@ -264,18 +264,18 @@ function createType({ parserFactory }: CreateTypeOptions) {
 const getArrayParamTypeBuilder =
     <T,>(validator: Validator<T>, parser: Parser<Exclude<T, undefined>, never>) =>
         (): ArrayType<Exclude<T, undefined>> => {
-          const getPlainSearchParam = (values: T[]) => values.filter(isDefined).map((value) => parser.stringify(value, {kind: 'search'}));
-          const getTypedSearchParam = (values: string[]) =>
+          const serializeSearchParam = (values: T[]) => values.filter(isDefined).map((value) => parser.stringify(value, {kind: 'search'}));
+          const deserializeSearchParam = (values: string[]) =>
               values.map((item) => validator(parser.parse(item, {kind: 'search'}))).filter(isDefined);
-          const getPlainState = (values: T[]) => values;
-          const getTypedState = (values: unknown) =>
+          const serializeState = (values: T[]) => values;
+          const deserializeState = (values: unknown) =>
               (Array.isArray(values) ? values : []).map((item) => validator(item)).filter(isDefined);
 
           return {
-            serializeSearchParam: getPlainSearchParam,
-            deserializeSearchParam: getTypedSearchParam,
-            serializeState: getPlainState,
-            deserializeState: getTypedState,
+            serializeSearchParam: serializeSearchParam,
+            deserializeSearchParam: deserializeSearchParam,
+            serializeState: serializeState,
+            deserializeState: deserializeState,
           };
         };
 

@@ -589,12 +589,12 @@ function getRouteApi<
     },
   };
 
-  function getPlainParams(opts: SerializePathnameParamsOptions<TSpec>) {
-    return getPlainParamsByTypes(allPathParams, opts.params, resolvedSpec.params);
+  function serializeParams(opts: SerializePathnameParamsOptions<TSpec>) {
+    return serializeParamsByTypes(allPathParams, opts.params, resolvedSpec.params);
   }
 
   function buildPathname(opts: BuildPathnameOptions<TSpec>) {
-    const rawBuiltPath = creatorOptions.generatePath(relativePath ?? "", getPlainParams(opts));
+    const rawBuiltPath = creatorOptions.generatePath(relativePath ?? "", serializeParams(opts));
     const relativePathname = rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
 
     return `${opts?.relative ? "" : "/"}${relativePathname}`;
@@ -610,9 +610,9 @@ function getRouteApi<
     }`;
   }
 
-  function getPlainSearchParams(opts: BuildSearchOptions<TSpec>) {
+  function serializeSearchParams(opts: BuildSearchOptions<TSpec>) {
     const plainParams = creatorOptions.createSearchParams(
-      getPlainSearchParamsByTypes(opts.searchParams, resolvedSpec.searchParams),
+      serializeSearchParamsByTypes(opts.searchParams, resolvedSpec.searchParams),
     );
 
     if (opts?.untypedSearchParams) {
@@ -623,7 +623,7 @@ function getRouteApi<
   }
 
   function buildSearch(opts: BuildSearchOptions<TSpec>) {
-    const searchString = creatorOptions.createSearchParams(getPlainSearchParams(opts)).toString();
+    const searchString = creatorOptions.createSearchParams(serializeSearchParams(opts)).toString();
 
     return searchString ? `?${searchString}` : "";
   }
@@ -638,17 +638,20 @@ function getRouteApi<
   function buildState(opts: BuildStateOptions<TSpec>) {
     return (
       isStateType(resolvedSpec.state)
-        ? getPlainStateByType(opts.state, resolvedSpec.state)
-        : Object.assign(getPlainStateParamsByTypes(opts.state, resolvedSpec.state), getUntypedState(opts?.untypedState))
+        ? serializeStateByType(opts.state, resolvedSpec.state)
+        : Object.assign(
+            serializeStateParamsByTypes(opts.state, resolvedSpec.state),
+            getUntypedState(opts?.untypedState),
+          )
     ) as PlainState<TSpec["state"]>;
   }
 
-  function getTypedParams(params: PathnameParams) {
-    return getTypedParamsByTypes(params, resolvedSpec);
+  function deserializeParams(params: PathnameParams) {
+    return deserializeParamsByTypes(params, resolvedSpec);
   }
 
-  function getTypedSearchParams(params: URLSearchParams) {
-    return getTypedSearchParamsByTypes(params, resolvedSpec);
+  function deserializeSearchParams(params: URLSearchParams) {
+    return deserializeSearchParamsByTypes(params, resolvedSpec);
   }
 
   function getUntypedSearchParams(params: URLSearchParams) {
@@ -663,8 +666,8 @@ function getRouteApi<
     return result;
   }
 
-  function getTypedState(state: unknown) {
-    return getTypedStateByTypes(state, resolvedSpec);
+  function deserializeState(state: unknown) {
+    return deserializeStateByTypes(state, resolvedSpec);
   }
 
   function getUntypedState(state: unknown) {
@@ -683,7 +686,7 @@ function getRouteApi<
     return result;
   }
 
-  function getTypedHash(hash: string): OutHash<TSpec> {
+  function deserializeHash(hash: string): OutHash<TSpec> {
     const normalizedHash = hash?.substring(1, hash?.length);
 
     if (isHashType(resolvedSpec.hash)) {
@@ -705,12 +708,12 @@ function getRouteApi<
     $buildSearch: buildSearch,
     $buildHash: buildHash,
     $buildState: buildState,
-    $serializeParams: getPlainParams,
-    $serializeSearchParams: getPlainSearchParams,
-    $deserializeParams: getTypedParams,
-    $deserializeSearchParams: getTypedSearchParams,
-    $deserializeHash: getTypedHash,
-    $deserializeState: getTypedState,
+    $serializeParams: serializeParams,
+    $serializeSearchParams: serializeSearchParams,
+    $deserializeParams: deserializeParams,
+    $deserializeSearchParams: deserializeSearchParams,
+    $deserializeHash: deserializeHash,
+    $deserializeState: deserializeState,
     $spec: spec,
   };
 }
@@ -745,7 +748,7 @@ function pickKnownKeys<T extends Record<string, unknown>, TKey extends string>(o
   return result as Pick<T, TKey>;
 }
 
-function getPlainParamsByTypes(
+function serializeParamsByTypes(
   keys: string[],
   params: Record<string, unknown>,
   types: Partial<Record<string, PathnameType<unknown, never>>>,
@@ -764,7 +767,7 @@ function getPlainParamsByTypes(
   return result;
 }
 
-function getPlainSearchParamsByTypes(
+function serializeSearchParamsByTypes(
   params: Record<string, unknown>,
   types: Partial<Record<string, SearchType<unknown, never>>>,
 ): Record<string, string | string[]> {
@@ -781,7 +784,7 @@ function getPlainSearchParamsByTypes(
   return result;
 }
 
-function getPlainStateParamsByTypes(
+function serializeStateParamsByTypes(
   params: Record<string, unknown>,
   types: Partial<Record<string, StateType<unknown, never>>>,
 ): Record<string, unknown> {
@@ -799,11 +802,11 @@ function getPlainStateParamsByTypes(
   return result;
 }
 
-function getPlainStateByType(state: unknown, type: StateType<any>): unknown {
+function serializeStateByType(state: unknown, type: StateType<any>): unknown {
   return type.serializeState(state);
 }
 
-function getTypedParamsByTypes<
+function deserializeParamsByTypes<
   TSpec extends RouteSpec<
     PathConstraint,
     PathnameParamsConstraint,
@@ -830,7 +833,7 @@ function getTypedParamsByTypes<
   return result as OutPathnameParams<TSpec>;
 }
 
-function getTypedSearchParamsByTypes<
+function deserializeSearchParamsByTypes<
   TSpec extends RouteSpec<
     PathConstraint,
     PathnameParamsConstraint,
@@ -856,7 +859,7 @@ function getTypedSearchParamsByTypes<
   return result as OutSearchParams<TSpec>;
 }
 
-function getTypedStateByTypes<
+function deserializeStateByTypes<
   TSpec extends RouteSpec<
     PathConstraint,
     PathnameParamsConstraint,
