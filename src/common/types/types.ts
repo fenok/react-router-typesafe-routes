@@ -1,23 +1,23 @@
 import { parser, Parser, ParserHint } from "./parser.js";
 
 interface PathnameType<TOut, TIn = TOut> {
-  buildParam: (originalValue: Exclude<TIn, undefined>) => string;
-  validateParam: (plainValue: string | undefined) => TOut;
+  serializeParam: (originalValue: Exclude<TIn, undefined>) => string;
+  deserializeParam: (plainValue: string | undefined) => TOut;
 }
 
 interface SearchType<TOut, TIn = TOut> {
-  buildSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
-  validateSearchParam: (plainValue: string[]) => TOut;
+  serializeSearchParam: (originalValue: Exclude<TIn, undefined>) => string[] | string;
+  deserializeSearchParam: (plainValue: string[]) => TOut;
 }
 
 interface StateType<TOut, TIn = TOut> {
-  buildState: (originalValue: Exclude<TIn, undefined>) => unknown;
-  validateState: (plainValue: unknown) => TOut;
+  serializeState: (originalValue: Exclude<TIn, undefined>) => unknown;
+  deserializeState: (plainValue: unknown) => TOut;
 }
 
 interface HashType<TOut, TIn = TOut> {
-  buildHash: (originalValue: Exclude<TIn, undefined>) => string;
-  validateHash: (plainValue: string) => TOut;
+  serializeHash: (originalValue: Exclude<TIn, undefined>) => string;
+  deserializeHash: (plainValue: string) => TOut;
 }
 
 type AnyType<TOut, TIn = TOut> = PathnameType<TOut, TIn> &
@@ -194,14 +194,14 @@ function createType({ parserFactory }: CreateTypeOptions) {
     return Object.assign(
       {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
       {
-        buildParam: getPlainParam,
-        validateParam: ensureNoError(getTypedParam),
-        buildSearchParam: getPlainSearchParam,
-        validateSearchParam: ensureNoError(getTypedSearchParam),
-        buildState: getPlainState,
-        validateState: ensureNoError(getTypedState),
-        buildHash: getPlainHash,
-        validateHash: ensureNoError(getTypedHash),
+        serializeParam: getPlainParam,
+        deserializeParam: ensureNoError(getTypedParam),
+        serializeSearchParam: getPlainSearchParam,
+        deserializeSearchParam: ensureNoError(getTypedSearchParam),
+        serializeState: getPlainState,
+        deserializeState: ensureNoError(getTypedState),
+        serializeHash: getPlainHash,
+        deserializeHash: ensureNoError(getTypedHash),
       },
       {
         array: getArrayParamTypeBuilder(ensureNoError(validator), {
@@ -216,14 +216,14 @@ function createType({ parserFactory }: CreateTypeOptions) {
           return Object.assign(
             {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
             {
-              buildParam: getPlainParam,
-              validateParam: ensureNoUndefined(ensureNoError(getTypedParam), validDef),
-              buildSearchParam: getPlainSearchParam,
-              validateSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validDef),
-              buildState: getPlainState,
-              validateState: ensureNoUndefined(ensureNoError(getTypedState), validDef),
-              buildHash: getPlainHash,
-              validateHash: ensureNoUndefined(ensureNoError(getTypedHash), validDef),
+              serializeParam: getPlainParam,
+              deserializeParam: ensureNoUndefined(ensureNoError(getTypedParam), validDef),
+              serializeSearchParam: getPlainSearchParam,
+              deserializeSearchParam: ensureNoUndefined(ensureNoError(getTypedSearchParam), validDef),
+              serializeState: getPlainState,
+              deserializeState: ensureNoUndefined(ensureNoError(getTypedState), validDef),
+              serializeHash: getPlainHash,
+              deserializeHash: ensureNoUndefined(ensureNoError(getTypedHash), validDef),
             },
             {
               array: getArrayParamTypeBuilder(ensureNoUndefined(ensureNoError(validator), validDef), {
@@ -237,14 +237,14 @@ function createType({ parserFactory }: CreateTypeOptions) {
           return Object.assign(
             {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
             {
-              buildParam: getPlainParam,
-              validateParam: ensureNoUndefined(getTypedParam),
-              buildSearchParam: getPlainSearchParam,
-              validateSearchParam: ensureNoUndefined(getTypedSearchParam),
-              buildState: getPlainState,
-              validateState: ensureNoUndefined(getTypedState),
-              buildHash: getPlainHash,
-              validateHash: ensureNoUndefined(getTypedHash),
+              serializeParam: getPlainParam,
+              deserializeParam: ensureNoUndefined(getTypedParam),
+              serializeSearchParam: getPlainSearchParam,
+              deserializeSearchParam: ensureNoUndefined(getTypedSearchParam),
+              serializeState: getPlainState,
+              deserializeState: ensureNoUndefined(getTypedState),
+              serializeHash: getPlainHash,
+              deserializeHash: ensureNoUndefined(getTypedHash),
             },
             {
               array: getArrayParamTypeBuilder(ensureNoUndefined(validator), {
@@ -272,10 +272,10 @@ const getArrayParamTypeBuilder =
               (Array.isArray(values) ? values : []).map((item) => validator(item)).filter(isDefined);
 
           return {
-            buildSearchParam: getPlainSearchParam,
-            validateSearchParam: getTypedSearchParam,
-            buildState: getPlainState,
-            validateState: getTypedState,
+            serializeSearchParam: getPlainSearchParam,
+            deserializeSearchParam: getTypedSearchParam,
+            serializeState: getPlainState,
+            deserializeState: getTypedState,
           };
         };
 

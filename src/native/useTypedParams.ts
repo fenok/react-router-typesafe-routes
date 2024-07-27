@@ -4,5 +4,5 @@ import { useMemo } from "react";
 
 export function useTypedParams<TSpec extends RouteSpec>(route: Route<TSpec>): OutPathnameParams<TSpec> {
   const params = useParams();
-  return useMemo(() => route.$validateParams(params), [route, params]);
+  return useMemo(() => route.$deserializeParams(params), [route, params]);
 }

@@ -16,15 +16,15 @@ interface RouteApi<TSpec extends RouteSpec = RouteSpec> {
   $relativePath: PathWithoutIntermediateStars<TSpec["path"]>;
   $buildPath: (opts: BuildPathOptions<TSpec>) => string;
   $buildPathname: (opts: BuildPathnameOptions<TSpec>) => string;
-  $buildParams: (opts: BuildPathnameOptions<TSpec>) => PathnameParams;
+  $serializeParams: (opts: BuildPathnameOptions<TSpec>) => PathnameParams;
   $buildSearch: (opts: BuildSearchOptions<TSpec>) => string;
-  $buildSearchParams: (opts: BuildSearchOptions<TSpec>) => URLSearchParams;
+  $serializeSearchParams: (opts: BuildSearchOptions<TSpec>) => URLSearchParams;
   $buildHash: (opts: BuildHashOptions<TSpec>) => string;
   $buildState: (opts: BuildStateOptions<TSpec>) => PlainState<TSpec["state"]>;
-  $validateParams: (params: PathnameParams) => OutPathnameParams<TSpec>;
-  $validateSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSpec>;
-  $validateHash: (hash: string) => OutHash<TSpec>;
-  $validateState: (state: unknown) => OutState<TSpec>;
+  $deserializeParams: (params: PathnameParams) => OutPathnameParams<TSpec>;
+  $deserializeSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSpec>;
+  $deserializeHash: (hash: string) => OutHash<TSpec>;
+  $deserializeState: (state: unknown) => OutState<TSpec>;
   $spec: TSpec;
 }
 
@@ -628,7 +628,7 @@ function getRouteApi<
 
   function buildHash(opts: BuildHashOptions<TSpec>) {
     if (isHashType(resolvedSpec.hash)) {
-      return `#${resolvedSpec.hash.buildHash(opts.hash)}`;
+      return `#${resolvedSpec.hash.serializeHash(opts.hash)}`;
     }
     return `#${String(opts.hash)}`;
   }
@@ -685,7 +685,7 @@ function getRouteApi<
     const normalizedHash = hash?.substring(1, hash?.length);
 
     if (isHashType(resolvedSpec.hash)) {
-      return resolvedSpec.hash.validateHash(normalizedHash);
+      return resolvedSpec.hash.deserializeHash(normalizedHash);
     }
 
     if (normalizedHash && resolvedSpec.hash.indexOf(normalizedHash) !== -1) {
@@ -700,15 +700,15 @@ function getRouteApi<
     $relativePath: relativePath,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
-    $buildParams: getPlainParams,
+    $serializeParams: getPlainParams,
     $buildSearch: buildSearch,
-    $buildSearchParams: getPlainSearchParams,
+    $serializeSearchParams: getPlainSearchParams,
     $buildHash: buildHash,
     $buildState: buildState,
-    $validateParams: getTypedParams,
-    $validateSearchParams: getTypedSearchParams,
-    $validateHash: getTypedHash,
-    $validateState: getTypedState,
+    $deserializeParams: getTypedParams,
+    $deserializeSearchParams: getTypedSearchParams,
+    $deserializeHash: getTypedHash,
+    $deserializeState: getTypedState,
     $spec: spec,
   };
 }
@@ -755,7 +755,7 @@ function getPlainParamsByTypes(
     const value = params[key];
 
     if (type && keys.indexOf(key) !== -1 && value !== undefined) {
-      result[key] = type.buildParam(value as never);
+      result[key] = type.serializeParam(value as never);
     }
   });
 
@@ -772,7 +772,7 @@ function getPlainSearchParamsByTypes(
     const type = types[key];
 
     if (type && params[key] !== undefined) {
-      result[key] = type.buildSearchParam(params[key] as never);
+      result[key] = type.serializeSearchParam(params[key] as never);
     }
   });
 
@@ -790,7 +790,7 @@ function getPlainStateParamsByTypes(
     const value = params[key];
 
     if (type && value !== undefined) {
-      result[key] = type.buildState(value as never);
+      result[key] = type.serializeState(value as never);
     }
   });
 
@@ -798,7 +798,7 @@ function getPlainStateParamsByTypes(
 }
 
 function getPlainStateByType(state: unknown, type: StateType<any>): unknown {
-  return type.buildState(state);
+  return type.serializeState(state);
 }
 
 function getTypedParamsByTypes<
@@ -818,7 +818,7 @@ function getTypedParamsByTypes<
     const type = types[key];
 
     if (type) {
-      const typedSearchParam = type.validateParam(params[key]);
+      const typedSearchParam = type.deserializeParam(params[key]);
       if (typedSearchParam !== undefined) {
         result[key] = typedSearchParam;
       }
@@ -844,7 +844,7 @@ function getTypedSearchParamsByTypes<
     const type = types[key];
 
     if (type) {
-      const typedSearchParam = type.validateSearchParam(searchParams.getAll(key));
+      const typedSearchParam = type.deserializeSearchParam(searchParams.getAll(key));
       if (typedSearchParam !== undefined) {
         result[key] = typedSearchParam;
       }
@@ -864,7 +864,7 @@ function getTypedStateByTypes<
   >,
 >(state: unknown, spec: TSpec): OutState<TSpec> {
   if (isStateType(spec.state)) {
-    return spec.state.validateState(state);
+    return spec.state.deserializeState(state);
   }
 
   const result: Record<string, unknown> = {};
@@ -875,7 +875,7 @@ function getTypedStateByTypes<
       const type = types[key];
 
       if (type) {
-        const typedStateParam = type.validateState(state[key]);
+        const typedStateParam = type.deserializeState(state[key]);
         if (typedStateParam !== undefined) {
           result[key] = typedStateParam;
         }
@@ -934,7 +934,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isStateType<T extends StateType<any>>(value: T | Record<string, StateType<any>>): value is T {
-  return typeof (value as StateType<any>).buildState === "function";
+  return typeof (value as StateType<any>).serializeState === "function";
 }
 
 function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {
