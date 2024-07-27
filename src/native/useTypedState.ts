@@ -1,10 +1,8 @@
-import { Route, OutStateParams } from "../common/index.js";
+import { Route, RouteSpec, OutState } from "../common/index.js";
 import { useLocation } from "react-router-native";
 import { useMemo } from "react";
 
-export function useTypedState<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateParams>(
-    route: Route<TPath, TPathTypes, TSearchTypes, THash, TStateParams>
-): OutStateParams<TStateParams> {
-    const location = useLocation();
-    return useMemo(() => route.getTypedState(location.state), [route, location.state]);
+export function useTypedState<TSpec extends RouteSpec>(route: Route<TSpec>): OutState<TSpec> {
+  const location = useLocation();
+  return useMemo(() => route.$deserializeState(location.state), [route, location.state]);
 }

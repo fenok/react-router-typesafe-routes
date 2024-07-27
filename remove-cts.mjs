@@ -2,17 +2,17 @@ import { resolve } from "path";
 import { readdir, readFile, unlink, writeFile } from "fs/promises";
 
 async function process(dir) {
-    const dirents = await readdir(dir, { withFileTypes: true });
+  const dirents = await readdir(dir, { withFileTypes: true });
 
-    dirents.forEach((dirent) => {
-        const res = resolve(dir, dirent.name);
+  dirents.forEach((dirent) => {
+    const res = resolve(dir, dirent.name);
 
-        if (dirent.isDirectory()) {
-            process(res);
-        } else if (res.endsWith(".cts")) {
-            unlink(res);
-        }
-    });
+    if (dirent.isDirectory()) {
+      process(res);
+    } else if (res.endsWith(".cts")) {
+      unlink(res);
+    }
+  });
 }
 
 await process("./src");

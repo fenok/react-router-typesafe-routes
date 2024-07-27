@@ -1,70 +1,54 @@
-import { Route, InSearchParams, OutSearchParams, InStateParams } from "../common/index.js";
-import { useSearchParams, NavigateOptions, createSearchParams } from "react-router-native";
+import { Route, RouteSpec, InSearchParams, OutSearchParams, InState } from "../common/index.js";
+import { useSearchParams, NavigateOptions } from "react-router-native";
 import { useMemo, useCallback } from "react";
 
 interface TypedNavigateOptions<T> extends NavigateOptions {
-    state?: T;
-    preserveUntyped?: boolean;
+  state?: T;
+  untypedSearchParams?: boolean;
 }
 
-function useTypedSearchParams<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateTypes>(
-    route: Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes>,
-    typedDefaultInit?: InSearchParams<TSearchTypes>
+function useTypedSearchParams<TSpec extends RouteSpec>(
+  route: Route<TSpec>,
+  typedDefaultInit?: InSearchParams<TSpec>,
 ): [
-    OutSearchParams<TSearchTypes>,
-    (
-        searchParams:
-            | InSearchParams<TSearchTypes>
-            | ((prevParams: OutSearchParams<TSearchTypes>) => InSearchParams<TSearchTypes>),
-        navigateOptions?: TypedNavigateOptions<InStateParams<TStateTypes>>
-    ) => void
+  OutSearchParams<TSpec>,
+  (
+    searchParams: InSearchParams<TSpec> | ((prevParams: OutSearchParams<TSpec>) => InSearchParams<TSpec>),
+    navigateOptions?: TypedNavigateOptions<InState<TSpec>>,
+  ) => void,
 ] {
-    const defaultInit = useMemo(
-        () => (typedDefaultInit ? route.getPlainSearchParams(typedDefaultInit) : undefined),
-        [route, typedDefaultInit]
-    );
+  const defaultInit = useMemo(
+    () => (typedDefaultInit ? route.$serializeSearchParams({ searchParams: typedDefaultInit }) : undefined),
+    [route, typedDefaultInit],
+  );
 
-    const [searchParams, setSearchParams] = useSearchParams(defaultInit);
+  const [searchParams, setSearchParams] = useSearchParams(defaultInit);
 
-    const typedSearchParams = useMemo(() => route.getTypedSearchParams(searchParams), [route, searchParams]);
+  const typedSearchParams = useMemo(() => route.$deserializeSearchParams(searchParams), [route, searchParams]);
 
-    const setTypedSearchParams = useCallback(
-        (
-            params:
-                | InSearchParams<TSearchTypes>
-                | ((prevParams: OutSearchParams<TSearchTypes>) => InSearchParams<TSearchTypes>),
-            { state, preserveUntyped, ...restNavigateOptions }: TypedNavigateOptions<InStateParams<TStateTypes>> = {}
-        ) => {
-            setSearchParams(
-                (prevParams) => {
-                    const nextParams = createSearchParams(
-                        route.getPlainSearchParams(
-                            typeof params === "function" ? params(route.getTypedSearchParams(prevParams)) : params
-                        )
-                    );
-
-                    if (preserveUntyped) appendSearchParams(nextParams, route.getUntypedSearchParams(prevParams));
-
-                    return nextParams;
-                },
-                {
-                    ...(state ? { state: route.buildState(state) } : {}),
-                    ...restNavigateOptions,
-                }
-            );
+  const setTypedSearchParams = useCallback(
+    (
+      params: InSearchParams<TSpec> | ((prevParams: OutSearchParams<TSpec>) => InSearchParams<TSpec>),
+      { state, untypedSearchParams, ...restNavigateOptions }: TypedNavigateOptions<InState<TSpec>> = {},
+    ) => {
+      setSearchParams(
+        (prevParams) => {
+          return route.$serializeSearchParams({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            searchParams: typeof params === "function" ? params(route.$deserializeSearchParams(prevParams)) : params,
+            untypedSearchParams: untypedSearchParams ? prevParams : undefined,
+          });
         },
-        [route, setSearchParams]
-    );
+        {
+          ...(state ? { state: route.$buildState({ state }) } : {}),
+          ...restNavigateOptions,
+        },
+      );
+    },
+    [route, setSearchParams],
+  );
 
-    return [typedSearchParams, setTypedSearchParams];
-}
-
-function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {
-    for (const [key, val] of source.entries()) {
-        target.append(key, val);
-    }
-
-    return target;
+  return [typedSearchParams, setTypedSearchParams];
 }
 
 export { useTypedSearchParams, TypedNavigateOptions };

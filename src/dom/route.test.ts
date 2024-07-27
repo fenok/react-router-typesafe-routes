@@ -1,1633 +1,2719 @@
 import { route } from "./route.js";
 import { createSearchParams } from "react-router-dom";
 import {
-    number,
-    boolean,
-    string,
-    hashValues,
-    date,
-    types,
-    type,
-    union,
-    ParamType,
-    SearchParamType,
-    StateParamType,
-    numberType,
-    throwable,
+  number,
+  boolean,
+  string,
+  date,
+  type,
+  union,
+  PathnameType,
+  SearchType,
+  StateType,
+  Route,
+  PathParam,
+  configure,
+  Parser,
+  ParserHint,
+  ParserType,
 } from "../common/index.js";
 import { assert, IsExact } from "conditional-type-checks";
-import { zod } from "../zod/index.js";
+import { zod, configure as configureZod } from "../zod/index.js";
 import { z } from "zod";
-import { yup } from "../yup/index.js";
+import { yup, configure as configureYup } from "../yup/index.js";
 import * as y from "yup";
 
 it("provides absolute path", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.path, "/test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.path, "/test/child">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.path, "/test/child/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$path, "/test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/child">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/child/grand">>(true);
 
-    expect(TEST_ROUTE.path).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.path).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.path).toEqual("/test/child/grand");
+  expect(TEST_ROUTE.$path).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/child/grand");
 });
 
 it("provides absolute path with optional segments", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/optional-child?", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test/optional?", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/optional-child?",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test/optional?",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.path, "/test/optional?">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.path, "/test/optional?/child/optional-child?">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.path, "/test/optional?/child/optional-child?/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$path, "/test/optional?">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/optional?/child/optional-child?">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/optional?/child/optional-child?/grand">>(true);
 
-    expect(TEST_ROUTE.path).toEqual("/test/optional?");
-    expect(TEST_ROUTE.CHILD.path).toEqual("/test/optional?/child/optional-child?");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.path).toEqual("/test/optional?/child/optional-child?/grand");
+  expect(TEST_ROUTE.$path).toStrictEqual("/test/optional?");
+  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/optional?/child/optional-child?");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/optional?/child/optional-child?/grand");
 });
 
 it("provides absolute path with optional dynamic segments", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/:optional-child?", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test/:optional?", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/:optional-child?",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test/:optional?",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.path, "/test/:optional?">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.path, "/test/:optional?/child/:optional-child?">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.path, "/test/:optional?/child/:optional-child?/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$path, "/test/:optional?">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/:optional?/child/:optional-child?">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/:optional?/child/:optional-child?/grand">>(true);
 
-    expect(TEST_ROUTE.path).toEqual("/test/:optional?");
-    expect(TEST_ROUTE.CHILD.path).toEqual("/test/:optional?/child/:optional-child?");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.path).toEqual("/test/:optional?/child/:optional-child?/grand");
+  expect(TEST_ROUTE.$path).toStrictEqual("/test/:optional?");
+  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/:optional?/child/:optional-child?");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/:optional?/child/:optional-child?/grand");
 });
 
 it("preserves intermediate stars in absolute path", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/*", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/*",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.path, "/test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.path, "/test/child/*">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.path, "/test/child/*/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$path, "/test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/child/*">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/child/*/grand">>(true);
 
-    expect(TEST_ROUTE.path).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.path).toEqual("/test/child/*");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.path).toEqual("/test/child/*/grand");
+  expect(TEST_ROUTE.$path).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/child/*");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/child/*/grand");
 });
 
 it("preserves optional intermediate stars in absolute path", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/*?", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test/*?", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/*?",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test/*?",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.path, "/test/*?">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.path, "/test/*?/child/*?">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.path, "/test/*?/child/*?/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$path, "/test/*?">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/*?/child/*?">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/*?/child/*?/grand">>(true);
 
-    expect(TEST_ROUTE.path).toEqual("/test/*?");
-    expect(TEST_ROUTE.CHILD.path).toEqual("/test/*?/child/*?");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.path).toEqual("/test/*?/child/*?/grand");
+  expect(TEST_ROUTE.$path).toStrictEqual("/test/*?");
+  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/*?/child/*?");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/*?/child/*?/grand");
 });
 
 it("provides relative path", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.relativePath, "test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.relativePath, "test/child">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.relativePath, "test/child/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/child">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/child/grand">>(true);
 
-    expect(TEST_ROUTE.relativePath).toEqual("test");
-    expect(TEST_ROUTE.CHILD.relativePath).toEqual("test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.relativePath).toEqual("test/child/grand");
+  expect(TEST_ROUTE.$relativePath).toStrictEqual("test");
+  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/child/grand");
 });
 
 it("provides relative path with optional segments", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/:dynamic-param?", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test/dynamic?", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/:dynamic-param?",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test/dynamic?",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.relativePath, "test/dynamic?">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.relativePath, "test/dynamic?/child/:dynamic-param?">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.relativePath, "test/dynamic?/child/:dynamic-param?/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test/dynamic?">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/dynamic?/child/:dynamic-param?">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/dynamic?/child/:dynamic-param?/grand">>(true);
 
-    expect(TEST_ROUTE.relativePath).toEqual("test/dynamic?");
-    expect(TEST_ROUTE.CHILD.relativePath).toEqual("test/dynamic?/child/:dynamic-param?");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.relativePath).toEqual("test/dynamic?/child/:dynamic-param?/grand");
+  expect(TEST_ROUTE.$relativePath).toStrictEqual("test/dynamic?");
+  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/dynamic?/child/:dynamic-param?");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/dynamic?/child/:dynamic-param?/grand");
 });
 
 it("removes intermediate stars from relative path", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/*", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/*",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.relativePath, "test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.relativePath, "test/child/*">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.relativePath, "test/child/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/child/*">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/child/grand">>(true);
 
-    expect(TEST_ROUTE.relativePath).toEqual("test");
-    expect(TEST_ROUTE.CHILD.relativePath).toEqual("test/child/*");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.relativePath).toEqual("test/child/grand");
+  expect(TEST_ROUTE.$relativePath).toStrictEqual("test");
+  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/child/*");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/child/grand");
 });
 
 it("removes multiple intermediate stars from relative path", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/*", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test/*", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/*",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test/*",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.relativePath, "test/*">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.relativePath, "test/child/*">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.relativePath, "test/child/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test/*">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/child/*">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/child/grand">>(true);
 
-    expect(TEST_ROUTE.relativePath).toEqual("test/*");
-    expect(TEST_ROUTE.CHILD.relativePath).toEqual("test/child/*");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.relativePath).toEqual("test/child/grand");
+  expect(TEST_ROUTE.$relativePath).toStrictEqual("test/*");
+  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/child/*");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/child/grand");
 });
 
 it("removes multiple optional intermediate stars from relative path", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/*?", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test/*?", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/*?",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test/*?",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.relativePath, "test/*?">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.relativePath, "test/child/*?">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.relativePath, "test/child/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test/*?">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/child/*?">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/child/grand">>(true);
 
-    expect(TEST_ROUTE.relativePath).toEqual("test/*?");
-    expect(TEST_ROUTE.CHILD.relativePath).toEqual("test/child/*?");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.relativePath).toEqual("test/child/grand");
+  expect(TEST_ROUTE.$relativePath).toStrictEqual("test/*?");
+  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/child/*?");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/child/grand");
 });
 
 it("allows empty segment at the beginning of the route", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.path, "/">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.path, "/child">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.path, "/child/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$path, "/">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/child">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/child/grand">>(true);
 
-    assert<IsExact<typeof TEST_ROUTE.relativePath, "">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.relativePath, "child">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.relativePath, "child/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$relativePath, "">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "child">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "child/grand">>(true);
 
-    expect(TEST_ROUTE.path).toEqual("/");
-    expect(TEST_ROUTE.CHILD.path).toEqual("/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.path).toEqual("/child/grand");
+  expect(TEST_ROUTE.$path).toStrictEqual("/");
+  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/child/grand");
 
-    expect(TEST_ROUTE.relativePath).toEqual("");
-    expect(TEST_ROUTE.CHILD.relativePath).toEqual("child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.relativePath).toEqual("child/grand");
+  expect(TEST_ROUTE.$relativePath).toStrictEqual("");
+  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("child/grand");
 });
 
 it("allows empty segment in the middle of the route", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.path, "/test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.path, "/test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.path, "/test/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$path, "/test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/grand">>(true);
 
-    assert<IsExact<typeof TEST_ROUTE.relativePath, "test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.relativePath, "test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.relativePath, "test/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/grand">>(true);
 
-    expect(TEST_ROUTE.path).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.path).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.path).toEqual("/test/grand");
+  expect(TEST_ROUTE.$path).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/grand");
 
-    expect(TEST_ROUTE.relativePath).toEqual("test");
-    expect(TEST_ROUTE.CHILD.relativePath).toEqual("test");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.relativePath).toEqual("test/grand");
+  expect(TEST_ROUTE.$relativePath).toStrictEqual("test");
+  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/grand");
 });
 
 it("allows empty segment at the end of the route", () => {
-    const GRANDCHILD = route("");
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "",
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.path, "/test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.path, "/test/child">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.path, "/test/child">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$path, "/test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/child">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/child">>(true);
 
-    assert<IsExact<typeof TEST_ROUTE.relativePath, "test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.relativePath, "test/child">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.relativePath, "test/child">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/child">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/child">>(true);
 
-    expect(TEST_ROUTE.path).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.path).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.path).toEqual("/test/child");
+  expect(TEST_ROUTE.$path).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/child");
 
-    expect(TEST_ROUTE.relativePath).toEqual("test");
-    expect(TEST_ROUTE.CHILD.relativePath).toEqual("test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.relativePath).toEqual("test/child");
+  expect(TEST_ROUTE.$relativePath).toStrictEqual("test");
+  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/child");
 });
 
 it("allows implicit path params", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/:id", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/:id",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { id: string }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], { id: string }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], { id: string }>>(true);
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({ id: "42" })).toEqual("/test/child/42");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: "24" })).toEqual("/test/child/24/grand");
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: { id: "42" } })).toStrictEqual("/test/child/42");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { id: "24" } })).toStrictEqual("/test/child/24/grand");
 });
 
 it("allows explicit path params", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/:id", { params: { id: number() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/:id",
+    params: { id: number() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id: number }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { id: number }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], { id: number }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], { id: number }>>(true);
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({ id: 42 })).toEqual("/test/child/42");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: 24 })).toEqual("/test/child/24/grand");
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: { id: 42 } })).toStrictEqual("/test/child/42");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { id: 24 } })).toStrictEqual("/test/child/24/grand");
 });
 
 it("allows to mix explicit and implicit path params", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/:id/:value", { params: { id: number() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/:id/:value",
+    params: { id: number() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id: number; value: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { id: number; value: string }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], { id: number; value: string }>>(true);
+  assert<
+    IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], { id: number; value: string }>
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({ id: 42, value: "foo" })).toEqual("/test/child/42/foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: 24, value: "bar" })).toEqual("/test/child/24/bar/grand");
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: { id: 42, value: "foo" } })).toStrictEqual("/test/child/42/foo");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { id: 24, value: "bar" } })).toStrictEqual(
+    "/test/child/24/bar/grand",
+  );
 });
 
 it("allows to mix explicit and implicit path params in case of optional params", () => {
-    const GRANDCHILD = route("grand/:name");
-    const CHILD = route("child/:id?/:value?", { params: { id: number() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:name",
+  });
+  const CHILD = route({
+    path: "child/:id?/:value?",
+    params: { id: number() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id?: number; value?: string }>>(true);
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0],
-            { id?: number; value?: string; name: string }
-        >
-    >(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"],
+      { id?: number | undefined; value?: string | undefined }
+    >
+  >(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"],
+      { id?: number | undefined; value?: string | undefined; name: string }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({ id: 42 })).toEqual("/test/child/42");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: 24, value: "bar", name: "baz" })).toEqual(
-        "/test/child/24/bar/grand/baz"
-    );
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: { id: 42 } })).toStrictEqual("/test/child/42");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { id: 24, value: "bar", name: "baz" } })).toStrictEqual(
+    "/test/child/24/bar/grand/baz",
+  );
 });
 
 it("allows to mix explicit and implicit path params across multiple routes", () => {
-    const GRANDCHILD = route("grand/:name");
-    const CHILD = route("child/:id/:value", { params: { id: number() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:name",
+  });
+  const CHILD = route({
+    path: "child/:id/:value",
+    params: { id: number() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id: number; value: string }>>(true);
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0],
-            { id: number; value: string; name: string }
-        >
-    >(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], { id: number; value: string }>>(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"],
+      { id: number; value: string; name: string }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({ id: 42, value: "foo" })).toEqual("/test/child/42/foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: 24, value: "bar", name: "baz" })).toEqual(
-        "/test/child/24/bar/grand/baz"
-    );
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: { id: 42, value: "foo" } })).toStrictEqual("/test/child/42/foo");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { id: 24, value: "bar", name: "baz" } })).toStrictEqual(
+    "/test/child/24/bar/grand/baz",
+  );
 });
 
 it("prioritizes children when mixing path params with the same name", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: boolean() } });
-    const CHILD = route("child/:id/:value", { params: { id: number() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:id",
+    params: { id: boolean() },
+  });
+  const CHILD = route({
+    path: "child/:id/:value",
+    params: { id: number() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { id: number; value: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { id: boolean; value: string }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], { id: number; value: string }>>(true);
+  assert<
+    IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], { id: boolean; value: string }>
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({ id: 42, value: "foo" })).toEqual("/test/child/42/foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ id: false, value: "bar" })).toEqual(
-        "/test/child/false/bar/grand/false"
-    );
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: { id: 42, value: "foo" } })).toStrictEqual("/test/child/42/foo");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { id: false, value: "bar" } })).toStrictEqual(
+    "/test/child/false/bar/grand/false",
+  );
 });
 
 it("allows implicit star path param", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/*", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/*",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { "*"?: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], { "*"?: string | undefined }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], Record<never, never>>>(
+    true,
+  );
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/star/param");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: { "*": "star/param" } })).toStrictEqual("/test/child/star/param");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { "*": "star/param" } })).toStrictEqual(
+    "/test/child/grand",
+  );
 });
 
 it("allows implicit optional star path param", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/*?", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/*?",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { "*"?: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], { "*"?: string | undefined }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], Record<never, never>>>(
+    true,
+  );
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({ "*": "star/param" })).toEqual("/test/child/star/param");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: { "*": "star/param" } })).toStrictEqual("/test/child/star/param");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { "*": "star/param" } })).toStrictEqual(
+    "/test/child/grand",
+  );
 });
 
 it("allows explicit star path param", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number() } });
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/*",
+    params: { "*": number() },
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { "*"?: number }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<
+    IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], { "*"?: number | undefined }>
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": 42 })).toEqual("/test/child/grand/42");
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: {} })).toStrictEqual("/test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { "*": 42 } })).toStrictEqual("/test/child/grand/42");
 });
 
 it("allows explicit optional star path param", () => {
-    const GRANDCHILD = route("grand/*?", { params: { "*": number() } });
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/*?",
+    params: { "*": number() },
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { "*"?: number }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<
+    IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], { "*"?: number | undefined }>
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({ "*": 42 })).toEqual("/test/child/grand/42");
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: {} })).toStrictEqual("/test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { "*": 42 } })).toStrictEqual("/test/child/grand/42");
 });
 
 it("always treats star param as optional upon building", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number() } });
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/*",
+    params: { "*": number() },
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], { "*"?: number }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<
+    IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], { "*"?: number | undefined }>
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
+  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: {} })).toStrictEqual("/test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: {} })).toStrictEqual("/test/child/grand");
 });
 
 it("allows star path param in the middle of combined path", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child/*", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/*",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[0], { "*"?: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], { "*"?: string | undefined }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], Record<never, never>>>(
+    true,
+  );
 
-    expect(TEST_ROUTE.buildPath({})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({ "*": "foo" })).toEqual("/test/child/foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({})).toEqual("/test/child/grand");
+  expect(TEST_ROUTE.$buildPathname({ params: { "*": "foo" } })).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPathname({ params: { "*": "foo" } })).toStrictEqual("/test/child/foo");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { "*": "foo" } })).toStrictEqual("/test/child/grand");
 });
 
 it("allows search params", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    searchParams: { foo: number() },
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[1], Record<never, never> | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[1], { foo?: number } | undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildSearch>[0]["searchParams"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildSearch>[0]["searchParams"], Record<never, never>>>(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildSearch>[0]["searchParams"],
+      { foo?: number | undefined }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({}, {})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, { foo: 1 })).toEqual("/test/child/grand?foo=1");
+  expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPath({})).toStrictEqual("/test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ searchParams: { foo: 1 } })).toStrictEqual("/test/child/grand?foo=1");
 });
 
 it("allows to mix search params across multiple routes", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
-    const CHILD = route("child", { searchParams: { bar: number().defined().array() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    searchParams: { foo: number().defined() },
+  });
+  const CHILD = route({
+    path: "child",
+    searchParams: { bar: number().default(1).array() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[1], { bar?: number[] } | undefined>>(true);
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[1],
-            { foo?: number; bar?: number[] } | undefined
-        >
-    >(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildSearch>[0]["searchParams"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildSearch>[0]["searchParams"], { bar?: number[] | undefined }>>(
+    true,
+  );
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildSearch>[0]["searchParams"],
+      { foo?: number | undefined; bar?: number[] | undefined }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({}, { bar: [1, 2] })).toEqual("/test/child?bar=1&bar=2");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, { foo: 1, bar: [1, 2] })).toEqual(
-        "/test/child/grand?foo=1&bar=1&bar=2"
-    );
+  expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPath({ searchParams: { bar: [1, 2] } })).toStrictEqual("/test/child?bar=1&bar=2");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ searchParams: { foo: 1, bar: [1, 2] } })).toStrictEqual(
+    "/test/child/grand?foo=1&bar=1&bar=2",
+  );
 });
 
 it("prioritizes children when mixing search params with the same name", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number() } });
-    const CHILD = route("child", { searchParams: { foo: number().defined().array() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    searchParams: { foo: number() },
+  });
+  const CHILD = route({
+    path: "child",
+    searchParams: { foo: number().defined().array() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], Record<never, never> | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[1], { foo?: number[] } | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[1], { foo?: number } | undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildSearch>[0]["searchParams"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildSearch>[0]["searchParams"], { foo?: number[] | undefined }>>(
+    true,
+  );
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildSearch>[0]["searchParams"],
+      { foo?: number | undefined }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({}, { foo: [1, 2] })).toEqual("/test/child?foo=1&foo=2");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, { foo: 1 })).toEqual("/test/child/grand?foo=1");
+  expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPath({ searchParams: { foo: [1, 2] } })).toStrictEqual("/test/child?foo=1&foo=2");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ searchParams: { foo: 1 } })).toStrictEqual("/test/child/grand?foo=1");
 });
 
 it("allows implicit hash params", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues() });
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    hash: string(),
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[2], string | undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildHash>[0]["hash"], undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildHash>[0]["hash"], undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildHash>[0]["hash"], string>>(true);
 
-    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({}, {})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, {}, "my-id")).toEqual("/test/child/grand#my-id");
+  expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPath({})).toStrictEqual("/test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "my-id" })).toStrictEqual("/test/child/grand#my-id");
 });
 
 it("allows explicit hash params", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues("foo", "bar") });
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    hash: ["foo", "bar"],
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[2], "foo" | "bar" | undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildHash>[0]["hash"], undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildHash>[0]["hash"], undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildHash>[0]["hash"], "foo" | "bar">>(true);
 
-    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({}, {})).toEqual("/test/child");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, {}, "foo")).toEqual("/test/child/grand#foo");
+  expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPath({})).toStrictEqual("/test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "foo" })).toStrictEqual("/test/child/grand#foo");
 });
 
 it("allows mixing explicit hash params across multiple routes", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues("foo", "bar") });
-    const CHILD = route("child", { hash: hashValues("baz") }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    hash: ["foo", "bar"],
+  });
+  const CHILD = route({
+    path: "child",
+    hash: ["baz"],
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[2], "baz" | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[2], "baz" | "foo" | "bar" | undefined>>(
-        true
-    );
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildHash>[0]["hash"], undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildHash>[0]["hash"], "baz">>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildHash>[0]["hash"], "baz" | "foo" | "bar">>(true);
 
-    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({}, {}, "baz")).toEqual("/test/child#baz");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, {}, "baz")).toEqual("/test/child/grand#baz");
+  expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPath({ hash: "baz" })).toStrictEqual("/test/child#baz");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "baz" })).toStrictEqual("/test/child/grand#baz");
 });
 
 it("allows mixing explicit and implicit hash params across multiple routes", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues() });
-    const CHILD = route("child", { hash: hashValues("baz") }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    hash: string(),
+  });
+  const CHILD = route({
+    path: "child",
+    hash: ["baz"],
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildPath>[2], "baz" | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildPath>[2], string | undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildHash>[0]["hash"], undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildHash>[0]["hash"], "baz">>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildHash>[0]["hash"], string>>(true);
 
-    expect(TEST_ROUTE.buildPath({}, {})).toEqual("/test");
-    expect(TEST_ROUTE.CHILD.buildPath({}, {}, "baz")).toEqual("/test/child#baz");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildPath({}, {}, "anything")).toEqual("/test/child/grand#anything");
+  expect(TEST_ROUTE.$buildPath({})).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$buildPath({ hash: "baz" })).toStrictEqual("/test/child#baz");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPath({ hash: "anything" })).toStrictEqual("/test/child/grand#anything");
 });
 
 it("allows state params", () => {
-    const GRANDCHILD = route("grand", { state: { bar: number() } });
-    const CHILD = route("child", { state: { foo: string() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    state: { bar: number() },
+  });
+  const CHILD = route({
+    path: "child",
+    state: { foo: string() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildState>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildState>[0], { foo?: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildState>[0], { foo?: string; bar?: number }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildState>[0]["state"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildState>[0]["state"], { foo?: string | undefined }>>(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildState>[0]["state"],
+      { foo?: string | undefined; bar?: number | undefined }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.buildState({})).toEqual({});
-    expect(TEST_ROUTE.CHILD.buildState({ foo: "test" })).toEqual({ foo: "test" });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.buildState({ foo: "test", bar: 1 })).toEqual({ foo: "test", bar: 1 });
+  expect(TEST_ROUTE.$buildState({ state: {} })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$buildState({ state: { foo: "test" } })).toStrictEqual({ foo: "test" });
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildState({ state: { foo: "test", bar: 1 } })).toStrictEqual({
+    foo: "test",
+    bar: 1,
+  });
 });
 
 it("allows implicit path params parsing", () => {
-    const GRANDCHILD = route("grand/:id", {});
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:id",
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id: string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { id: string }>>(true);
 
-    expect(TEST_ROUTE.getTypedParams({})).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({})).toEqual({});
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ id: "1" })).toEqual({ id: "1" });
-    expect(() => TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({})).toThrow();
+  expect(TEST_ROUTE.$deserializeParams({})).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({})).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ id: "1" })).toStrictEqual({ id: "1" });
+  expect(() => TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({})).toThrow();
 });
 
 it("allows implicit optional path params parsing", () => {
-    const GRANDCHILD = route("grand/:id?");
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:id?",
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id?: string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { id?: string }>>(true);
 
-    expect(TEST_ROUTE.getTypedParams({})).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({})).toEqual({});
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ id: "1" })).toEqual({ id: "1" });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({})).toEqual({});
+  expect(TEST_ROUTE.$deserializeParams({})).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({})).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ id: "1" })).toStrictEqual({ id: "1" });
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({})).toStrictEqual({});
 });
 
 it("allows explicit path params parsing", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number() } });
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:id",
+    params: { id: number() },
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { id: number | undefined }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { id?: number }>>(true);
 
-    expect(TEST_ROUTE.getTypedParams({ id: "1" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ id: "1" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ id: "1" })).toEqual({ id: 1 });
+  expect(TEST_ROUTE.$deserializeParams({ id: "1" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ id: "1" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ id: "1" })).toStrictEqual({ id: 1 });
 });
 
 it("allows to mix path params parsing across multiple routes", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number() } });
-    const CHILD = route("child/:childId", { params: { childId: number() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:id",
+    params: { id: number() },
+  });
+  const CHILD = route({
+    path: "child/:childId",
+    params: { childId: number() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: number | undefined }>>(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>,
-            { childId: number | undefined; id: number | undefined }
-        >
-    >(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, { childId?: number }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { childId?: number; id?: number }>>(
+    true,
+  );
 
-    expect(TEST_ROUTE.getTypedParams({ id: "1", childId: "2" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ id: "1", childId: "2" })).toEqual({ childId: 2 });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ id: "1", childId: "2" })).toEqual({ id: 1, childId: 2 });
-});
-
-it("provides untyped path params", () => {
-    const GRANDCHILD = route("grand/:id", {});
-    const CHILD = route("child/:childId/:opt?", { params: { childId: number() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
-
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getUntypedParams>, Record<string, string | undefined>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getUntypedParams>, Record<string, string | undefined>>>(true);
-    assert<
-        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getUntypedParams>, Record<string, string | undefined>>
-    >(true);
-
-    expect(TEST_ROUTE.getUntypedParams({ id: "1", childId: "2", opt: "3", untyped: "untyped" })).toStrictEqual({
-        id: "1",
-        childId: "2",
-        opt: "3",
-        untyped: "untyped",
-    });
-    expect(TEST_ROUTE.CHILD.getUntypedParams({ id: "1", childId: "2", opt: "3", untyped: "untyped" })).toStrictEqual({
-        id: "1",
-        untyped: "untyped",
-    });
-    expect(
-        TEST_ROUTE.CHILD.GRANDCHILD.getUntypedParams({ id: "1", childId: "2", opt: "3", untyped: "untyped" })
-    ).toStrictEqual({
-        untyped: "untyped",
-    });
+  expect(TEST_ROUTE.$deserializeParams({ id: "1", childId: "2" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ id: "1", childId: "2" })).toStrictEqual({ childId: 2 });
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ id: "1", childId: "2" })).toStrictEqual({
+    id: 1,
+    childId: 2,
+  });
 });
 
 it("throws if implicit path params are invalid", () => {
-    const GRANDCHILD = route("grand/:id", {});
-    const CHILD = route("child/:childId", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:id",
+  });
+  const CHILD = route({
+    path: "child/:childId",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: string }>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId: string; id: string }>>(
-        true
-    );
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, { childId: string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { childId: string; id: string }>>(
+    true,
+  );
 
-    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: "2" });
-    expect(() => TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toThrow();
+  expect(TEST_ROUTE.$deserializeParams({ childId: "2" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ childId: "2" })).toStrictEqual({ childId: "2" });
+  expect(() => TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ childId: "2" })).toThrow();
 });
 
 it("doesn't throw if implicit optional path params are omitted", () => {
-    const GRANDCHILD = route("grand/:id?", {});
-    const CHILD = route("child/:childId?", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:id?",
+  });
+  const CHILD = route({
+    path: "child/:childId?",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId?: string }>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId?: string; id?: string }>>(
-        true
-    );
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, { childId?: string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { childId?: string; id?: string }>>(
+    true,
+  );
 
-    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: "2" });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: "2" });
+  expect(TEST_ROUTE.$deserializeParams({ childId: "2" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ childId: "2" })).toStrictEqual({ childId: "2" });
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ childId: "2" })).toStrictEqual({ childId: "2" });
 });
 
 it("doesn't throw if explicit path params are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number() } });
-    const CHILD = route("child/:childId", { params: { childId: number() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:id",
+    params: { id: number() },
+  });
+  const CHILD = route({
+    path: "child/:childId",
+    params: { childId: number() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: number | undefined }>>(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>,
-            { childId: number | undefined; id: number | undefined }
-        >
-    >(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, { childId?: number }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { childId?: number; id?: number }>>(
+    true,
+  );
 
-    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2 });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2, id: undefined });
+  expect(TEST_ROUTE.$deserializeParams({ childId: "2" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ childId: "2" })).toStrictEqual({ childId: 2 });
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ childId: "2" })).toStrictEqual({ childId: 2 });
 });
 
 it("doesn't throw if explicit path params with defaults are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number().default(-1) } });
-    const CHILD = route("child/:childId", { params: { childId: number().default(-1) } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:id",
+    params: { id: number().default(-1) },
+  });
+  const CHILD = route({
+    path: "child/:childId",
+    params: { childId: number().default(-1) },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: number }>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId: number; id: number }>>(
-        true
-    );
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, { childId: number }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { childId: number; id: number }>>(
+    true,
+  );
 
-    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2 });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2, id: -1 });
+  expect(TEST_ROUTE.$deserializeParams({ childId: "2" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ childId: "2" })).toStrictEqual({ childId: 2 });
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ childId: "2" })).toStrictEqual({ childId: 2, id: -1 });
 });
 
 it("throws if explicit throwable path params are invalid", () => {
-    const GRANDCHILD = route("grand/:id", { params: { id: number().defined() } });
-    const CHILD = route("child/:childId", { params: { childId: number().defined() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/:id",
+    params: { id: number().defined() },
+  });
+  const CHILD = route({
+    path: "child/:childId",
+    params: { childId: number().defined() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { childId: number }>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { childId: number; id: number }>>(
-        true
-    );
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, { childId: number }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { childId: number; id: number }>>(
+    true,
+  );
 
-    expect(TEST_ROUTE.getTypedParams({ childId: "2" })).toStrictEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ childId: "2" })).toStrictEqual({ childId: 2 });
-    expect(() => TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ childId: "2" })).toThrow();
+  expect(TEST_ROUTE.$deserializeParams({ childId: "2" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ childId: "2" })).toStrictEqual({ childId: 2 });
+  expect(() => TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ childId: "2" })).toThrow();
 });
 
 it("allows implicit star path param parsing", () => {
-    const GRANDCHILD = route("grand/*", {});
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/*",
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { "*": string }>>(true);
 
-    expect(TEST_ROUTE.getTypedParams({ "*": "foo/bar" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "foo/bar" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "foo/bar" })).toEqual({ "*": "foo/bar" });
+  expect(TEST_ROUTE.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({ "*": "foo/bar" });
 });
 
 it("allows implicit optional star path param parsing", () => {
-    const GRANDCHILD = route("grand", {});
-    const CHILD = route("child/*?", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/*?",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { "*"?: string }>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*"?: string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, { "*"?: string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { "*"?: string }>>(true);
 
-    expect(TEST_ROUTE.getTypedParams({ "*": "foo/bar" })).toStrictEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "foo/bar" })).toStrictEqual({ "*": "foo/bar" });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({})).toStrictEqual({});
+  expect(TEST_ROUTE.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({ "*": "foo/bar" });
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({})).toStrictEqual({});
 });
 
 it("allows explicit star path param parsing", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number() } });
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/*",
+    params: { "*": number() },
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": number | undefined }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { "*"?: number }>>(true);
 
-    expect(TEST_ROUTE.getTypedParams({ "*": "1" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "1" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "1" })).toEqual({ "*": 1 });
+  expect(TEST_ROUTE.$deserializeParams({ "*": "1" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ "*": "1" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ "*": "1" })).toStrictEqual({ "*": 1 });
 });
 
 it("allows explicit star path param parsing (with default value)", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number().default(42) } });
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/*",
+    params: { "*": number().default(42) },
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": number }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { "*": number }>>(true);
 
-    expect(TEST_ROUTE.getTypedParams({ "*": "" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "" })).toEqual({ "*": 42 });
+  expect(TEST_ROUTE.$deserializeParams({ "*": "" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ "*": "" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ "*": "" })).toStrictEqual({ "*": 42 });
 });
 
 it("doesn't throw if explicit star param is invalid", () => {
-    const GRANDCHILD = route("grand/*", { params: { "*": number() } });
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand/*",
+    params: { "*": number() },
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": number | undefined }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { "*"?: number }>>(true);
 
-    expect(TEST_ROUTE.getTypedParams({ "*": "foo" })).toStrictEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "foo" })).toStrictEqual({});
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "foo" })).toStrictEqual({ "*": undefined });
+  expect(TEST_ROUTE.$deserializeParams({ "*": "foo" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ "*": "foo" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ "*": "foo" })).toStrictEqual({});
 });
 
 it("allows intermediate star param parsing", () => {
-    const GRANDCHILD = route("grand", {});
-    const CHILD = route("child/*", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child/*",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedParams>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedParams>, { "*": string }>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams>, { "*": string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, { "*": string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { "*": string }>>(true);
 
-    expect(TEST_ROUTE.getTypedParams({ "*": "foo/bar" })).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedParams({ "*": "foo/bar" })).toEqual({ "*": "foo/bar" });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedParams({ "*": "foo/bar" })).toEqual({ "*": "foo/bar" });
+  expect(TEST_ROUTE.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({ "*": "foo/bar" });
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({ "*": "foo/bar" });
 });
 
 it("allows search params parsing", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number().default(0) } });
-    const CHILD = route(
-        "child",
-        {
-            searchParams: { foo: string(), arr: number().defined().array() },
-        },
-        { GRANDCHILD }
-    );
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    searchParams: { foo: number().default(0) },
+  });
+  const CHILD = route({
+    path: "child",
+    searchParams: { foo: string(), arr: number().defined().array() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedSearchParams>, Record<never, never>>>(true);
-    assert<
-        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>, { foo: string | undefined; arr: number[] }>
-    >(true);
-    assert<
-        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>, { foo: number; arr: number[] }>
-    >(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeSearchParams>, { foo?: string; arr: number[] }>>(true);
+  assert<
+    IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeSearchParams>, { foo: number; arr: number[] }>
+  >(true);
 
-    const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo", untyped: "untyped" });
+  const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo", untyped: "untyped" });
 
-    expect(TEST_ROUTE.getTypedSearchParams(testSearchParams)).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedSearchParams(testSearchParams)).toEqual({ arr: [1, 2], foo: "foo" });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams(testSearchParams)).toEqual({ arr: [1, 2], foo: 0 });
-
-    expect(TEST_ROUTE.getUntypedSearchParams(testSearchParams).getAll("arr")).toEqual(["1", "2"]);
-    expect(TEST_ROUTE.CHILD.getUntypedSearchParams(testSearchParams).getAll("arr")).toEqual([]);
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getUntypedSearchParams(testSearchParams).getAll("arr")).toEqual([]);
-
-    expect(TEST_ROUTE.getUntypedSearchParams(testSearchParams).get("foo")).toEqual("foo");
-    expect(TEST_ROUTE.CHILD.getUntypedSearchParams(testSearchParams).get("foo")).toEqual(null);
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getUntypedSearchParams(testSearchParams).get("foo")).toEqual(null);
-
-    expect(TEST_ROUTE.getUntypedSearchParams(testSearchParams).get("untyped")).toEqual("untyped");
-    expect(TEST_ROUTE.CHILD.getUntypedSearchParams(testSearchParams).get("untyped")).toEqual("untyped");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getUntypedSearchParams(testSearchParams).get("untyped")).toEqual("untyped");
+  expect(TEST_ROUTE.$deserializeSearchParams(testSearchParams)).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeSearchParams(testSearchParams)).toStrictEqual({ arr: [1, 2], foo: "foo" });
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeSearchParams(testSearchParams)).toStrictEqual({ arr: [1, 2], foo: 0 });
 });
 
 it("throws if throwable search params are invalid", () => {
-    const GRANDCHILD = route("grand", { searchParams: { foo: number().defined() } });
-    const CHILD = route(
-        "child",
-        {
-            searchParams: { foo: string(), arr: number().defined().array() },
-        },
-        { GRANDCHILD }
-    );
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    searchParams: { foo: number().defined() },
+  });
+  const CHILD = route({
+    path: "child",
+    searchParams: { foo: string(), arr: number().defined().array() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedSearchParams>, Record<never, never>>>(true);
-    assert<
-        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedSearchParams>, { foo: string | undefined; arr: number[] }>
-    >(true);
-    assert<
-        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams>, { foo: number; arr: number[] }>
-    >(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeSearchParams>, { foo?: string; arr: number[] }>>(true);
+  assert<
+    IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeSearchParams>, { foo: number; arr: number[] }>
+  >(true);
 
-    const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo", untyped: "untyped" });
+  const testSearchParams = createSearchParams({ arr: ["1", "2"], foo: "foo", untyped: "untyped" });
 
-    expect(TEST_ROUTE.getTypedSearchParams(testSearchParams)).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedSearchParams(testSearchParams)).toEqual({ arr: [1, 2], foo: "foo" });
-    expect(() => TEST_ROUTE.CHILD.GRANDCHILD.getTypedSearchParams(testSearchParams)).toThrow();
+  expect(TEST_ROUTE.$deserializeSearchParams(testSearchParams)).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeSearchParams(testSearchParams)).toStrictEqual({ arr: [1, 2], foo: "foo" });
+  expect(() => TEST_ROUTE.CHILD.GRANDCHILD.$deserializeSearchParams(testSearchParams)).toThrow();
 });
 
 it("allows hash parsing", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues() });
-    const CHILD = route(
-        "child",
-        {
-            hash: hashValues("foo", "bar"),
-        },
-        { GRANDCHILD }
-    );
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    hash: string(),
+  });
+  const CHILD = route({
+    path: "child",
+    hash: ["foo", "bar"],
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    const testHash = "#foo";
+  const testHash = "#foo";
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedHash>, undefined>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedHash>, "foo" | "bar" | undefined>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedHash>, string | undefined>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeHash>, undefined>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeHash>, "foo" | "bar" | undefined>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeHash>, string | undefined>>(true);
 
-    expect(TEST_ROUTE.getTypedHash(testHash)).toEqual(undefined);
-    expect(TEST_ROUTE.CHILD.getTypedHash(testHash)).toEqual("foo");
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedHash(testHash)).toEqual("foo");
+  expect(TEST_ROUTE.$deserializeHash(testHash)).toStrictEqual(undefined);
+  expect(TEST_ROUTE.CHILD.$deserializeHash(testHash)).toStrictEqual("foo");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeHash(testHash)).toStrictEqual("foo");
 });
 
 it("allows any hash parsing", () => {
-    const GRANDCHILD = route("grand", { hash: hashValues() });
-    const CHILD = route(
-        "child",
-        {
-            hash: hashValues("foo", "bar"),
-        },
-        { GRANDCHILD }
-    );
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    hash: string(),
+  });
+  const CHILD = route({
+    path: "child",
+    hash: ["foo", "bar"],
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    const testHash = "#baz";
+  const testHash = "#baz";
 
-    expect(TEST_ROUTE.getTypedHash(testHash)).toEqual(undefined);
-    expect(TEST_ROUTE.CHILD.getTypedHash(testHash)).toEqual(undefined);
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedHash(testHash)).toEqual("baz");
+  expect(TEST_ROUTE.$deserializeHash(testHash)).toStrictEqual(undefined);
+  expect(TEST_ROUTE.CHILD.$deserializeHash(testHash)).toStrictEqual(undefined);
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeHash(testHash)).toStrictEqual("baz");
 });
 
 it("allows state params parsing", () => {
-    const GRANDCHILD = route("grand", { state: { bar: number() } });
-    const CHILD = route("child", { state: { foo: string() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    state: { bar: number() },
+  });
+  const CHILD = route({
+    path: "child",
+    state: { foo: string() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildState>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildState>[0], { foo?: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildState>[0], { foo?: string; bar?: number }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildState>[0]["state"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildState>[0]["state"], { foo?: string | undefined }>>(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildState>[0]["state"],
+      { foo?: string | undefined; bar?: number | undefined }
+    >
+  >(true);
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedState>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedState>, { foo: string | undefined }>>(true);
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedState>,
-            { foo: string | undefined; bar: number | undefined }
-        >
-    >(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeState>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeState>, { foo?: string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeState>, { foo?: string; bar?: number }>>(
+    true,
+  );
 
-    const state = { foo: "test", bar: 1, untyped: "untyped" };
+  const state = { foo: "test", bar: 1, untyped: "untyped" };
 
-    expect(TEST_ROUTE.getTypedState(state)).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedState(state)).toEqual({ foo: "test" });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getTypedState(state)).toEqual({ foo: "test", bar: 1 });
-
-    expect(TEST_ROUTE.getUntypedState(state)).toEqual({ foo: "test", bar: 1, untyped: "untyped" });
-    expect(TEST_ROUTE.CHILD.getUntypedState(state)).toEqual({ bar: 1, untyped: "untyped" });
-    expect(TEST_ROUTE.CHILD.GRANDCHILD.getUntypedState(state)).toEqual({ untyped: "untyped" });
+  expect(TEST_ROUTE.$deserializeState(state)).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeState(state)).toStrictEqual({ foo: "test" });
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeState(state)).toStrictEqual({ foo: "test", bar: 1 });
 });
 
 it("throws if throwable state params are invalid", () => {
-    const GRANDCHILD = route("grand", { state: { bar: number().defined() } });
-    const CHILD = route("child", { state: { foo: string() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+    state: { bar: number().defined() },
+  });
+  const CHILD = route({
+    path: "child",
+    state: { foo: string() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildState>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.buildState>[0], { foo?: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.buildState>[0], { foo?: string; bar?: number }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildState>[0]["state"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildState>[0]["state"], { foo?: string | undefined }>>(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildState>[0]["state"],
+      { foo?: string | undefined; bar?: number | undefined }
+    >
+  >(true);
 
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.getTypedState>, Record<never, never>>>(true);
-    assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.getTypedState>, { foo: string | undefined }>>(true);
-    assert<
-        IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.getTypedState>, { foo: string | undefined; bar: number }>
-    >(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeState>, Record<never, never>>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeState>, { foo?: string }>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeState>, { foo?: string; bar: number }>>(
+    true,
+  );
 
-    const state = { foo: "test", bar: "bar", untyped: "untyped" };
+  const state = { foo: "test", bar: "bar", untyped: "untyped" };
 
-    expect(TEST_ROUTE.getTypedState(state)).toEqual({});
-    expect(TEST_ROUTE.CHILD.getTypedState(state)).toEqual({ foo: "test" });
-    expect(() => TEST_ROUTE.CHILD.GRANDCHILD.getTypedState(state)).toThrow();
+  expect(TEST_ROUTE.$deserializeState(state)).toStrictEqual({});
+  expect(TEST_ROUTE.CHILD.$deserializeState(state)).toStrictEqual({ foo: "test" });
+  expect(() => TEST_ROUTE.CHILD.GRANDCHILD.$deserializeState(state)).toThrow();
 });
 
 it("throws upon specifying an invalid default value", () => {
-    expect(() => route("", { searchParams: { id: date().default(new Date("foo")) } })).toThrow();
+  expect(() =>
+    route({
+      path: "",
+      searchParams: { id: date().default(new Date("foo")) },
+    }),
+  ).toThrow();
 });
 
 it("throws upon specifying a default value that validates to undefined", () => {
-    expect(() =>
-        route("", { searchParams: { id: type((value: unknown): string | undefined => undefined).default("test") } })
-    ).toThrow();
+  expect(() =>
+    route({
+      path: "",
+      searchParams: { id: type((value: unknown): string | undefined => undefined).default("test") },
+    }),
+  ).toThrow();
 });
 
 it("allows types composition", () => {
-    const PATH = route(":id", { params: { id: number() } });
-    const SEARCH = route("", { searchParams: { page: number() } });
-    const STATE = route("", { state: { fromList: boolean() } });
-    const HASH = route("", { hash: hashValues("about", "more") });
+  const PATH = route({
+    params: { id: number() },
+  });
+  const SEARCH = route({
+    searchParams: { page: number() },
+  });
+  const STATE = route({
+    state: { fromList: boolean() },
+  });
+  const HASH = route({
+    hash: ["about", "more"],
+  });
 
-    const ROUTE = route(
-        ":id/:subId",
-        types({
-            params: {
-                subId: number(),
-            },
-            searchParams: {
-                ordered: boolean(),
-                page: boolean(), // This should be overridden
-            },
-            state: {
-                hidden: boolean(),
-            },
-            hash: hashValues("info"),
-        })(PATH)(SEARCH)(STATE)(HASH)
-    );
+  const ROUTE = route({
+    path: ":id/:subId",
+    compose: [PATH, SEARCH, STATE, HASH],
 
-    assert<IsExact<Parameters<typeof ROUTE.buildPath>[0], { id: number; subId: number }>>(true);
+    params: {
+      subId: number(),
+    },
 
-    assert<IsExact<Parameters<typeof ROUTE.buildPath>[1], { page?: number; ordered?: boolean } | undefined>>(true);
+    searchParams: {
+      ordered: boolean(),
+      page: boolean(),
+    },
 
-    assert<IsExact<Parameters<typeof ROUTE.buildPath>[2], "about" | "more" | "info" | undefined>>(true);
+    state: {
+      hidden: boolean(),
+    },
 
-    assert<IsExact<Parameters<typeof ROUTE.buildState>[0], { fromList?: boolean; hidden?: boolean }>>(true);
+    hash: ["info"],
+  });
 
-    expect(ROUTE.buildPath({ id: 1, subId: 2 }, { page: 1, ordered: true }, "info")).toEqual(
-        "/1/2?page=1&ordered=true#info"
-    );
+  assert<IsExact<Parameters<typeof ROUTE.$buildPathname>[0]["params"], { id: number; subId: number }>>(true);
 
-    expect(ROUTE.buildState({ fromList: true, hidden: true })).toStrictEqual({ fromList: true, hidden: true });
+  assert<
+    IsExact<
+      Parameters<typeof ROUTE.$buildSearch>[0]["searchParams"],
+      { page?: boolean | undefined; ordered?: boolean | undefined }
+    >
+  >(true);
+
+  assert<IsExact<Parameters<typeof ROUTE.$buildHash>[0]["hash"], "about" | "more" | "info">>(true);
+
+  assert<
+    IsExact<
+      Parameters<typeof ROUTE.$buildState>[0]["state"],
+      { fromList?: boolean | undefined; hidden?: boolean | undefined }
+    >
+  >(true);
+
+  expect(
+    ROUTE.$buildPath({ params: { id: 1, subId: 2 }, searchParams: { page: true, ordered: true }, hash: "info" }),
+  ).toStrictEqual("/1/2?page=true&ordered=true#info");
+
+  expect(ROUTE.$buildState({ state: { fromList: true, hidden: true } })).toStrictEqual({
+    fromList: true,
+    hidden: true,
+  });
 });
 
 it("allows to trim path pattern", () => {
-    const GRANDCHILD = route("grand");
-    const CHILD = route("child", {}, { GRANDCHILD });
-    const TEST_ROUTE = route("test", {}, { CHILD });
+  const GRANDCHILD = route({
+    path: "grand",
+  });
+  const CHILD = route({
+    path: "child",
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    children: { CHILD },
+  });
 
-    assert<IsExact<typeof TEST_ROUTE.path, "/test">>(true);
-    assert<IsExact<typeof TEST_ROUTE.$.CHILD.path, "/child">>(true);
-    assert<IsExact<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.path, "/grand">>(true);
-    assert<IsExact<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.path, "/child/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$path, "/test">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$.CHILD.$path, "/child">>(true);
+  assert<IsExact<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.$path, "/grand">>(true);
+  assert<IsExact<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.$path, "/child/grand">>(true);
 
-    expect(TEST_ROUTE.path).toEqual("/test");
-    expect(TEST_ROUTE.$.CHILD.path).toEqual("/child");
-    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.path).toEqual("/grand");
-    expect(TEST_ROUTE.$.CHILD.GRANDCHILD.path).toEqual("/child/grand");
+  expect(TEST_ROUTE.$path).toStrictEqual("/test");
+  expect(TEST_ROUTE.$.CHILD.$path).toStrictEqual("/child");
+  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$path).toStrictEqual("/grand");
+  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$path).toStrictEqual("/child/grand");
 });
 
-it("allows to inherit non-path params in trimmed children", () => {
-    const GRANDCHILD = route("grand", {
-        searchParams: { baz: boolean() },
-        state: { stateBaz: string() },
-        hash: hashValues("hashBaz"),
-    });
-    const CHILD = route(
-        "child",
-        { searchParams: { bar: string() }, state: { stateBar: number() }, hash: hashValues("hashBar") },
-        { GRANDCHILD }
-    );
-    const TEST_ROUTE = route(
-        "test",
-        { searchParams: { foo: number() }, state: { stateFoo: boolean() }, hash: hashValues("hashFoo") },
-        { CHILD }
-    );
+it("allows to inherit non-pathname params in trimmed children", () => {
+  const GRANDCHILD = route({
+    path: "grand",
+    searchParams: { baz: boolean() },
+    state: { stateBaz: string() },
+    hash: ["hashBaz"],
+  });
+  const CHILD = route({
+    path: "child",
+    searchParams: { bar: string() },
+    state: { stateBar: number() },
+    hash: ["hashBar"],
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test",
+    searchParams: { foo: number() },
+    state: { stateFoo: boolean() },
+    hash: ["hashFoo"],
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[1], { foo?: number } | undefined>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[2], "hashFoo" | undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildSearch>[0]["searchParams"], { foo?: number | undefined }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildHash>[0]["hash"], "hashFoo">>(true);
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.buildPath>[0], Record<never, never>>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.buildPath>[1], { foo?: number; bar?: string } | undefined>>(
-        true
-    );
-    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.buildPath>[2], "hashFoo" | "hashBar" | undefined>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.$.CHILD.$buildSearch>[0]["searchParams"],
+      { foo?: number | undefined; bar?: string | undefined }
+    >
+  >(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.$buildHash>[0]["hash"], "hashFoo" | "hashBar">>(true);
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath>[1],
-            { foo?: number; bar?: string; baz?: boolean } | undefined
-        >
-    >(true);
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath>[2],
-            "hashFoo" | "hashBar" | "hashBaz" | undefined
-        >
-    >(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPathname>[0]["params"], Record<never, never>>>(
+    true,
+  );
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.$buildSearch>[0]["searchParams"],
+      { foo?: number | undefined; bar?: string | undefined; baz?: boolean | undefined }
+    >
+  >(true);
+  assert<
+    IsExact<Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.$buildHash>[0]["hash"], "hashFoo" | "hashBar" | "hashBaz">
+  >(true);
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath>[0], Record<never, never>>>(true);
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath>[1],
-            { foo?: number; bar?: string; baz?: boolean } | undefined
-        >
-    >(true);
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath>[2],
-            "hashFoo" | "hashBar" | "hashBaz" | undefined
-        >
-    >(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPathname>[0]["params"], Record<never, never>>>(
+    true,
+  );
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.$buildSearch>[0]["searchParams"],
+      { foo?: number | undefined; bar?: string | undefined; baz?: boolean | undefined }
+    >
+  >(true);
+  assert<
+    IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.$buildHash>[0]["hash"], "hashFoo" | "hashBar" | "hashBaz">
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({}, { foo: 1 }, "hashFoo")).toEqual("/test?foo=1#hashFoo");
-    expect(TEST_ROUTE.$.CHILD.buildPath({}, { foo: 1, bar: "test" }, "hashBar")).toEqual(
-        "/child?foo=1&bar=test#hashBar"
-    );
-    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath({}, { foo: 1, bar: "test", baz: false }, "hashBaz")).toEqual(
-        "/grand?foo=1&bar=test&baz=false#hashBaz"
-    );
-    expect(TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath({}, { foo: 1, bar: "test", baz: false }, "hashBaz")).toEqual(
-        "/child/grand?foo=1&bar=test&baz=false#hashBaz"
-    );
+  expect(TEST_ROUTE.$buildPath({ searchParams: { foo: 1 }, hash: "hashFoo" })).toStrictEqual("/test?foo=1#hashFoo");
+  expect(TEST_ROUTE.$.CHILD.$buildPath({ searchParams: { foo: 1, bar: "test" }, hash: "hashBar" })).toStrictEqual(
+    "/child?foo=1&bar=test#hashBar",
+  );
+  expect(
+    TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPath({ searchParams: { foo: 1, bar: "test", baz: false }, hash: "hashBaz" }),
+  ).toStrictEqual("/grand?foo=1&bar=test&baz=false#hashBaz");
+  expect(
+    TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPath({ searchParams: { foo: 1, bar: "test", baz: false }, hash: "hashBaz" }),
+  ).toStrictEqual("/child/grand?foo=1&bar=test&baz=false#hashBaz");
 
-    const testSearchParams = createSearchParams({ foo: "1", bar: "test", baz: "false" });
+  const testSearchParams = createSearchParams({ foo: "1", bar: "test", baz: "false" });
 
-    expect(TEST_ROUTE.getTypedSearchParams(testSearchParams)).toStrictEqual({ foo: 1 });
-    expect(TEST_ROUTE.$.CHILD.getTypedSearchParams(testSearchParams)).toStrictEqual({ foo: 1, bar: "test" });
-    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.getTypedSearchParams(testSearchParams)).toStrictEqual({
-        foo: 1,
-        bar: "test",
-        baz: false,
-    });
-    expect(TEST_ROUTE.$.CHILD.GRANDCHILD.getTypedSearchParams(testSearchParams)).toStrictEqual({
-        foo: 1,
-        bar: "test",
-        baz: false,
-    });
+  expect(TEST_ROUTE.$deserializeSearchParams(testSearchParams)).toStrictEqual({ foo: 1 });
+  expect(TEST_ROUTE.$.CHILD.$deserializeSearchParams(testSearchParams)).toStrictEqual({ foo: 1, bar: "test" });
+  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$deserializeSearchParams(testSearchParams)).toStrictEqual({
+    foo: 1,
+    bar: "test",
+    baz: false,
+  });
+  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$deserializeSearchParams(testSearchParams)).toStrictEqual({
+    foo: 1,
+    bar: "test",
+    baz: false,
+  });
 });
 
-it("prevents path param inheritance in trimmed children", () => {
-    const GRANDCHILD = route("grand/:id", {});
-    const CHILD = route("child/:subId", { params: { subId: boolean() } }, { GRANDCHILD });
-    const TEST_ROUTE = route("test/:id", { params: { id: number() } }, { CHILD });
+it("allows to inherit pathname types in trimmed children", () => {
+  const GRANDCHILD = route({
+    path: "grand/:id",
+  });
+  const CHILD = route({
+    path: "child/:subId",
+    params: { subId: boolean() },
+    children: { GRANDCHILD },
+  });
+  const TEST_ROUTE = route({
+    path: "test/:id",
+    params: { id: number() },
+    children: { CHILD },
+  });
 
-    assert<IsExact<Parameters<typeof TEST_ROUTE.buildPath>[0], { id: number }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.buildPath>[0], { subId: boolean }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath>[0], { id: string }>>(true);
-    assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath>[0], { id: string; subId: boolean }>>(
-        true
-    );
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], { id: number }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$.CHILD.$buildPathname>[0]["params"], { subId: boolean }>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPathname>[0]["params"], { id: number }>>(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPathname>[0]["params"],
+      { id: number; subId: boolean }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.buildPath({ id: 1 })).toEqual("/test/1");
-    expect(TEST_ROUTE.$.CHILD.buildPath({ subId: true })).toEqual("/child/true");
-    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.buildPath({ id: "test" })).toEqual("/grand/test");
-    expect(TEST_ROUTE.$.CHILD.GRANDCHILD.buildPath({ subId: true, id: "test" })).toEqual("/child/true/grand/test");
+  expect(TEST_ROUTE.$buildPath({ params: { id: 1 } })).toStrictEqual("/test/1");
+  expect(TEST_ROUTE.$.CHILD.$buildPath({ params: { subId: true } })).toStrictEqual("/child/true");
+  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$buildPath({ params: { id: 2 } })).toStrictEqual("/grand/2");
+  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$buildPath({ params: { subId: true, id: 3 } })).toStrictEqual(
+    "/child/true/grand/3",
+  );
 
-    expect(TEST_ROUTE.getTypedParams({ id: "1", subId: "true" })).toEqual({ id: 1 });
-    expect(TEST_ROUTE.$.CHILD.getTypedParams({ id: "1", subId: "true" })).toEqual({ subId: true });
-    expect(TEST_ROUTE.CHILD.$.GRANDCHILD.getTypedParams({ id: "1", subId: "true" })).toEqual({ id: "1" });
-    expect(TEST_ROUTE.$.CHILD.GRANDCHILD.getTypedParams({ id: "1", subId: "true" })).toEqual({ id: "1", subId: true });
+  expect(TEST_ROUTE.$deserializeParams({ id: "1", subId: "true" })).toStrictEqual({ id: 1 });
+  expect(TEST_ROUTE.$.CHILD.$deserializeParams({ id: "1", subId: "true" })).toStrictEqual({ subId: true });
+  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$deserializeParams({ id: "1", subId: "true" })).toStrictEqual({ id: 1 });
+  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$deserializeParams({ id: "1", subId: "true" })).toStrictEqual({
+    id: 1,
+    subId: true,
+  });
 });
 
 it("properly parses arrays in search params", () => {
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: number().array(),
-            b: number().defined().array(),
-            e: number().default(-1).array(),
-        },
-    });
+  const TEST_ROUTE = route({
+    path: "",
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: (number | undefined)[];
-                b: number[];
-                e: number[];
-            }
-        >
-    >(true);
+    searchParams: {
+      a: number().array(),
+      b: number().defined().array(),
+      e: number().default(-1).array(),
+    },
+  });
 
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.getPlainSearchParams>[0],
-            {
-                a?: number[];
-                b?: number[];
-                e?: number[];
-            }
-        >
-    >(true);
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a: number[];
+        b: number[];
+        e: number[];
+      }
+    >
+  >(true);
 
-    const testArray = ["1", "f"];
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.$serializeSearchParams>[0]["searchParams"],
+      {
+        a?: number[] | undefined;
+        b?: number[] | undefined;
+        e?: number[] | undefined;
+      }
+    >
+  >(true);
 
-    const testValue = createSearchParams({
-        a: testArray,
-        e: testArray,
-    });
+  const testArray = ["1", "f"];
 
-    const throwingTestValue = createSearchParams({
-        b: testArray,
-    });
+  const testValue = createSearchParams({
+    a: testArray,
+    e: testArray,
+  });
 
-    expect(TEST_ROUTE.getTypedSearchParams(testValue)).toEqual({
-        a: [1, undefined],
-        b: [],
-        e: [1, -1],
-    });
+  const throwingTestValue = createSearchParams({
+    b: testArray,
+  });
 
-    expect(() => TEST_ROUTE.getTypedSearchParams(throwingTestValue)).toThrow();
+  expect(TEST_ROUTE.$deserializeSearchParams(testValue)).toStrictEqual({
+    a: [1],
+    b: [],
+    e: [1, -1],
+  });
+
+  expect(() => TEST_ROUTE.$deserializeSearchParams(throwingTestValue)).toThrow();
 });
 
 it("ensures that required path params stay required if a custom type allows undefined as an input", () => {
-    const validateOptionalString = (value: unknown) => {
-        if (value === undefined) return undefined;
-        if (typeof value === "string") return value;
-        throw new Error("Not a string");
-    };
+  const validateOptionalString = (value: unknown) => {
+    if (value === undefined) return undefined;
+    if (typeof value === "string") return value;
+    throw new Error("Not a string");
+  };
 
-    const TEST_ROUTE = route(":id", {
-        params: {
-            id: type(validateOptionalString),
-        },
-    });
+  const TEST_ROUTE = route({
+    path: ":id",
 
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.getPlainParams>[0],
-            {
-                id: string;
-            }
-        >
-    >(true);
+    params: {
+      id: type(validateOptionalString),
+    },
+  });
+
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.$serializeParams>[0]["params"],
+      {
+        id: string;
+      }
+    >
+  >(true);
 });
 
 it("ensures that default/defined modifiers are applied if a custom type allows undefined as an input", () => {
-    const validateOptionalNumber = (value: unknown) => {
-        if (value === undefined) return undefined;
-        if (typeof value === "number") return value;
-        throw new Error("Not a number");
-    };
+  const validateOptionalNumber = (value: unknown) => {
+    if (value === undefined) return undefined;
+    if (typeof value === "number") return value;
+    throw new Error("Not a number");
+  };
 
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: type(validateOptionalNumber),
-            b: type(validateOptionalNumber).defined(),
-            c: type(validateOptionalNumber).default(-1),
-        },
-    });
+  const TEST_ROUTE = route({
+    path: "",
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: number | undefined;
-                b: number;
-                c: number;
-            }
-        >
-    >(true);
+    searchParams: {
+      a: type(validateOptionalNumber),
+      b: type(validateOptionalNumber).defined(),
+      c: type(validateOptionalNumber).default(-1),
+    },
+  });
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "1", b: "2", c: "3" }))).toEqual({
-        a: 1,
-        b: 2,
-        c: 3,
-    });
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a?: number;
+        b: number;
+        c: number;
+      }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ b: "2", c: "3" }))).toEqual({
-        b: 2,
-        c: 3,
-    });
+  expect(TEST_ROUTE.$deserializeSearchParams(createSearchParams({ a: "1", b: "2", c: "3" }))).toStrictEqual({
+    a: 1,
+    b: 2,
+    c: 3,
+  });
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ b: "2" }))).toEqual({
-        b: 2,
-        c: -1,
-    });
+  expect(TEST_ROUTE.$deserializeSearchParams(createSearchParams({ b: "2", c: "3" }))).toStrictEqual({
+    b: 2,
+    c: 3,
+  });
 
-    expect(() => TEST_ROUTE.getTypedSearchParams(createSearchParams({}))).toThrow();
+  expect(TEST_ROUTE.$deserializeSearchParams(createSearchParams({ b: "2" }))).toStrictEqual({
+    b: 2,
+    c: -1,
+  });
+
+  expect(() => TEST_ROUTE.$deserializeSearchParams(createSearchParams({}))).toThrow();
 });
 
 it("ensures that arrays don't accept undefined items if a custom type allows undefined as an input", () => {
-    const validateOptionalNumber = (value: unknown) => {
-        if (value === undefined) return undefined;
-        if (typeof value === "number") return value;
-        throw new Error("Not a number");
-    };
+  const validateOptionalNumber = (value: unknown) => {
+    if (value === undefined) return undefined;
+    if (typeof value === "number") return value;
+    throw new Error("Not a number");
+  };
 
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: type(validateOptionalNumber).array(),
-            c: type(validateOptionalNumber).default(-1).array(),
-        },
-    });
+  const TEST_ROUTE = route({
+    path: "",
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: (number | undefined)[];
-                c: number[];
-            }
-        >
-    >(true);
+    searchParams: {
+      a: type(validateOptionalNumber).array(),
+      c: type(validateOptionalNumber).default(-1).array(),
+    },
+  });
 
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.getPlainSearchParams>[0],
-            {
-                a?: number[];
-                c?: number[];
-            }
-        >
-    >(true);
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a: number[];
+        c: number[];
+      }
+    >
+  >(true);
+
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.$serializeSearchParams>[0]["searchParams"],
+      {
+        a?: number[] | undefined;
+        c?: number[] | undefined;
+      }
+    >
+  >(true);
 });
 
 it("allows to use zod", () => {
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: zod(z.string().optional()),
-            b: zod(z.number()),
-            c: zod(z.boolean()),
-            d: zod(z.date()),
-            e: zod(z.string().nullable()),
-            f: zod(z.string().nullable()),
-            g: zod(z.object({ d: z.coerce.date() })), // We have to coerce the result of JSON.parse
-        },
-    });
+  const TEST_ROUTE = route({
+    path: "",
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: string | undefined;
-                b: number | undefined;
-                c: boolean | undefined;
-                d: Date | undefined;
-                e: string | null | undefined;
-                f: string | null | undefined;
-                g: { d: Date } | undefined;
-            }
-        >
-    >(true);
+    searchParams: {
+      a: zod(z.string().optional()),
+      b: zod(z.number()),
+      c: zod(z.boolean()),
+      d: zod(z.date()),
+      e: zod(z.string().nullable()),
+      f: zod(z.string().nullable()),
+      g: zod(z.object({ d: z.coerce.date() })), // We have to coerce the result of JSON.parse
+    },
+  });
 
-    const testDate = new Date();
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a?: string;
+        b?: number;
+        c?: boolean;
+        d?: Date;
+        e?: string | null;
+        f?: string | null;
+        g?: { d: Date };
+      }
+    >
+  >(true);
 
-    const plainSearchParams = TEST_ROUTE.getPlainSearchParams({
-        a: "test",
-        b: 0,
-        c: false,
-        d: testDate,
-        e: "null",
-        f: null,
-        g: { d: testDate },
-    });
+  const testDate = new Date();
 
-    expect(plainSearchParams).toEqual({
-        a: "test",
-        b: "0",
-        c: "false",
-        d: testDate.toISOString(),
-        e: '"null"',
-        f: "null",
-        g: JSON.stringify({ d: testDate }),
-    });
+  const plainSearchParams = TEST_ROUTE.$serializeSearchParams({
+    searchParams: {
+      a: "test",
+      b: 0,
+      c: false,
+      d: testDate,
+      e: "null",
+      f: null,
+      g: { d: testDate },
+    },
+  });
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams(plainSearchParams))).toEqual({
-        a: "test",
-        b: 0,
-        c: false,
-        d: testDate,
-        e: "null",
-        f: null,
-        g: { d: testDate },
-    });
+  expect(urlSearchParamsToRecord(plainSearchParams)).toStrictEqual({
+    a: "test",
+    b: "0",
+    c: "false",
+    d: testDate.toISOString(),
+    e: '"null"',
+    f: "null",
+    g: JSON.stringify({ d: testDate }),
+  });
+
+  expect(TEST_ROUTE.$deserializeSearchParams(plainSearchParams)).toStrictEqual({
+    a: "test",
+    b: 0,
+    c: false,
+    d: testDate,
+    e: "null",
+    f: null,
+    g: { d: testDate },
+  });
 });
 
 it("allows to use yup", () => {
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: yup(y.string().optional()),
-            b: yup(y.number()),
-            c: yup(y.boolean()),
-            d: yup(y.date()),
-            e: yup(y.string().nullable()),
-            f: yup(y.string().nullable()),
-            g: yup(y.object({ d: y.date().defined() })),
-        },
-    });
+  const TEST_ROUTE = route({
+    path: "",
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: string | undefined;
-                b: number | undefined;
-                c: boolean | undefined;
-                d: Date | undefined;
-                e: string | null | undefined;
-                f: string | null | undefined;
-                g: { d: Date } | undefined;
-            }
-        >
-    >(true);
+    searchParams: {
+      a: yup(y.string().optional()),
+      b: yup(y.number()),
+      c: yup(y.boolean()),
+      d: yup(y.date()),
+      e: yup(y.string().nullable()),
+      f: yup(y.string().nullable()),
+      g: yup(y.object({ d: y.date().defined() })),
+    },
+  });
 
-    const testDate = new Date();
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a?: string;
+        b?: number;
+        c?: boolean;
+        d?: Date;
+        e?: string | null;
+        f?: string | null;
+        g?: { d: Date };
+      }
+    >
+  >(true);
 
-    const plainSearchParams = TEST_ROUTE.getPlainSearchParams({
-        a: "test",
-        b: 0,
-        c: false,
-        d: testDate,
-        e: "null",
-        f: null,
-        g: { d: testDate },
-    });
+  const testDate = new Date();
 
-    expect(plainSearchParams).toEqual({
-        a: "test",
-        b: "0",
-        c: "false",
-        d: testDate.toISOString(),
-        e: '"null"',
-        f: "null",
-        g: JSON.stringify({ d: testDate }),
-    });
+  const plainSearchParams = TEST_ROUTE.$serializeSearchParams({
+    searchParams: {
+      a: "test",
+      b: 0,
+      c: false,
+      d: testDate,
+      e: "null",
+      f: null,
+      g: { d: testDate },
+    },
+  });
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams(plainSearchParams))).toEqual({
-        a: "test",
-        b: 0,
-        c: false,
-        d: testDate,
-        e: "null",
-        f: null,
-        g: { d: testDate },
-    });
+  expect(urlSearchParamsToRecord(plainSearchParams)).toStrictEqual({
+    a: "test",
+    b: "0",
+    c: "false",
+    d: testDate.toISOString(),
+    e: '"null"',
+    f: "null",
+    g: JSON.stringify({ d: testDate }),
+  });
+
+  expect(TEST_ROUTE.$deserializeSearchParams(plainSearchParams)).toStrictEqual({
+    a: "test",
+    b: 0,
+    c: false,
+    d: testDate,
+    e: "null",
+    f: null,
+    g: { d: testDate },
+  });
 });
 
 it("allows to specify defaults within zod types", () => {
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: zod(z.number().default(-1)),
-        },
-    });
+  const TEST_ROUTE = route({
+    path: "",
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: number | undefined;
-            }
-        >
-    >(true);
+    searchParams: {
+      a: zod(z.number().default(-1)),
+    },
+  });
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams())).toEqual({
-        a: -1,
-    });
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a?: number;
+      }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "f" }))).toEqual({
-        a: undefined,
-    });
+  expect(TEST_ROUTE.$deserializeSearchParams(createSearchParams())).toStrictEqual({
+    a: -1,
+  });
+
+  expect(TEST_ROUTE.$deserializeSearchParams(createSearchParams({ a: "f" }))).toStrictEqual({});
 });
 
 it("allows to specify defaults within yup schemas", () => {
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: yup(y.number().default(-1)),
-        },
-    });
+  const TEST_ROUTE = route({
+    path: "",
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: number | undefined;
-            }
-        >
-    >(true);
+    searchParams: {
+      a: yup(y.number().default(-1)),
+    },
+  });
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams())).toEqual({
-        a: -1,
-    });
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a?: number;
+      }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "f" }))).toEqual({
-        a: undefined,
-    });
+  expect(TEST_ROUTE.$deserializeSearchParams(createSearchParams())).toStrictEqual({
+    a: -1,
+  });
+
+  expect(TEST_ROUTE.$deserializeSearchParams(createSearchParams({ a: "f" }))).toStrictEqual({});
 });
 
 it("allows to use unions", () => {
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: union(1, true, "test"),
-            b: union([1, true, "test"] as const),
-            c: union([1, true, "test"] as const).defined(),
-        },
-    });
+  const TEST_ROUTE = route({
+    path: "",
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: 1 | true | "test" | undefined;
-                b: 1 | true | "test" | undefined;
-                c: 1 | true | "test";
-            }
-        >
-    >(true);
+    searchParams: {
+      a: union([1, true, "test"]),
+      b: union([1, true, "test"]),
+      c: union([1, true, "test"]).defined(),
+    },
+  });
 
-    const plainSearchParams = TEST_ROUTE.getPlainSearchParams({
-        a: "test",
-        b: 1,
-        c: true,
-    });
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a?: 1 | true | "test";
+        b?: 1 | true | "test";
+        c: 1 | true | "test";
+      }
+    >
+  >(true);
 
-    expect(plainSearchParams).toEqual({
-        a: "test",
-        b: "1",
-        c: "true",
-    });
+  const plainSearchParams = TEST_ROUTE.$serializeSearchParams({
+    searchParams: {
+      a: "test",
+      b: 1,
+      c: true,
+    },
+  });
 
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams(plainSearchParams))).toEqual({
-        a: "test",
-        b: 1,
-        c: true,
-    });
+  expect(urlSearchParamsToRecord(plainSearchParams)).toStrictEqual({
+    a: "test",
+    b: "1",
+    c: "true",
+  });
+
+  expect(TEST_ROUTE.$deserializeSearchParams(plainSearchParams)).toStrictEqual({
+    a: "test",
+    b: 1,
+    c: true,
+  });
 });
 
 it("allows to define different types for different route parts", () => {
-    const testType: ParamType<string, number> & SearchParamType<number, string> & StateParamType<boolean, Date> = {
-        getPlainParam: (value) => "path plain",
-        getTypedParam: (value) => "path typed",
-        getPlainSearchParam: (value) => "search plain",
-        getTypedSearchParam: (value) => -1,
-        getPlainStateParam: (value) => "state",
-        getTypedStateParam: (value) => false,
-    };
+  const testType: PathnameType<string, number> & SearchType<number, string> & StateType<boolean, Date> = {
+    serializeParam: (value) => "path plain",
+    deserializeParam: (value) => "path typed",
+    serializeSearchParam: (value) => "search plain",
+    deserializeSearchParam: (value) => -1,
+    serializeState: (value) => "state",
+    deserializeState: (value) => false,
+  };
 
-    const TEST_ROUTE = route(":id", {
-        params: { id: testType },
-        searchParams: { id: testType },
-        state: { id: testType },
-    });
+  const TEST_ROUTE = route({
+    path: ":id",
+    params: { id: testType },
+    searchParams: { id: testType },
+    state: { id: testType },
+  });
 
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.getPlainParams>[0],
-            {
-                id: number;
-            }
-        >
-    >(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.$serializeParams>[0]["params"],
+      {
+        id: number;
+      }
+    >
+  >(true);
 
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.getPlainSearchParams>[0],
-            {
-                id?: string;
-            }
-        >
-    >(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.$serializeSearchParams>[0]["searchParams"],
+      {
+        id?: string | undefined;
+      }
+    >
+  >(true);
 
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.buildState>[0],
-            {
-                id?: Date;
-            }
-        >
-    >(true);
+  assert<
+    IsExact<
+      Parameters<typeof TEST_ROUTE.$buildState>[0]["state"],
+      {
+        id?: Date | undefined;
+      }
+    >
+  >(true);
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedParams>,
-            {
-                id: string;
-            }
-        >
-    >(true);
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeParams>,
+      {
+        id: string;
+      }
+    >
+  >(true);
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                id: number;
-            }
-        >
-    >(true);
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        id: number;
+      }
+    >
+  >(true);
 
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedState>,
-            {
-                id: boolean;
-            }
-        >
-    >(true);
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeState>,
+      {
+        id: boolean;
+      }
+    >
+  >(true);
 
-    expect(TEST_ROUTE.getPlainParams({ id: 1 })).toEqual({ id: "path plain" });
-    expect(TEST_ROUTE.getTypedParams({ id: "" })).toEqual({ id: "path typed" });
-    expect(TEST_ROUTE.getPlainSearchParams({ id: "" })).toEqual({ id: "search plain" });
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ id: "" }))).toEqual({ id: -1 });
-    expect(TEST_ROUTE.buildState({ id: new Date() })).toEqual({ id: "state" });
-    expect(TEST_ROUTE.getTypedState({ id: false })).toEqual({ id: false });
-});
-
-it("allows to mix types with deprecated ones", () => {
-    const TEST_ROUTE = route("", {
-        searchParams: {
-            a: number().defined(),
-            b: numberType(throwable),
-        },
-    });
-
-    assert<
-        IsExact<
-            Parameters<typeof TEST_ROUTE.getPlainSearchParams>[0],
-            {
-                a?: number;
-                b?: number;
-            }
-        >
-    >(true);
-
-    assert<
-        IsExact<
-            ReturnType<typeof TEST_ROUTE.getTypedSearchParams>,
-            {
-                a: number;
-                b: number;
-            }
-        >
-    >(true);
-
-    expect(TEST_ROUTE.getPlainSearchParams({ a: 1, b: 1 })).toEqual({ a: "1", b: "1" });
-    expect(TEST_ROUTE.getTypedSearchParams(createSearchParams({ a: "1", b: "1" }))).toEqual({ a: 1, b: 1 });
+  expect(TEST_ROUTE.$serializeParams({ params: { id: 1 } })).toStrictEqual({ id: "path plain" });
+  expect(TEST_ROUTE.$deserializeParams({ id: "" })).toStrictEqual({ id: "path typed" });
+  expect(urlSearchParamsToRecord(TEST_ROUTE.$serializeSearchParams({ searchParams: { id: "" } }))).toStrictEqual({
+    id: "search plain",
+  });
+  expect(TEST_ROUTE.$deserializeSearchParams(createSearchParams({ id: "" }))).toStrictEqual({ id: -1 });
+  expect(TEST_ROUTE.$buildState({ state: { id: new Date() } })).toStrictEqual({ id: "state" });
+  expect(TEST_ROUTE.$deserializeState({ id: false })).toStrictEqual({ id: false });
 });
 
 it("generates correct paths when the first segment is optional", () => {
-    const TEST_ROUTE = route(":optional?/:required");
+  const TEST_ROUTE = route({
+    path: ":optional?/:required",
+  });
 
-    expect(TEST_ROUTE.buildPath({ required: "req" })).toEqual("/req");
-    expect(TEST_ROUTE.buildPath({ optional: "opt", required: "req" })).toEqual("/opt/req");
+  expect(TEST_ROUTE.$buildPath({ params: { required: "req" } })).toStrictEqual("/req");
+  expect(TEST_ROUTE.$buildPath({ params: { optional: "opt", required: "req" } })).toStrictEqual("/opt/req");
 
-    expect(TEST_ROUTE.buildRelativePath({ required: "req" })).toEqual("req");
-    expect(TEST_ROUTE.buildRelativePath({ optional: "opt", required: "req" })).toEqual("opt/req");
+  expect(TEST_ROUTE.$buildPath({ params: { required: "req" }, relative: true })).toStrictEqual("req");
+  expect(TEST_ROUTE.$buildPath({ params: { optional: "opt", required: "req" }, relative: true })).toStrictEqual(
+    "opt/req",
+  );
 });
 
-it("disallows pathname input params when there are no pathname params", () => {
-    const TEST_ROUTE = route("test");
-    const TEST_ROUTE_WITH_EMPTY_PARAMS = route("test", { params: {} });
+it("provides a base type that any route is assignable to", () => {
+  const TEST_ROUTE = route({
+    path: "test/:a/:b/:c?",
+    params: { a: number() },
+    searchParams: { q: string() },
+    state: { s: boolean() },
+    hash: ["hash1", "hash2"],
 
-    // @ts-expect-error There are no pathname params
-    TEST_ROUTE.buildPath({ id: 1 });
+    children: {
+      CHILD: route({
+        path: ":d",
+        params: { d: number() },
+        searchParams: { s: string() },
+        state: { f: number() },
+        hash: boolean(),
+      }),
+    },
+  });
 
-    // @ts-expect-error There are no pathname params
-    TEST_ROUTE_WITH_EMPTY_PARAMS.buildPath({ id: 1 });
+  const EMPTY_ROUTE = route({
+    path: "",
+  });
+
+  const PATHLESS_ROUTE = route({});
+
+  const ROUTE_WITH_ATOMIC_STATE = route({
+    path: "test",
+    state: number(),
+  });
+
+  const test1: Route = TEST_ROUTE;
+  const test2: Route = TEST_ROUTE.CHILD;
+  const test3: Route = EMPTY_ROUTE;
+  const test4: Route = PATHLESS_ROUTE;
+  const test5: Route = ROUTE_WITH_ATOMIC_STATE;
+
+  expect(test1).toBeTruthy();
+  expect(test2).toBeTruthy();
+  expect(test3).toBeTruthy();
+  expect(test4).toBeTruthy();
+  expect(test5).toBeTruthy();
 });
 
-it("disallows search input params when there are no search params", () => {
-    const TEST_ROUTE = route("test");
-    const TEST_ROUTE_WITH_EMPTY_PARAMS = route("test", { searchParams: {} });
+it("checks that leading and trailing slashes are forbidden", () => {
+  expect(
+    route({
+      // @ts-expect-error Checking leading slash error
+      path: "/test",
+    }),
+  ).toBeTruthy();
 
-    // @ts-expect-error There are no search params
-    TEST_ROUTE.buildPath({}, { id: 1 });
+  expect(
+    route({
+      // @ts-expect-error Checking trailing slash error
+      path: "test/",
+    }),
+  ).toBeTruthy();
 
-    // @ts-expect-error There are no search params
-    TEST_ROUTE_WITH_EMPTY_PARAMS.buildPath({}, { id: 1 });
+  expect(
+    route({
+      // @ts-expect-error Checking both
+      path: "/test/",
+    }),
+  ).toBeTruthy();
 });
 
-it("disallows state input params when there are no state params", () => {
-    const TEST_ROUTE = route("test");
-    const TEST_ROUTE_WITH_EMPTY_PARAMS = route("test", { state: {} });
+it("checks that route children are valid", () => {
+  expect(
+    route({
+      path: "",
+      children: {
+        // @ts-expect-error Checking single invalid child name
+        $child: route({
+          path: "",
+        }),
+      },
+    }),
+  ).toBeTruthy();
 
-    // @ts-expect-error There are no state params
-    TEST_ROUTE.buildState({ id: 1 });
+  expect(
+    route({
+      path: "",
+      children: {
+        valid: route({
+          path: "",
+        }),
+        // @ts-expect-error Checking mix of valid and invalid children names
+        $child: route({
+          path: "",
+        }),
+      },
+    }),
+  ).toBeTruthy();
 
-    // @ts-expect-error There are no state params
-    TEST_ROUTE_WITH_EMPTY_PARAMS.buildState({ id: 1 });
+  expect(
+    route({
+      path: "",
+      children: {
+        // @ts-expect-error Checking single invalid child value
+        child: 1,
+      },
+    }),
+  ).toBeTruthy();
+
+  expect(
+    route({
+      path: "",
+      children: {
+        valid: route({
+          path: "",
+        }),
+        // @ts-expect-error Checking mix of valid and invalid children values
+        child: 1,
+      },
+    }),
+  ).toBeTruthy();
 });
+
+it("allows to type state as a whole", () => {
+  const TEST_ROUTE = route({ state: string(), children: { CHILD: route({ state: number() }) } });
+
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeState>, string | undefined>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeState>, number | undefined>>(true);
+
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.$buildState>, unknown>>(true);
+  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$buildState>, unknown>>(true);
+
+  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildState>[0]["state"], string>>(true);
+  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildState>[0]["state"], number>>(true);
+
+  expect(TEST_ROUTE.$deserializeState("foo")).toStrictEqual("foo");
+  expect(TEST_ROUTE.CHILD.$deserializeState(1)).toStrictEqual(1);
+
+  expect(TEST_ROUTE.$deserializeState(1)).toStrictEqual(undefined);
+  expect(TEST_ROUTE.CHILD.$deserializeState("foo")).toStrictEqual(undefined);
+
+  expect(TEST_ROUTE.$buildState({ state: "foo" })).toStrictEqual("foo");
+  expect(TEST_ROUTE.CHILD.$buildState({ state: 1 })).toStrictEqual(1);
+});
+
+it("allows to preserve untyped search params on path/query building", () => {
+  const TEST_ROUTE = route({ path: "test", searchParams: { typed: number(), typedUnused: boolean() } });
+
+  const testSearchParams = createSearchParams({ typed: "1", typedUnused: "true", untyped: "foo" });
+
+  expect(TEST_ROUTE.$buildPath({ searchParams: { typed: 42 }, untypedSearchParams: testSearchParams })).toStrictEqual(
+    "/test?typed=42&untyped=foo",
+  );
+
+  expect(TEST_ROUTE.$buildSearch({ searchParams: { typed: 42 }, untypedSearchParams: testSearchParams })).toStrictEqual(
+    "?typed=42&untyped=foo",
+  );
+});
+
+it("allows to preserve untyped state on state building", () => {
+  const TEST_ROUTE = route({ path: "test", state: { typed: number(), typedUnused: boolean() } });
+
+  const testState = { typed: "1", typedUnused: "true", untyped: "foo" };
+
+  expect(TEST_ROUTE.$buildState({ state: { typed: 42 }, untypedState: testState })).toStrictEqual({
+    typed: 42,
+    untyped: "foo",
+  });
+});
+
+it("ignores preserveUntyped option when state is typed as a whole", () => {
+  const TEST_ROUTE = route({ path: "test", state: number() });
+
+  const testState = { untyped: "foo" };
+
+  expect(TEST_ROUTE.$buildState({ state: 42, untypedState: testState })).toStrictEqual(42);
+});
+
+it("ties pathname params to path pattern", () => {
+  // If path is empty, nothing is allowed
+  // @ts-expect-error No params allowed
+  expect(route({ path: "", params: { "": string() } })).toBeTruthy();
+
+  // If path has params, non-existent params are forbidden
+  // @ts-expect-error Unknown param
+  expect(route({ path: ":id/:test", params: { something: string() } })).toBeTruthy();
+
+  // If path has params, it's possible to override only some of them
+  expect(route({ path: ":id/:test", params: { id: string() } })).toBeTruthy();
+
+  // Undefined is always forbidden
+  // @ts-expect-error Undefined is forbidden
+  expect(route({ path: ":id/:test", params: { id: undefined } })).toBeTruthy();
+  // @ts-expect-error Undefined is forbidden
+  expect(route({ params: { something: undefined } })).toBeTruthy();
+});
+
+it("allows pathless routes", () => {
+  const grandchild = route({ path: "grandchild" });
+  const child = route({ children: { grandchild } });
+  const testRoute = route({ path: "test", children: { child } });
+
+  expect(child.$path).toBe(undefined);
+  expect(testRoute.$.child.$path).toBe(undefined);
+  expect(testRoute.child.$path).toBe("/test");
+  expect(testRoute.child.grandchild.$path).toBe("/test/grandchild");
+  expect(testRoute.$.child.grandchild.$path).toBe("/grandchild");
+});
+
+it("preserves pathless routes in chains", () => {
+  const grandchild = route({});
+  const child = route({ children: { grandchild } });
+  const test = route({ children: { child } });
+
+  expect(test.child.grandchild.$path).toBe(undefined);
+  expect(test.$.child.grandchild.$path).toBe(undefined);
+});
+
+it("allows to parse params with pathless routes", () => {
+  const pathlessRoute = route({ params: { id: number() } });
+
+  expect(pathlessRoute.$deserializeParams({ id: "1" })).toStrictEqual({ id: 1 });
+});
+
+it("builds empty pathnames with pathless routes", () => {
+  const pathlessRoute = route({ params: { id: number() } });
+
+  expect(pathlessRoute.$buildPathname({ params: { id: 1 } })).toStrictEqual("/");
+  expect(pathlessRoute.$serializeParams({ params: { id: 1 } })).toStrictEqual({});
+});
+
+it("prevents excessive plain pathname params for routes without dynamic segments", () => {
+  const pathlessRoute = route({ params: { id: number(), sid: string() } });
+
+  const emptyRoute = route({ path: "", compose: [pathlessRoute] });
+
+  expect(pathlessRoute.$buildPathname({ params: { id: 1, sid: "1", nid: "2" } })).toStrictEqual("/");
+  expect(pathlessRoute.$serializeParams({ params: { id: 1, sid: "1", nid: "2" } })).toStrictEqual({});
+
+  expect(emptyRoute.$buildPathname({ params: { id: 1, sid: "1", nid: "2" } })).toStrictEqual("/");
+  expect(emptyRoute.$serializeParams({ params: { id: 1, sid: "1", nid: "2" } })).toStrictEqual({});
+});
+
+it("ensures that types of non-existent pathname params are ignored", () => {
+  const excessParams = route({ params: { id: number(), fake: number() } });
+
+  const testRoute = route({ path: ":id", compose: [excessParams] });
+
+  assert<IsExact<Parameters<typeof testRoute.$buildPathname>[0]["params"], { id: number }>>(true);
+  assert<IsExact<ReturnType<typeof testRoute.$deserializeParams>, { id?: number }>>(true);
+
+  expect(testRoute.$deserializeParams({ id: "1", fake: "2", unknown: "3" })).toStrictEqual({ id: 1 });
+});
+
+it("allows to inherit pathname types", () => {
+  const routes = route({
+    params: {
+      id: number(),
+    },
+    children: {
+      main: route({ path: ":id" }),
+      other: route({
+        path: "other",
+        children: {
+          entity: route({ path: ":id" }),
+        },
+      }),
+    },
+  });
+
+  assert<IsExact<Parameters<typeof routes.main.$buildPathname>[0]["params"], { id: number }>>(true);
+  assert<IsExact<Parameters<typeof routes.other.$buildPathname>[0]["params"], Record<never, never>>>(true);
+  assert<IsExact<Parameters<typeof routes.other.entity.$buildPathname>[0]["params"], { id: number }>>(true);
+
+  expect(routes.main.$deserializeParams({ id: "1" })).toStrictEqual({ id: 1 });
+  expect(routes.other.$deserializeParams({ id: "1" })).toStrictEqual({});
+  expect(routes.other.entity.$deserializeParams({ id: "1" })).toStrictEqual({ id: 1 });
+});
+
+it("allows to inherit composed pathname types", () => {
+  const idFragment = route({ params: { id: number() } });
+
+  const routes = route({
+    path: "test",
+    compose: [idFragment],
+    children: {
+      main: route({ path: ":id" }),
+    },
+  });
+
+  assert<IsExact<Parameters<typeof routes.main.$buildPathname>[0]["params"], { id: number }>>(true);
+
+  expect(routes.main.$deserializeParams({ id: "1" })).toStrictEqual({ id: 1 });
+});
+
+it("handles complex nested inlined routes", () => {
+  const routes = route({
+    searchParams: { utm_campaign: string().default("default_campaign") },
+    children: {
+      user: route({
+        path: "user/:id",
+        params: { id: number().defined() },
+        state: { fromUserList: boolean() },
+        hash: union(["info", "comments"]),
+        children: {
+          details: route({ path: "details/:lang?" }),
+        },
+      }),
+    },
+  });
+
+  assert<IsExact<typeof routes.user.details.$path, "/user/:id/details/:lang?">>(true);
+});
+
+it("provides a helper for extracting pathname params", () => {
+  assert<IsExact<PathParam<"">, never>>(true);
+  assert<IsExact<PathParam<"test">, never>>(true);
+
+  assert<IsExact<PathParam<"test/:id">, "id">>(true);
+  assert<IsExact<PathParam<"test/:id/:subId">, "id" | "subId">>(true);
+  assert<IsExact<PathParam<"test/:id?">, "id">>(true);
+  assert<IsExact<PathParam<"test/:id?/:subId?">, "id" | "subId">>(true);
+
+  assert<IsExact<PathParam<"test/*">, "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*">, "id" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id?/*">, "id" | "*">>(true);
+
+  assert<IsExact<PathParam<"test/:id/*", "all", "out">, "id" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*", "all", "in">, "id" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*", "optional", "out">, never>>(true);
+  assert<IsExact<PathParam<"test/:id/*", "optional", "in">, "*">>(true);
+
+  assert<IsExact<PathParam<"test/:id/*?", "all", "out">, "id" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*?", "all", "in">, "id" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*?", "optional", "out">, "*">>(true);
+  assert<IsExact<PathParam<"test/:id/*?", "optional", "in">, "*">>(true);
+
+  assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "all", "out">, "id" | "subId" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "all", "in">, "id" | "subId">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "optional", "out">, "subId">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "optional", "in">, "subId">>(true);
+
+  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "all", "out">, "id" | "subId" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "all", "in">, "id" | "subId">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "optional", "out">, "subId" | "*">>(true);
+  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "optional", "in">, "subId">>(true);
+});
+
+it("supports enums in union()", () => {
+  enum Value {
+    A = "a",
+    B = "b",
+  }
+
+  enum ValueNum {
+    A,
+    B,
+  }
+
+  const ValueObj = {
+    A: 1,
+    B: 2,
+  } as const;
+
+  const testRoute = route({
+    searchParams: {
+      testEnum: union(Value),
+      testNum: union(ValueNum),
+      testNumInvalid: union(ValueNum),
+      testObj: union(ValueObj),
+    },
+  });
+
+  assert<
+    IsExact<
+      ReturnType<typeof testRoute.$deserializeSearchParams>,
+      { testEnum?: Value; testNum?: ValueNum; testNumInvalid?: ValueNum; testObj?: 1 | 2 }
+    >
+  >(true);
+
+  const testSearchParams = createSearchParams({ testEnum: "a", testNum: "1", testNumInvalid: "B", testObj: "2" });
+
+  expect(testRoute.$deserializeSearchParams(testSearchParams)).toStrictEqual({
+    testEnum: Value.A,
+    testNum: ValueNum.B,
+    testObj: ValueObj.B,
+  });
+});
+
+it("allows to configure parser globally", () => {
+  const { string, number, boolean, date, union, type } = configure({ parserFactory: customParser });
+
+  const validator = (val: unknown) => Number(val);
+
+  const mRoute = route({
+    path: ":s/:n/:b/:d/:u/:t",
+    params: {
+      s: string(),
+      n: number(),
+      b: boolean(),
+      d: date(),
+      u: union([1, "test", true]),
+      t: type(validator),
+    },
+  });
+
+  const dateValue = new Date();
+
+  expect(mRoute.$serializeParams({ params: { s: "test", n: 1, b: true, d: dateValue, u: 1, t: 1 } })).toStrictEqual({
+    s: "s:test",
+    n: "n:1",
+    b: "b:true",
+    d: "d:" + dateValue.toISOString(),
+    u: "n:1",
+    t: "1",
+  });
+});
+
+it("allows to configure parser globally for zod", () => {
+  const { zod } = configureZod({ parserFactory: customParser });
+
+  const testRoute = route({
+    path: ":id",
+    params: {
+      id: zod(z.number()),
+    },
+  });
+
+  expect(testRoute.$serializeParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
+});
+
+it("allows to configure parser globally for yup", () => {
+  const { yup } = configureYup({ parserFactory: customParser });
+
+  const testRoute = route({
+    path: ":id",
+    params: {
+      id: yup(y.number()),
+    },
+  });
+
+  expect(testRoute.$serializeParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
+});
+
+it("allows to configure parser locally", () => {
+  const stringValidator = (value: string) => {
+    if (!value.length) throw new Error("Must be non-empty");
+
+    return value;
+  };
+
+  const numberValidator = (value: number) => {
+    if (value < 0) throw new Error("Must be non-negative");
+
+    return value;
+  };
+
+  const booleanValidator = (value: boolean) => {
+    if (!value) throw new Error("Must be true");
+
+    return value;
+  };
+
+  const dateValidator = (value: Date) => {
+    if (value.getTime() < 0) throw new Error("Must be non-negative");
+
+    return value;
+  };
+
+  const testRoute = route({
+    path: ":s/:sv/:n/:nv/:b/:bv/:d/:dv/:u",
+    params: {
+      s: string(customParser("string")),
+      sv: string(stringValidator, customParser("string")),
+      n: number(customParser("number")),
+      nv: number(numberValidator, customParser("number")),
+      b: boolean(customParser("boolean")),
+      bv: boolean(booleanValidator, customParser("boolean")),
+      d: date(customParser("date")),
+      dv: date(dateValidator, customParser("date")),
+      u: union([1, "test", true], customParser()),
+    },
+  });
+
+  const dateValue = new Date();
+
+  expect(
+    testRoute.$serializeParams({
+      params: {
+        s: "test",
+        sv: "test",
+        n: 1,
+        nv: 1,
+        b: true,
+        bv: true,
+        d: dateValue,
+        dv: dateValue,
+        u: 1,
+      },
+    }),
+  ).toStrictEqual({
+    s: "s:test",
+    sv: "s:test",
+    n: "n:1",
+    nv: "n:1",
+    b: "b:true",
+    bv: "b:true",
+    d: "d:" + dateValue.toISOString(),
+    dv: "d:" + dateValue.toISOString(),
+    u: "n:1",
+  });
+});
+
+it("allows to configure parser locally for zod", () => {
+  const testRoute = route({
+    path: ":id",
+    params: {
+      id: zod(z.number(), customParser("number")),
+    },
+  });
+
+  expect(testRoute.$serializeParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
+});
+
+it("allows to configure parser locally for yup", () => {
+  const testRoute = route({
+    path: ":id",
+    params: {
+      id: yup(y.number(), customParser("number")),
+    },
+  });
+
+  expect(testRoute.$serializeParams({ params: { id: 1 } })).toStrictEqual({ id: "n:1" });
+});
+
+function urlSearchParamsToRecord(params: URLSearchParams): Record<string, string | string[]> {
+  const result: Record<string, string | string[]> = {};
+
+  for (const [key, value] of params.entries()) {
+    if (result[key] === undefined) {
+      result[key] = value;
+    } else {
+      if (typeof result[key] === "string") {
+        result[key] = [result[key] as string];
+      }
+
+      (result[key] as string[]).push(value);
+    }
+  }
+
+  return result;
+}
+
+type CustomParserHint = ParserHint | "entity";
+
+type CustomParserType<T extends CustomParserHint> = T extends "entity"
+  ? { id: number }
+  : ParserType<Exclude<T, "entity">>;
+
+function customParser<T extends CustomParserHint>(defaultHint?: T): Parser<CustomParserType<T>, CustomParserHint> {
+  return {
+    stringify(value, { hint }) {
+      const resolvedHint = hint ?? defaultHint;
+
+      if (resolvedHint === "string" && typeof value === "string") {
+        return "s:" + value;
+      }
+
+      if (resolvedHint === "number" && typeof value === "number") {
+        return "n:" + JSON.stringify(value);
+      }
+
+      if (resolvedHint === "boolean" && typeof value === "boolean") {
+        return "b:" + JSON.stringify(value);
+      }
+
+      if (resolvedHint === "date" && value instanceof Date) {
+        return "d:" + value.toISOString();
+      }
+
+      return JSON.stringify(value);
+    },
+    parse(value, { hint }) {
+      const resolvedHint = hint ?? defaultHint;
+
+      if (resolvedHint === "string") {
+        return value.replace(/^s:/, "");
+      }
+
+      if (resolvedHint === "number") {
+        return JSON.parse(value.replace(/^n:/, "")) as unknown;
+      }
+
+      if (resolvedHint === "boolean") {
+        return JSON.parse(value.replace(/^b:/, "")) as unknown;
+      }
+
+      if (resolvedHint === "date") {
+        return new Date(value.replace(/^d:/, ""));
+      }
+
+      return JSON.parse(value) as unknown;
+    },
+  };
+}

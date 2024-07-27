@@ -1,1 +1,1 @@
-export { yup } from "./yup.js";
+export * from "./yup.js";

@@ -4,6 +4,8 @@ jobs:
   release:
     environment: NPM
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -14,7 +16,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 20
           registry-url: https://registry.npmjs.org/
 
       - name: Configure Git
@@ -46,15 +48,18 @@ jobs:
           git push
           git push --tags
 
+      - name: Prepare package
+        run: yarn pack
+
       - name: Publish to NPM (next)
-        run: yarn npm publish --tag next
+        run: npm publish package.tgz --tag next --provenance
         env:
-          YARN_NPM_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
       - name: Publish to NPM (latest)
-        run: yarn npm tag add react-router-typesafe-routes@${{ steps.package-version.outputs.current-version}} latest
+        run: npm tag add react-router-typesafe-routes@${{ steps.package-version.outputs.current-version}} latest
         env:
-          YARN_NPM_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
       - name: Update main branch
         run: |

@@ -1,10 +1,9 @@
-import { Route } from "../common/index.js";
+import { Route, RouteSpec, OutHash } from "../common/index.js";
 import { useLocation } from "react-router-native";
 import { useMemo } from "react";
 
-export function useTypedHash<TPath extends string, TPathTypes, TSearchTypes, THash extends string[], TStateTypes>(
-    route: Route<TPath, TPathTypes, TSearchTypes, THash, TStateTypes>
-): THash[number] | undefined {
-    const location = useLocation();
-    return useMemo(() => route.getTypedHash(location.hash), [route, location.hash]);
+export function useTypedHash<TSpec extends RouteSpec>(route: Route<TSpec>): OutHash<TSpec> {
+  const location = useLocation();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return useMemo(() => route.$deserializeHash(location.hash), [route, location.hash]);
 }
