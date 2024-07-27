@@ -668,7 +668,7 @@ It returns a valid value or throws (or returns `undefined`) if that's impossible
 
 The important thing is that it has to handle both the original value and whatever the corresponding parser returns.
 
-##### `type()`
+##### Base helper
 
 The `type()` helper is a built-in type that all other built-in types are based on. The resulting param type is inferred from the given validator.
 
@@ -942,7 +942,7 @@ It accepts the following type hints:
 
 All type helpers are wrappers around `type()`. It's primarily exposed for integrating third-party validation libraries, but it can also be used directly, if needed.
 
-See [Typing: Type helpers](#type-helpers).
+See [Typing: Base helper](#base-helper).
 
 There are built-in helpers for common types:
 
