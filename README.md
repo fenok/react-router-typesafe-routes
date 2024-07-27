@@ -193,7 +193,7 @@ const [{ utm_campaign }, setTypedSearchParams] = useTypedSearchParams(root.user.
 // Uses root.user.post.$deserializeHash internally.
 const hash = useTypedHash(root.user.post);
 
-// { fromUserList: boolean | undefined }.
+// { fromUserList?: boolean }.
 // Uses root.user.post.$deserializeState internally.
 const { fromUserList } = useTypedState(root.user.post);
 ```
