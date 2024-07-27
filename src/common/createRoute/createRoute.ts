@@ -16,11 +16,11 @@ interface RouteApi<TSpec extends RouteSpec = RouteSpec> {
   $relativePath: PathWithoutIntermediateStars<TSpec["path"]>;
   $buildPath: (opts: BuildPathOptions<TSpec>) => string;
   $buildPathname: (opts: BuildPathnameOptions<TSpec>) => string;
-  $serializeParams: (opts: SerializePathnameParamsOptions<TSpec>) => PathnameParams;
   $buildSearch: (opts: BuildSearchOptions<TSpec>) => string;
-  $serializeSearchParams: (opts: BuildSearchOptions<TSpec>) => URLSearchParams;
   $buildHash: (opts: BuildHashOptions<TSpec>) => string;
   $buildState: (opts: BuildStateOptions<TSpec>) => PlainState<TSpec["state"]>;
+  $serializeParams: (opts: SerializePathnameParamsOptions<TSpec>) => PathnameParams;
+  $serializeSearchParams: (opts: BuildSearchOptions<TSpec>) => URLSearchParams;
   $deserializeParams: (params: PathnameParams) => OutPathnameParams<TSpec>;
   $deserializeSearchParams: (searchParams: URLSearchParams) => OutSearchParams<TSpec>;
   $deserializeHash: (hash: string) => OutHash<TSpec>;
@@ -702,11 +702,11 @@ function getRouteApi<
     $relativePath: relativePath,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
-    $serializeParams: getPlainParams,
     $buildSearch: buildSearch,
-    $serializeSearchParams: getPlainSearchParams,
     $buildHash: buildHash,
     $buildState: buildState,
+    $serializeParams: getPlainParams,
+    $serializeSearchParams: getPlainSearchParams,
     $deserializeParams: getTypedParams,
     $deserializeSearchParams: getTypedSearchParams,
     $deserializeHash: getTypedHash,
