@@ -737,16 +737,16 @@ interface SearchType<TOut, TIn = TOut> {
   deserializeSearchParam: (plainValue: string[]) => TOut;
 }
 
-// Can be used for state fields or the whole state
-interface StateType<TOut, TIn = TOut> {
-  serializeState: (originalValue: Exclude<TIn, undefined>) => unknown;
-  deserializeState: (plainValue: unknown) => TOut;
-}
-
 // Can be used for hash
 interface HashType<TOut, TIn = TOut> {
   serializeHash: (originalValue: Exclude<TIn, undefined>) => string;
   deserializeHash: (plainValue: string) => TOut;
+}
+
+// Can be used for state fields or the whole state
+interface StateType<TOut, TIn = TOut> {
+  serializeState: (originalValue: Exclude<TIn, undefined>) => unknown;
+  deserializeState: (plainValue: unknown) => TOut;
 }
 ```
 

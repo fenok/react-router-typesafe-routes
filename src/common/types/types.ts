@@ -10,14 +10,14 @@ interface SearchType<TOut, TIn = TOut> {
   deserializeSearchParam: (plainValue: string[]) => TOut;
 }
 
-interface StateType<TOut, TIn = TOut> {
-  serializeState: (originalValue: Exclude<TIn, undefined>) => unknown;
-  deserializeState: (plainValue: unknown) => TOut;
-}
-
 interface HashType<TOut, TIn = TOut> {
   serializeHash: (originalValue: Exclude<TIn, undefined>) => string;
   deserializeHash: (plainValue: string) => TOut;
+}
+
+interface StateType<TOut, TIn = TOut> {
+  serializeState: (originalValue: Exclude<TIn, undefined>) => unknown;
+  deserializeState: (plainValue: unknown) => TOut;
 }
 
 type AnyType<TOut, TIn = TOut> = PathnameType<TOut, TIn> &
@@ -185,11 +185,11 @@ function createType({ parserFactory }: CreateTypeOptions) {
     const serializeSearchParam = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "search" });
     const deserializeSearchParam = (value: string[]) =>
       validator(typeof value[0] === "undefined" ? value[0] : parser.parse(value[0], { kind: "search" }));
-    const serializeState = (value: T) => value;
-    const deserializeState = (value: unknown) => validator(value);
     const serializeHash = (value: Exclude<T, undefined>) => parser.stringify(value, { kind: "hash" });
     const deserializeHash = (value: string | undefined) =>
       validator(typeof value === "undefined" ? value : parser.parse(value, { kind: "hash" }));
+    const serializeState = (value: T) => value;
+    const deserializeState = (value: unknown) => validator(value);
 
     return Object.assign(
       {}, // TODO: Remove later. ATM typescript picks the wrong function overload without this.
@@ -198,10 +198,10 @@ function createType({ parserFactory }: CreateTypeOptions) {
         deserializeParam: ensureNoError(deserializeParam),
         serializeSearchParam: serializeSearchParam,
         deserializeSearchParam: ensureNoError(deserializeSearchParam),
-        serializeState: serializeState,
-        deserializeState: ensureNoError(deserializeState),
         serializeHash: serializeHash,
         deserializeHash: ensureNoError(deserializeHash),
+        serializeState: serializeState,
+        deserializeState: ensureNoError(deserializeState),
       },
       {
         array: getArrayParamTypeBuilder(ensureNoError(validator), {
@@ -220,10 +220,10 @@ function createType({ parserFactory }: CreateTypeOptions) {
               deserializeParam: ensureNoUndefined(ensureNoError(deserializeParam), validDef),
               serializeSearchParam: serializeSearchParam,
               deserializeSearchParam: ensureNoUndefined(ensureNoError(deserializeSearchParam), validDef),
-              serializeState: serializeState,
-              deserializeState: ensureNoUndefined(ensureNoError(deserializeState), validDef),
               serializeHash: serializeHash,
               deserializeHash: ensureNoUndefined(ensureNoError(deserializeHash), validDef),
+              serializeState: serializeState,
+              deserializeState: ensureNoUndefined(ensureNoError(deserializeState), validDef),
             },
             {
               array: getArrayParamTypeBuilder(ensureNoUndefined(ensureNoError(validator), validDef), {
@@ -241,10 +241,10 @@ function createType({ parserFactory }: CreateTypeOptions) {
               deserializeParam: ensureNoUndefined(deserializeParam),
               serializeSearchParam: serializeSearchParam,
               deserializeSearchParam: ensureNoUndefined(deserializeSearchParam),
-              serializeState: serializeState,
-              deserializeState: ensureNoUndefined(deserializeState),
               serializeHash: serializeHash,
               deserializeHash: ensureNoUndefined(deserializeHash),
+              serializeState: serializeState,
+              deserializeState: ensureNoUndefined(deserializeState),
             },
             {
               array: getArrayParamTypeBuilder(ensureNoUndefined(validator), {
@@ -390,6 +390,6 @@ export {
   Validator,
   PathnameType,
   SearchType,
-  StateType,
   HashType,
+  StateType,
 };
