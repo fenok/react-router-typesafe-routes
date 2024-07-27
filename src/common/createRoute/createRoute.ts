@@ -16,7 +16,7 @@ interface RouteApi<TSpec extends RouteSpec = RouteSpec> {
   $relativePath: PathWithoutIntermediateStars<TSpec["path"]>;
   $buildPath: (opts: BuildPathOptions<TSpec>) => string;
   $buildPathname: (opts: BuildPathnameOptions<TSpec>) => string;
-  $serializeParams: (opts: BuildPathnameOptions<TSpec>) => PathnameParams;
+  $serializeParams: (opts: SerializePathnameParamsOptions<TSpec>) => PathnameParams;
   $buildSearch: (opts: BuildSearchOptions<TSpec>) => string;
   $serializeSearchParams: (opts: BuildSearchOptions<TSpec>) => URLSearchParams;
   $buildHash: (opts: BuildHashOptions<TSpec>) => string;
@@ -35,8 +35,10 @@ type BuildPathOptions<TSpec extends RouteSpec> = Readable<
 >;
 
 type BuildPathnameOptions<TSpec extends RouteSpec> = Readable<
-  { params: InPathnameParams<TSpec> } & PathnameBuilderOptions
+  SerializePathnameParamsOptions<TSpec> & PathnameBuilderOptions
 >;
+
+type SerializePathnameParamsOptions<TSpec extends RouteSpec> = { params: InPathnameParams<TSpec> };
 
 type BuildSearchOptions<TSpec extends RouteSpec> = Readable<
   { searchParams: InSearchParams<TSpec> } & SearchBuilderOptions
@@ -587,7 +589,7 @@ function getRouteApi<
     },
   };
 
-  function getPlainParams(opts: BuildPathnameOptions<TSpec>) {
+  function getPlainParams(opts: SerializePathnameParamsOptions<TSpec>) {
     return getPlainParamsByTypes(allPathParams, opts.params, resolvedSpec.params);
   }
 
