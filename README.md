@@ -6,7 +6,7 @@ Comprehensive and extensible type safety via validation for all route params in 
 [![NPM Downloads](https://img.shields.io/npm/dw/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
 
 > [!WARNING]  
-> You're viewing the documentation for the upcoming version 2.0.0, which is currently unstable. If you have any feedback, please [open an issue](https://github.com/fenok/react-router-typesafe-routes/issues/new/choose). For the current version, please refer to the [main branch](https://github.com/fenok/react-router-typesafe-routes/tree/main).
+> You're viewing the documentation for the upcoming version 2.0.0, which is currently unstable. If you have any feedback, please leave it [here](https://github.com/fenok/react-router-typesafe-routes/issues/54). For the current version, please refer to the [main branch](https://github.com/fenok/react-router-typesafe-routes/tree/main).
 
 The library provides type safety for all route params (pathname params, search params (including multiple keys), state, and hash) on building and parsing/validating URL parts and state. There are no unsafe type casts whatsoever.
 
