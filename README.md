@@ -78,7 +78,7 @@ You might also want to use some other router with built-in type safety:
 Define library routes:
 
 ```tsx
-import { route, number, boolean, union } from "react-router-typesafe-routes/dom";
+import { route, string, number, boolean, union } from "react-router-typesafe-routes/dom";
 
 // Start with a pathless route to specify global params.
 const root = route({
@@ -228,6 +228,12 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
+import {
+  route,
+  useTypedParams,
+  useTypedSearchParams,
+} from "react-router-typesafe-routes/dom";
+
 // Pathless routes can be used for type sharing.
 const fragments = {
   id: route({
@@ -426,6 +432,8 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
+import { Parser, ParserHint, ParserType } from "react-router-typesafe-routes/dom";
+
 // Extend built-in 'ParserHint' if needed.
 type CustomParserHint = ParserHint | "entity";
 
