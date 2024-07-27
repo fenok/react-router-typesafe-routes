@@ -298,7 +298,7 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, string } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, string } from "react-router-typesafe-routes/dom";
 
 // A type overwrites parent state completely, and subsequest state objects are ignored.
 const myRoute = route({
@@ -317,7 +317,7 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, string, number } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, string, number } from "react-router-typesafe-routes/dom";
 
 // You don't need to check that this value is a number.
 const integer = (value: number) => {
@@ -354,7 +354,7 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { route } from "react-router-typesafe-routes/dom"; // Or /native
+import { route } from "react-router-typesafe-routes/dom";
 import { zod } from "react-router-typesafe-routes/zod";
 import { z } from "zod";
 
@@ -375,7 +375,7 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { route } from "react-router-typesafe-routes/dom"; // Or /native
+import { route } from "react-router-typesafe-routes/dom";
 import { yup } from "react-router-typesafe-routes/yup";
 import { string } from "yup";
 
@@ -394,7 +394,7 @@ const ROUTE = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { type, parser, Type, ParserHint } from "react-router-typesafe-routes/dom"; // Or /native
+import { type, parser, Type, ParserHint } from "react-router-typesafe-routes/dom";
 // Some abstract third-party library.
 import { v, Schema } from "third-party-library";
 
@@ -465,7 +465,7 @@ function customParser<T extends CustomParserHint>(
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, PathnameType } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, PathnameType } from "react-router-typesafe-routes/dom";
 
 // This type accepts 'string | number | boolean' and returns 'string'.
 // It only implements 'PathnameType', so it can only be used for pathname params.
@@ -612,18 +612,14 @@ const user = route({ path: "user/:id/*", children: { details: route("details") }
 
 Params can undergo the following transformations:
 
-- _Serialization_, which consists of:
-  - _Intermediate serialization_ (for the lack of a better name) - converting a JS value into a serializable format.
-  - _Stringification_ - converting the transformed JS value into a string.
-- _Deserialization_, which consists of:
-  - _Parsing_ - converting a string into a JS value.
-  - _Validation_ - checking the type and constraints of the JS value.
+- _Serialization_ - a process of converting a JS value into a string (for URL params) or a serializable format (for state).
+- _Deserialization_ - a process of transforming a string (for URL params) or a serializable value (for state) into a more structured format and checking its type and restrictions. For flexibility, this value may be different from the value that was serialized (e.g. `number` can be converted into `string`).
 
-Notes:
+For serializable params, these transformations can be split into the following:
 
-- Despite the name, it's allowed to change the value to make it valid during _validation_ (for convenience).
-- State doesn't require _stringification_ and _parsing_, because route state can contain any serializable values.
-- _Intermediate serialization_ should be extremely rare.
+- _Stringification_ - a process of converting a serializable value into a string, the final step of _Serialization_ (for URL params).
+- _Parsing_ - the opposite of _Stringification_ and the first step of _Deserialization_ (for URL params). For convenience, it's not required to return exactly the same value that was stringified, because the result of parsing is always validated.
+- _Validation_ - a process of checking a value type and restrictions, the final step of _Deserialization_. For convenience, it can change the value to make it valid.
 
 #### Built-in types
 
@@ -714,15 +710,15 @@ type(positiveNumber).defined().array();
 
 Arrays can only be used in search params and state, because there is no standard way to store arrays in pathname params or hash. For state, if a value is not an array, it's parsed as an empty array.
 
-##### Third-party validation libraries
-
-If you can, you should use a validation library for all types. You can use Zod and Yup out of the box via the `zod()` and `yup()` helpers, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
-
 ##### Type-specific helpers
 
 For simple cases, you can use type-specific helpers: `string()`, `number()`, `boolean()`, and `date()`. They are built on top of `type()` and have the corresponding parsers and type checks built-in, at the same time allowing to customize both of them.
 
 There is also somewhat specific `union()` helper that accepts an enum (or an enum-like object) or an array instead of a validator.
+
+##### Third-party validation libraries
+
+If you can, you should use a validation library for all types. You can use Zod and Yup out of the box via the `zod()` and `yup()` helpers, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
 
 #### Type objects
 
@@ -874,7 +870,7 @@ If state type is defined as a set of its fields' types and a whole state type at
 A route is defined via the `route()` helper. All its options are optional.
 
 ```tsx
-import { route, string, number, boolean } from "react-router-typesafe-routes/dom"; // Or /native
+import { route, string, number, boolean } from "react-router-typesafe-routes/dom";
 
 const myFragment = route({ searchParams: { myFragmentParam: string() } });
 
@@ -965,7 +961,7 @@ All entry points expose the `configure()` helper that sets a parser for the corr
 
 - `Route` is a base type that any route object is assignable to.
 - `PathParam` is similar to `PathParam` from React Router, but it allows a slightly more nuanced params extraction.
-- `InPathParams`, `InPathnameParams`, `OutPathnameParams`, `InSearchParams`, `OutSearchParams`, `InState`, `OutState`, `InHash`, and `OutHash` can be used to extract the corresponding params from the route spec (`$spec`).
+- `InPathnameParams`, `OutPathnameParams`, `InSearchParams`, `OutSearchParams`, `InState`, `OutState`, `InHash`, and `OutHash` can be used to extract the corresponding params from the route spec (`$spec`).
 
 ### Hooks
 
