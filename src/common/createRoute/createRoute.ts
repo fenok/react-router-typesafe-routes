@@ -266,6 +266,83 @@ interface CreateRouteOptions {
   generatePath: (path: string, params?: PathnameParams) => string;
 }
 
+type RouteOptions<
+  TPath extends PathConstraint = undefined,
+  // We actually want {} by default, but it breaks autocomplete for some reason.
+  TPathnameParams extends Partial<Record<PathParam<TPath>, PathnameType<any>>> = Partial<
+    Record<PathParam<TPath>, PathnameType<any>>
+  >,
+  TSearchParams extends SearchParamsConstraint = {},
+  // Allows to infer hash values from array without const.
+  THashString extends string = string,
+  THash extends HashConstraint<THashString> = [],
+  TState extends StateConstraint = {},
+  // Only allow to compose pathless routes
+  TComposedRoutes extends [...RouteApi<RouteSpec<undefined>>[]] = [],
+  // This should be restricted to Record<string, RouteApi>, but it breaks types for nested routes,
+  // even without names validity check
+  TChildren = {},
+> = {
+  /**
+   * A path pattern, just like in React Router. The only difference is that leading and trailing slashes are
+   * forbidden.
+   */
+  path?: SanitizePath<TPath>;
+  // Forbid undefined values and non-existent keys (but allow all keys for pathless routes)
+  /**
+   * Pathname params. Use a record of types to override params
+   * inferred from `path`, partially or completely:
+   *
+   * ```ts
+   * params: { id: number() }
+   * ```
+   *
+   * If there is no `path`, you can specify any params.
+   *
+   * */
+  params?: TPath extends undefined ? PathnameParamsConstraint : SanitizePathnameTypes<TPath, TPathnameParams>;
+  /**
+   * Search params. Use a record of types to define them:
+   *
+   * ```ts
+   * searchParams: { page: number() }
+   * ```
+   * */
+  searchParams?: TSearchParams;
+  /**
+   * Hash. Use a type to define it:
+   *
+   * ```ts
+   * hash: union(["info", "stats"])
+   * ```
+   *
+   * If you want to extend it in a child route, specify it as an array of string values instead:
+   *
+   * ```ts
+   * hash: ["info", "stats"]
+   * ```
+   */
+  hash?: THash;
+  /**
+   * State. Use a record of types to define it:
+   *
+   * ```ts
+   * state: { expired: boolean() }
+   * ```
+   *
+   * As an escape hatch, you can use a single type (not recommended):
+   *
+   * ```ts
+   * state: boolean()
+   * ```
+   */
+  state?: TState;
+  /** An array of pathless routes whose params will be composed into the route. */
+  compose?: [...TComposedRoutes];
+  /** Child routes that will inherit all params. */
+  children?: SanitizeRouteChildren<TChildren>;
+};
+
 interface RouteSpec<
   TPath extends PathConstraint = PathConstraint,
   TPathnameParams extends PathnameParamsConstraint = any,
@@ -406,69 +483,12 @@ function createRoute(creatorOptions: CreateRouteOptions) {
     TState extends StateConstraint = {},
     // Only allow to compose pathless routes
     TComposedRoutes extends [...RouteApi<RouteSpec<undefined>>[]] = [],
-    // This should be restricted to Record<string, BaseRoute>, but it breaks types for nested routes,
+    // This should be restricted to Record<string, RouteApi>, but it breaks types for nested routes,
     // even without names validity check
     TChildren = {},
-  >(opts: {
-    /**
-     * A path pattern, just like in React Router. The only difference is that leading and trailing slashes are
-     * forbidden.
-     */
-    path?: SanitizePath<TPath>;
-    // Forbid undefined values and non-existent keys (but allow all keys for pathless routes)
-    /**
-     * Pathname params. Use a record of types to override params
-     * inferred from `path`, partially or completely:
-     *
-     * ```ts
-     * params: { id: number() }
-     * ```
-     *
-     * If there is no `path`, you can specify any params.
-     *
-     * */
-    params?: TPath extends undefined ? PathnameParamsConstraint : SanitizePathnameTypes<TPath, TPathnameParams>;
-    /**
-     * Search params. Use a record of types to define them:
-     *
-     * ```ts
-     * searchParams: { page: number() }
-     * ```
-     * */
-    searchParams?: TSearchParams;
-    /**
-     * Hash. Use a type to define it:
-     *
-     * ```ts
-     * hash: union(["info", "stats"])
-     * ```
-     *
-     * If you want to extend it in a child route, specify it as an array of string values instead:
-     *
-     * ```ts
-     * hash: ["info", "stats"]
-     * ```
-     */
-    hash?: THash;
-    /**
-     * State. Use a record of types to define it:
-     *
-     * ```ts
-     * state: { expired: boolean() }
-     * ```
-     *
-     * As an escape hatch, you can use a single type (not recommended):
-     *
-     * ```ts
-     * state: boolean()
-     * ```
-     */
-    state?: TState;
-    /** An array of pathless routes whose params will be composed into the route. */
-    compose?: [...TComposedRoutes];
-    /** Child routes that will inherit all params. */
-    children?: SanitizeRouteChildren<TChildren>;
-  }): Route<
+  >(
+    opts: RouteOptions<TPath, TPathnameParams, TSearchParams, THashString, THash, TState, TComposedRoutes, TChildren>,
+  ): Route<
     MergeRouteSpecList<
       [
         ...ExtractRouteSpecList<TComposedRoutes>,
@@ -953,13 +973,16 @@ function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {
 export {
   createRoute,
   CreateRouteOptions,
+  RouteOptions,
   Route,
   RouteApi,
   RouteChildren,
   RouteSpec,
+  MergeRouteSpecList,
   PathParam,
   SanitizePath,
   SanitizeRouteChildren,
+  InPathParams,
   InPathnameParams,
   OutPathnameParams,
   InSearchParams,
