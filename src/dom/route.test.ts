@@ -36,13 +36,17 @@ it("provides absolute path", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$path, "/test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/child">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/child/grand">>(true);
+  const testRoutePath = TEST_ROUTE.$path();
+  const testRouteChildPath = TEST_ROUTE.CHILD.$path();
+  const testRouteChildGrandchildPath = TEST_ROUTE.CHILD.GRANDCHILD.$path();
 
-  expect(TEST_ROUTE.$path).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/child");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/child/grand");
+  assert<IsExact<typeof testRoutePath, "/test">>(true);
+  assert<IsExact<typeof testRouteChildPath, "/test/child">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildPath, "/test/child/grand">>(true);
+
+  expect(TEST_ROUTE.$path()).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$path()).toStrictEqual("/test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path()).toStrictEqual("/test/child/grand");
 });
 
 it("provides absolute path with optional segments", () => {
@@ -58,13 +62,17 @@ it("provides absolute path with optional segments", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$path, "/test/optional?">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/optional?/child/optional-child?">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/optional?/child/optional-child?/grand">>(true);
+  const testRoutePath = TEST_ROUTE.$path();
+  const testRouteChildPath = TEST_ROUTE.CHILD.$path();
+  const testRouteChildGrandchildPath = TEST_ROUTE.CHILD.GRANDCHILD.$path();
 
-  expect(TEST_ROUTE.$path).toStrictEqual("/test/optional?");
-  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/optional?/child/optional-child?");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/optional?/child/optional-child?/grand");
+  assert<IsExact<typeof testRoutePath, "/test/optional?">>(true);
+  assert<IsExact<typeof testRouteChildPath, "/test/optional?/child/optional-child?">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildPath, "/test/optional?/child/optional-child?/grand">>(true);
+
+  expect(TEST_ROUTE.$path()).toStrictEqual("/test/optional?");
+  expect(TEST_ROUTE.CHILD.$path()).toStrictEqual("/test/optional?/child/optional-child?");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path()).toStrictEqual("/test/optional?/child/optional-child?/grand");
 });
 
 it("provides absolute path with optional dynamic segments", () => {
@@ -80,13 +88,17 @@ it("provides absolute path with optional dynamic segments", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$path, "/test/:optional?">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/:optional?/child/:optional-child?">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/:optional?/child/:optional-child?/grand">>(true);
+  const testRoutePath = TEST_ROUTE.$path();
+  const testRouteChildPath = TEST_ROUTE.CHILD.$path();
+  const testRouteChildGrandchildPath = TEST_ROUTE.CHILD.GRANDCHILD.$path();
 
-  expect(TEST_ROUTE.$path).toStrictEqual("/test/:optional?");
-  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/:optional?/child/:optional-child?");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/:optional?/child/:optional-child?/grand");
+  assert<IsExact<typeof testRoutePath, "/test/:optional?">>(true);
+  assert<IsExact<typeof testRouteChildPath, "/test/:optional?/child/:optional-child?">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildPath, "/test/:optional?/child/:optional-child?/grand">>(true);
+
+  expect(TEST_ROUTE.$path()).toStrictEqual("/test/:optional?");
+  expect(TEST_ROUTE.CHILD.$path()).toStrictEqual("/test/:optional?/child/:optional-child?");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path()).toStrictEqual("/test/:optional?/child/:optional-child?/grand");
 });
 
 it("preserves intermediate stars in absolute path", () => {
@@ -102,13 +114,17 @@ it("preserves intermediate stars in absolute path", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$path, "/test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/child/*">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/child/*/grand">>(true);
+  const testRoutePath = TEST_ROUTE.$path();
+  const testRouteChildPath = TEST_ROUTE.CHILD.$path();
+  const testRouteChildGrandchildPath = TEST_ROUTE.CHILD.GRANDCHILD.$path();
 
-  expect(TEST_ROUTE.$path).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/child/*");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/child/*/grand");
+  assert<IsExact<typeof testRoutePath, "/test">>(true);
+  assert<IsExact<typeof testRouteChildPath, "/test/child/*">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildPath, "/test/child/*/grand">>(true);
+
+  expect(TEST_ROUTE.$path()).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$path()).toStrictEqual("/test/child/*");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path()).toStrictEqual("/test/child/*/grand");
 });
 
 it("preserves optional intermediate stars in absolute path", () => {
@@ -124,13 +140,17 @@ it("preserves optional intermediate stars in absolute path", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$path, "/test/*?">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/*?/child/*?">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/*?/child/*?/grand">>(true);
+  const testRoutePath = TEST_ROUTE.$path();
+  const testRouteChildPath = TEST_ROUTE.CHILD.$path();
+  const testRouteChildGrandchildPath = TEST_ROUTE.CHILD.GRANDCHILD.$path();
 
-  expect(TEST_ROUTE.$path).toStrictEqual("/test/*?");
-  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/*?/child/*?");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/*?/child/*?/grand");
+  assert<IsExact<typeof testRoutePath, "/test/*?">>(true);
+  assert<IsExact<typeof testRouteChildPath, "/test/*?/child/*?">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildPath, "/test/*?/child/*?/grand">>(true);
+
+  expect(TEST_ROUTE.$path()).toStrictEqual("/test/*?");
+  expect(TEST_ROUTE.CHILD.$path()).toStrictEqual("/test/*?/child/*?");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path()).toStrictEqual("/test/*?/child/*?/grand");
 });
 
 it("provides relative path", () => {
@@ -146,13 +166,17 @@ it("provides relative path", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/child">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/child/grand">>(true);
+  const testRouteRelativePath = TEST_ROUTE.$path({ relative: true });
+  const testRouteChildRelativePath = TEST_ROUTE.CHILD.$path({ relative: true });
+  const testRouteChildGrandchildRelativePath = TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true });
 
-  expect(TEST_ROUTE.$relativePath).toStrictEqual("test");
-  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/child");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/child/grand");
+  assert<IsExact<typeof testRouteRelativePath, "test">>(true);
+  assert<IsExact<typeof testRouteChildRelativePath, "test/child">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildRelativePath, "test/child/grand">>(true);
+
+  expect(TEST_ROUTE.$path({ relative: true })).toStrictEqual("test");
+  expect(TEST_ROUTE.CHILD.$path({ relative: true })).toStrictEqual("test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true })).toStrictEqual("test/child/grand");
 });
 
 it("provides relative path with optional segments", () => {
@@ -168,13 +192,19 @@ it("provides relative path with optional segments", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test/dynamic?">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/dynamic?/child/:dynamic-param?">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/dynamic?/child/:dynamic-param?/grand">>(true);
+  const testRouteRelativePath = TEST_ROUTE.$path({ relative: true });
+  const testRouteChildRelativePath = TEST_ROUTE.CHILD.$path({ relative: true });
+  const testRouteChildGrandchildRelativePath = TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true });
 
-  expect(TEST_ROUTE.$relativePath).toStrictEqual("test/dynamic?");
-  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/dynamic?/child/:dynamic-param?");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/dynamic?/child/:dynamic-param?/grand");
+  assert<IsExact<typeof testRouteRelativePath, "test/dynamic?">>(true);
+  assert<IsExact<typeof testRouteChildRelativePath, "test/dynamic?/child/:dynamic-param?">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildRelativePath, "test/dynamic?/child/:dynamic-param?/grand">>(true);
+
+  expect(TEST_ROUTE.$path({ relative: true })).toStrictEqual("test/dynamic?");
+  expect(TEST_ROUTE.CHILD.$path({ relative: true })).toStrictEqual("test/dynamic?/child/:dynamic-param?");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true })).toStrictEqual(
+    "test/dynamic?/child/:dynamic-param?/grand",
+  );
 });
 
 it("removes intermediate stars from relative path", () => {
@@ -190,13 +220,17 @@ it("removes intermediate stars from relative path", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/child/*">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/child/grand">>(true);
+  const testRouteRelativePath = TEST_ROUTE.$path({ relative: true });
+  const testRouteChildRelativePath = TEST_ROUTE.CHILD.$path({ relative: true });
+  const testRouteChildGrandchildRelativePath = TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true });
 
-  expect(TEST_ROUTE.$relativePath).toStrictEqual("test");
-  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/child/*");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/child/grand");
+  assert<IsExact<typeof testRouteRelativePath, "test">>(true);
+  assert<IsExact<typeof testRouteChildRelativePath, "test/child/*">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildRelativePath, "test/child/grand">>(true);
+
+  expect(TEST_ROUTE.$path({ relative: true })).toStrictEqual("test");
+  expect(TEST_ROUTE.CHILD.$path({ relative: true })).toStrictEqual("test/child/*");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true })).toStrictEqual("test/child/grand");
 });
 
 it("removes multiple intermediate stars from relative path", () => {
@@ -212,13 +246,17 @@ it("removes multiple intermediate stars from relative path", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test/*">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/child/*">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/child/grand">>(true);
+  const testRouteRelativePath = TEST_ROUTE.$path({ relative: true });
+  const testRouteChildRelativePath = TEST_ROUTE.CHILD.$path({ relative: true });
+  const testRouteChildGrandchildRelativePath = TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true });
 
-  expect(TEST_ROUTE.$relativePath).toStrictEqual("test/*");
-  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/child/*");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/child/grand");
+  assert<IsExact<typeof testRouteRelativePath, "test/*">>(true);
+  assert<IsExact<typeof testRouteChildRelativePath, "test/child/*">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildRelativePath, "test/child/grand">>(true);
+
+  expect(TEST_ROUTE.$path({ relative: true })).toStrictEqual("test/*");
+  expect(TEST_ROUTE.CHILD.$path({ relative: true })).toStrictEqual("test/child/*");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true })).toStrictEqual("test/child/grand");
 });
 
 it("removes multiple optional intermediate stars from relative path", () => {
@@ -234,13 +272,17 @@ it("removes multiple optional intermediate stars from relative path", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test/*?">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/child/*?">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/child/grand">>(true);
+  const testRouteRelativePath = TEST_ROUTE.$path({ relative: true });
+  const testRouteChildRelativePath = TEST_ROUTE.CHILD.$path({ relative: true });
+  const testRouteChildGrandchildRelativePath = TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true });
 
-  expect(TEST_ROUTE.$relativePath).toStrictEqual("test/*?");
-  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/child/*?");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/child/grand");
+  assert<IsExact<typeof testRouteRelativePath, "test/*?">>(true);
+  assert<IsExact<typeof testRouteChildRelativePath, "test/child/*?">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildRelativePath, "test/child/grand">>(true);
+
+  expect(TEST_ROUTE.$path({ relative: true })).toStrictEqual("test/*?");
+  expect(TEST_ROUTE.CHILD.$path({ relative: true })).toStrictEqual("test/child/*?");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true })).toStrictEqual("test/child/grand");
 });
 
 it("allows empty segment at the beginning of the route", () => {
@@ -256,21 +298,29 @@ it("allows empty segment at the beginning of the route", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$path, "/">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/child">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/child/grand">>(true);
+  const testRoutePath = TEST_ROUTE.$path();
+  const testRouteChildPath = TEST_ROUTE.CHILD.$path();
+  const testRouteChildGrandchildPath = TEST_ROUTE.CHILD.GRANDCHILD.$path();
 
-  assert<IsExact<typeof TEST_ROUTE.$relativePath, "">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "child">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "child/grand">>(true);
+  assert<IsExact<typeof testRoutePath, "/">>(true);
+  assert<IsExact<typeof testRouteChildPath, "/child">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildPath, "/child/grand">>(true);
 
-  expect(TEST_ROUTE.$path).toStrictEqual("/");
-  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/child");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/child/grand");
+  const testRouteRelativePath = TEST_ROUTE.$path({ relative: true });
+  const testRouteChildRelativePath = TEST_ROUTE.CHILD.$path({ relative: true });
+  const testRouteChildGrandchildRelativePath = TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true });
 
-  expect(TEST_ROUTE.$relativePath).toStrictEqual("");
-  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("child");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("child/grand");
+  assert<IsExact<typeof testRouteRelativePath, "">>(true);
+  assert<IsExact<typeof testRouteChildRelativePath, "child">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildRelativePath, "child/grand">>(true);
+
+  expect(TEST_ROUTE.$path()).toStrictEqual("/");
+  expect(TEST_ROUTE.CHILD.$path()).toStrictEqual("/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path()).toStrictEqual("/child/grand");
+
+  expect(TEST_ROUTE.$path({ relative: true })).toStrictEqual("");
+  expect(TEST_ROUTE.CHILD.$path({ relative: true })).toStrictEqual("child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true })).toStrictEqual("child/grand");
 });
 
 it("allows empty segment in the middle of the route", () => {
@@ -286,21 +336,29 @@ it("allows empty segment in the middle of the route", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$path, "/test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/grand">>(true);
+  const testRoutePath = TEST_ROUTE.$path();
+  const testRouteChildPath = TEST_ROUTE.CHILD.$path();
+  const testRouteChildGrandchildPath = TEST_ROUTE.CHILD.GRANDCHILD.$path();
 
-  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/grand">>(true);
+  assert<IsExact<typeof testRoutePath, "/test">>(true);
+  assert<IsExact<typeof testRouteChildPath, "/test">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildPath, "/test/grand">>(true);
 
-  expect(TEST_ROUTE.$path).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/grand");
+  const testRouteRelativePath = TEST_ROUTE.$path({ relative: true });
+  const testRouteChildRelativePath = TEST_ROUTE.CHILD.$path({ relative: true });
+  const testRouteChildGrandchildRelativePath = TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true });
 
-  expect(TEST_ROUTE.$relativePath).toStrictEqual("test");
-  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/grand");
+  assert<IsExact<typeof testRouteRelativePath, "test">>(true);
+  assert<IsExact<typeof testRouteChildRelativePath, "test">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildRelativePath, "test/grand">>(true);
+
+  expect(TEST_ROUTE.$path()).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$path()).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path()).toStrictEqual("/test/grand");
+
+  expect(TEST_ROUTE.$path({ relative: true })).toStrictEqual("test");
+  expect(TEST_ROUTE.CHILD.$path({ relative: true })).toStrictEqual("test");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true })).toStrictEqual("test/grand");
 });
 
 it("allows empty segment at the end of the route", () => {
@@ -316,21 +374,29 @@ it("allows empty segment at the end of the route", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$path, "/test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$path, "/test/child">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$path, "/test/child">>(true);
+  const testRoutePath = TEST_ROUTE.$path();
+  const testRouteChildPath = TEST_ROUTE.CHILD.$path();
+  const testRouteChildGrandchildPath = TEST_ROUTE.CHILD.GRANDCHILD.$path();
 
-  assert<IsExact<typeof TEST_ROUTE.$relativePath, "test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$relativePath, "test/child">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.GRANDCHILD.$relativePath, "test/child">>(true);
+  assert<IsExact<typeof testRoutePath, "/test">>(true);
+  assert<IsExact<typeof testRouteChildPath, "/test/child">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildPath, "/test/child">>(true);
 
-  expect(TEST_ROUTE.$path).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.$path).toStrictEqual("/test/child");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path).toStrictEqual("/test/child");
+  const testRouteRelativePath = TEST_ROUTE.$path({ relative: true });
+  const testRouteChildRelativePath = TEST_ROUTE.CHILD.$path({ relative: true });
+  const testRouteChildGrandchildRelativePath = TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true });
 
-  expect(TEST_ROUTE.$relativePath).toStrictEqual("test");
-  expect(TEST_ROUTE.CHILD.$relativePath).toStrictEqual("test/child");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$relativePath).toStrictEqual("test/child");
+  assert<IsExact<typeof testRouteRelativePath, "test">>(true);
+  assert<IsExact<typeof testRouteChildRelativePath, "test/child">>(true);
+  assert<IsExact<typeof testRouteChildGrandchildRelativePath, "test/child">>(true);
+
+  expect(TEST_ROUTE.$path()).toStrictEqual("/test");
+  expect(TEST_ROUTE.CHILD.$path()).toStrictEqual("/test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path()).toStrictEqual("/test/child");
+
+  expect(TEST_ROUTE.$path({ relative: true })).toStrictEqual("test");
+  expect(TEST_ROUTE.CHILD.$path({ relative: true })).toStrictEqual("test/child");
+  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true })).toStrictEqual("test/child");
 });
 
 it("allows implicit path params", () => {
@@ -1497,15 +1563,20 @@ it("allows to trim path pattern", () => {
     children: { CHILD },
   });
 
-  assert<IsExact<typeof TEST_ROUTE.$path, "/test">>(true);
-  assert<IsExact<typeof TEST_ROUTE.$.CHILD.$path, "/child">>(true);
-  assert<IsExact<typeof TEST_ROUTE.CHILD.$.GRANDCHILD.$path, "/grand">>(true);
-  assert<IsExact<typeof TEST_ROUTE.$.CHILD.GRANDCHILD.$path, "/child/grand">>(true);
+  const testRoutePath = TEST_ROUTE.$path();
+  const childRoutePath = TEST_ROUTE.$.CHILD.$path();
+  const grandchildRoutePath = TEST_ROUTE.CHILD.$.GRANDCHILD.$path();
+  const childGrandchildRoutePath = TEST_ROUTE.$.CHILD.GRANDCHILD.$path();
 
-  expect(TEST_ROUTE.$path).toStrictEqual("/test");
-  expect(TEST_ROUTE.$.CHILD.$path).toStrictEqual("/child");
-  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$path).toStrictEqual("/grand");
-  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$path).toStrictEqual("/child/grand");
+  assert<IsExact<typeof testRoutePath, "/test">>(true);
+  assert<IsExact<typeof childRoutePath, "/child">>(true);
+  assert<IsExact<typeof grandchildRoutePath, "/grand">>(true);
+  assert<IsExact<typeof childGrandchildRoutePath, "/child/grand">>(true);
+
+  expect(TEST_ROUTE.$path()).toStrictEqual("/test");
+  expect(TEST_ROUTE.$.CHILD.$path()).toStrictEqual("/child");
+  expect(TEST_ROUTE.CHILD.$.GRANDCHILD.$path()).toStrictEqual("/grand");
+  expect(TEST_ROUTE.$.CHILD.GRANDCHILD.$path()).toStrictEqual("/child/grand");
 });
 
 it("allows to inherit non-pathname params in trimmed children", () => {
@@ -2314,11 +2385,11 @@ it("allows pathless routes", () => {
   const child = route({ children: { grandchild } });
   const testRoute = route({ path: "test", children: { child } });
 
-  expect(child.$path).toBe(undefined);
-  expect(testRoute.$.child.$path).toBe(undefined);
-  expect(testRoute.child.$path).toBe("/test");
-  expect(testRoute.child.grandchild.$path).toBe("/test/grandchild");
-  expect(testRoute.$.child.grandchild.$path).toBe("/grandchild");
+  expect(child.$path()).toBe(undefined);
+  expect(testRoute.$.child.$path()).toBe(undefined);
+  expect(testRoute.child.$path()).toBe("/test");
+  expect(testRoute.child.grandchild.$path()).toBe("/test/grandchild");
+  expect(testRoute.$.child.grandchild.$path()).toBe("/grandchild");
 });
 
 it("preserves pathless routes in chains", () => {
@@ -2326,8 +2397,8 @@ it("preserves pathless routes in chains", () => {
   const child = route({ children: { grandchild } });
   const test = route({ children: { child } });
 
-  expect(test.child.grandchild.$path).toBe(undefined);
-  expect(test.$.child.grandchild.$path).toBe(undefined);
+  expect(test.child.grandchild.$path()).toBe(undefined);
+  expect(test.$.child.grandchild.$path()).toBe(undefined);
 });
 
 it("allows to parse params with pathless routes", () => {
@@ -2423,7 +2494,9 @@ it("handles complex nested inlined routes", () => {
     },
   });
 
-  assert<IsExact<typeof routes.user.details.$path, "/user/:id/details/:lang?">>(true);
+  const userDetailsPath = routes.user.details.$path();
+
+  assert<IsExact<typeof userDetailsPath, "/user/:id/details/:lang?">>(true);
 });
 
 it("provides a helper for extracting pathname params", () => {

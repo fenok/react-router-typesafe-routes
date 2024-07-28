@@ -38,6 +38,7 @@ const [{ page }] = useTypedSearchParams(fragment);
 - **Breaking**: `union()` no longer accepts its values as multiple arguments.
 - **Breaking**: Types for pathname `params` are now stricter and don't allow params which are not specified in the path pattern. This also fixes autocomplete for such params.
 - **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
+- **Breaking**: The `path` and `relativePath` route fields were squashed into the `$path()` function. It returns an absolute path pattern by default or a relative path pattern if the `relative` option is set to `true`.
 - **Breaking**: The `types` field is renamed to `$spec`, and it now also contains an unmodified `path` option of the route.
 - **Breaking**: Naming scheme was changed from `getPlain`/`getTyped` to `serialize`/`deserialize` for clarity.
 - **Breaking**: Path and state generation API is changed.

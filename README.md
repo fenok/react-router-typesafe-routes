@@ -115,19 +115,19 @@ import { root } from "./path/to/routes";
 // Absolute paths
 <Routes>
   {/* /user/:userId */}
-  <Route path={root.user.$path} element={<User />}>
+  <Route path={root.user.$path()} element={<User />}>
     {/* /user/:userId/post/:postId? */}
-    <Route path={root.user.post.$path} element={<Post />} />
+    <Route path={root.user.post.$path()} element={<Post />} />
   </Route>
 </Routes>;
 
 // Relative paths
 <Routes>
   {/* user/:userId */}
-  <Route path={root.user.$relativePath} element={<User />}>
+  <Route path={root.user.$path({ relative: true })} element={<User />}>
     {/* post/:postId? */}
     {/* $ effectively defines path pattern start. */}
-    <Route path={root.user.$.post.$relativePath} element={<Post />} />
+    <Route path={root.user.$.post.$path({ relative: true })} element={<Post />} />
   </Route>
 </Routes>;
 ```
@@ -516,8 +516,8 @@ import { route } from "react-router-typesafe-routes/dom";
 
 const user = route({ path: "user/:id", children: { details: route("details") } });
 
-console.log(user.path); // "/user/:id"
-console.log(user.details.path); // "/user/:id/details"
+console.log(user.$path()); // "/user/:id"
+console.log(user.details.$path()); // "/user/:id/details"
 ```
 
 They can also be uninlined, most likely for usage in multiple places:
@@ -530,9 +530,9 @@ const details = route("details");
 const user = route("user/:id", {}, { details });
 const post = route("post/:id", {}, { details });
 
-console.log(user.details.path); // "/user/:id/details"
-console.log(post.details.path); // "/post/:id/details"
-console.log(details.path); // "/details"
+console.log(user.details.$path()); // "/user/:id/details"
+console.log(post.details.$path()); // "/post/:id/details"
+console.log(details.$path()); // "/details"
 ```
 
 To reiterate, `details` and `user.details` are separate routes, which will usually behave differently. `details` doesn't know anything about `user`, but `user.details` does. `details` is a standalone route, but `user.details` is a child of `user`.
@@ -549,9 +549,9 @@ import { Route, Routes } from "react-router-dom";
 
 <Routes>
   {/* '/user/:id' */}
-  <Route path={user.path} element={<User />}>
+  <Route path={user.$path()} element={<User />}>
     {/* '/user/:id/details' */}
-    <Route path={user.details.path} element={<UserDetails />} />
+    <Route path={user.details.$path()} element={<UserDetails />} />
   </Route>
 </Routes>;
 ```
@@ -561,7 +561,7 @@ import { Route, Routes } from "react-router-dom";
 
 However, nothing stops you from specifying additional routes as you see fit.
 
-Note that we're using the `path` field here, which returns an absolute path pattern. React Router allows absolute child route paths if they match the parent path.
+Note that we're using `path()` here, which returns an absolute path pattern by default. React Router allows absolute child route paths if they match the parent path.
 
 You're encouraged to use absolute path patterns whenever possible because they are easier to reason about.
 
@@ -575,16 +575,16 @@ import { Route, Routes } from "react-router-dom";
 
 <Routes>
   {/* 'user/:id' */}
-  <Route path={user.relativePath} element={<User />}>
+  <Route path={user.$path({ relative: true })} element={<User />}>
     {/* 'details' */}
-    <Route path={user.$.details.relativePath} element={<UserDetails />} />
+    <Route path={user.$.details.$path({ relative: true })} element={<UserDetails />} />
   </Route>
 </Routes>;
 ```
 
 That is, the `$` property of every route contains child routes that lack parent path pattern. The mental model here is that `$` defines the path pattern start.
 
-The `path` property contains a combined path with a leading slash (`/`), and `relativePath` contains a combined path **without intermediate stars (`*`)** and without a leading slash (`/`).
+`$path()` is a combined path with a leading slash (`/`), and `$path({ relative: true })` is a combined path **without intermediate stars (`*`)** and without a leading slash (`/`).
 
 #### Nested `<Routes />`
 
@@ -598,13 +598,13 @@ const user = route({ path: "user/:id/*", children: { details: route("details") }
 
 <Routes>
   {/* '/user/:id/*' */}
-  <Route path={user.path} element={<User />} />
+  <Route path={user.$path()} element={<User />} />
 </Routes>;
 
 // Somewhere inside <User />
 <Routes>
   {/* '/details' */}
-  <Route path={user.$.details.path} element={<UserDetails />} />
+  <Route path={user.$.details.$path()} element={<UserDetails />} />
 </Routes>;
 ```
 
@@ -911,7 +911,7 @@ The `children` option specifies child routes of the route. See [Nesting](#nestin
 
 The `route()` helper returns a route object, which has the following fields:
 
-- `$path` and `$relativePath`, where `$path` contains a combined path pattern with a leading slash (`/`), and `$relativePath` contains a combined path pattern **without intermediate stars (`*`)** and a leading slash (`/`). They can be passed to e.g. the `path` prop of React Router `<Route/>`.
+- `$path()` that returns an absolute path pattern (by default) or a relative path pattern (if the `relative` option is set to `true`). Absolute path pattern is a combined pattern with a leading slash (`/`), and relative path pattern is a combined pattern **without intermediate stars (`*`)** and a leading slash (`/`). They can be passed to e.g. the `path` prop of React Router `<Route/>`.
 - `$buildPath()` for building parametrized URL paths (pathname + search + hash) which can be passed to e.g. the `to` prop of React Router `<Link />`.
 - `$buildState()` for building typed states, which can be passed to e.g. the `state` prop of React Router `<Link />`.
 - `$buildPathname()`, `$buildSearch()`, and `$buildHash()` for building parametrized URL parts. They can be used (in conjunction with `$buildState()`) to e.g. build a parametrized `Location` object.
