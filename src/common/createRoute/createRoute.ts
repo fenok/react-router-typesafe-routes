@@ -11,9 +11,14 @@ type RouteChildren<TSpec extends RouteSpec, TChildren> = {
     : TChildren[TKey];
 };
 
+type PathPattern<TPath extends PathConstraint> = {
+  <TRelative extends boolean = false>(opts?: {
+    relative?: TRelative;
+  }): TRelative extends true ? PathWithoutIntermediateStars<TPath> : AbsolutePath<TPath>;
+};
+
 interface RouteApi<TSpec extends RouteSpec = RouteSpec> {
-  $path: AbsolutePath<TSpec["path"]>;
-  $relativePath: PathWithoutIntermediateStars<TSpec["path"]>;
+  $path: PathPattern<TSpec["path"]>;
   $buildPath: (opts: BuildPathOptions<TSpec>) => string;
   $buildPathname: (opts: BuildPathnameOptions<TSpec>) => string;
   $buildSearch: (opts: BuildSearchOptions<TSpec>) => string;
@@ -600,6 +605,7 @@ function getRouteApi<
   >,
 >(spec: TSpec, creatorOptions: CreateRouteOptions): RouteApi<TSpec> {
   const [allPathParams] = getPathParams(spec.path as TSpec["path"]);
+  const absolutePath = makeAbsolute(spec.path as TSpec["path"]);
   const relativePath = removeIntermediateStars(spec.path as TSpec["path"]);
   const resolvedSpec = {
     ...spec,
@@ -721,8 +727,7 @@ function getRouteApi<
   }
 
   return {
-    $path: makeAbsolute(resolvedSpec.path as TSpec["path"]),
-    $relativePath: relativePath,
+    $path: ((opts) => (opts?.relative ? relativePath : absolutePath)) as PathPattern<TSpec["path"]>,
     $buildPath: buildPath,
     $buildPathname: buildPathname,
     $buildSearch: buildSearch,
