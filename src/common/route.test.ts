@@ -1,5 +1,5 @@
-import { route } from "./route.js";
-import { createSearchParams } from "react-router-dom";
+import { route } from "./route/index.js";
+import { createSearchParams } from "react-router";
 import {
   number,
   boolean,
@@ -16,7 +16,7 @@ import {
   Parser,
   ParserHint,
   ParserType,
-} from "../common/index.js";
+} from "./index.js";
 import { assert, IsExact } from "conditional-type-checks";
 import { zod, configure as configureZod } from "../zod/index.js";
 import { z } from "zod";

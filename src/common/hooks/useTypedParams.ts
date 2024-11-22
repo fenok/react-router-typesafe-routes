@@ -1,5 +1,5 @@
-import { Route, RouteSpec, OutPathnameParams } from "../common/index.js";
-import { useParams } from "react-router-native";
+import { Route, RouteSpec, OutPathnameParams } from "../index.js";
+import { useParams } from "react-router";
 import { useMemo } from "react";
 
 export function useTypedParams<TSpec extends RouteSpec>(route: Route<TSpec>): OutPathnameParams<TSpec> {

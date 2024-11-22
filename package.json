@@ -25,14 +25,6 @@
       "import": "./common/index.js",
       "require": "./common/index.cjs"
     },
-    "./dom": {
-      "import": "./dom/index.js",
-      "require": "./dom/index.cjs"
-    },
-    "./native": {
-      "import": "./native/index.js",
-      "require": "./native/index.cjs"
-    },
     "./zod": {
       "import": "./zod/index.js",
       "require": "./zod/index.cjs"
@@ -80,8 +72,7 @@
     "prettier": "^3.0.2",
     "prettier-plugin-jsdoc": "^1.0.1",
     "react": ">=16.8",
-    "react-router-dom": "^6.7.0",
-    "react-router-native": "^6.7.0",
+    "react-router": "^7.0.1",
     "rimraf": "^4.4.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
@@ -90,18 +81,11 @@
   },
   "peerDependencies": {
     "react": ">=16.8",
-    "react-router-dom": "^6.7.0",
-    "react-router-native": "^6.7.0",
+    "react-router": "^7.0.1",
     "yup": "^1.0.0",
     "zod": "^3.0.0"
   },
   "peerDependenciesMeta": {
-    "react-router-dom": {
-      "optional": true
-    },
-    "react-router-native": {
-      "optional": true
-    },
     "yup": {
       "optional": true
     },

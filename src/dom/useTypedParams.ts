@@ -1,8 +1,0 @@
-import { Route, RouteSpec, OutPathnameParams } from "../common/index.js";
-import { useParams } from "react-router-dom";
-import { useMemo } from "react";
-
-export function useTypedParams<TSpec extends RouteSpec>(route: Route<TSpec>): OutPathnameParams<TSpec> {
-  const params = useParams();
-  return useMemo(() => route.$deserializeParams(params), [route, params]);
-}
