@@ -1,4 +1,4 @@
-import { type, Type, ParserHint, parser, Parser } from "../common/index.js";
+import { type, Type, ParserHint, parser, Parser } from "../lib/index.js";
 import { ZodType, ZodOptional, ZodString, ZodDate, ZodTypeAny, ZodNumber, ZodBoolean } from "zod";
 
 interface ConfigureOptions {

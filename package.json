@@ -17,13 +17,13 @@
   "license": "MIT",
   "author": "Leonid Fenko <fenok2112@gmail.com>",
   "type": "module",
-  "main": "./common/index.js",
-  "module": "./common/index.js",
-  "types": "./common/index.d.ts",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "exports": {
     ".": {
-      "import": "./common/index.js",
-      "require": "./common/index.cjs"
+      "import": "./lib/index.js",
+      "require": "./lib/index.cjs"
     },
     "./zod": {
       "import": "./zod/index.js",
@@ -37,9 +37,7 @@
   },
   "sideEffects": false,
   "files": [
-    "common",
-    "dom",
-    "native",
+    "lib",
     "zod",
     "yup",
     "docs",
@@ -50,7 +48,7 @@
   },
   "scripts": {
     "format": "prettier --write --ignore-unknown .",
-    "build": "rimraf common dom native zod yup && node create-cts.mjs && tsc --project tsconfig.build.js.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-cts.mjs",
+    "build": "rimraf lib zod yup && node create-cts.mjs && tsc --project tsconfig.build.js.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-cts.mjs",
     "format:check": "prettier --check .",
     "lint": "eslint --max-warnings=0 --report-unused-disable-directives .",
     "test": "jest",

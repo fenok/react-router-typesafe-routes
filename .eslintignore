@@ -1,6 +1,4 @@
-common/*
-dom/*
-native/*
+lib/*
 zod/*
 yup/*
 src/**/*.cts

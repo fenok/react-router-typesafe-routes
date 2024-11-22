@@ -8,9 +8,7 @@
 !.yarn/versions
 
 # Compiled code
-common/*
-dom/*
-native/*
+lib/*
 zod/*
 yup/*
 src/**/*.cts
