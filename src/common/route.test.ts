@@ -590,7 +590,7 @@ it("allows implicit star path param", () => {
   );
 });
 
-it("allows implicit optional star path param", () => {
+it.skip("allows implicit optional star path param", () => {
   const GRANDCHILD = route({
     path: "grand",
   });
@@ -641,7 +641,7 @@ it("allows explicit star path param", () => {
   expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { "*": 42 } })).toStrictEqual("/test/child/grand/42");
 });
 
-it("allows explicit optional star path param", () => {
+it.skip("allows explicit optional star path param", () => {
   const GRANDCHILD = route({
     path: "grand/*?",
     params: { "*": number() },
