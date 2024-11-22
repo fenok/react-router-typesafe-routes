@@ -1,4 +1,4 @@
-import { Type, parser, ParserHint, type, Parser } from "../common/index.js";
+import { Type, parser, ParserHint, type, Parser } from "../lib/index.js";
 import { StringSchema, DateSchema, NumberSchema, BooleanSchema } from "yup";
 
 interface ConfigureOptions {

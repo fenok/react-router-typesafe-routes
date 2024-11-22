@@ -1,5 +1,5 @@
-import { Route, RouteSpec, OutHash } from "../common/index.js";
-import { useLocation } from "react-router-dom";
+import { Route, RouteSpec, OutHash } from "../index.js";
+import { useLocation } from "react-router";
 import { useMemo } from "react";
 
 export function useTypedHash<TSpec extends RouteSpec>(route: Route<TSpec>): OutHash<TSpec> {

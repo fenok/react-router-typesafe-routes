@@ -1,5 +1,5 @@
-import { Route, RouteSpec, InSearchParams, OutSearchParams, InState } from "../common/index.js";
-import { useSearchParams, NavigateOptions } from "react-router-native";
+import { Route, RouteSpec, InSearchParams, OutSearchParams, InState } from "../index.js";
+import { useSearchParams, NavigateOptions } from "react-router";
 import { useMemo, useCallback } from "react";
 
 interface TypedNavigateOptions<T> extends NavigateOptions {

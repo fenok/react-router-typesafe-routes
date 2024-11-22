@@ -1,4 +1,5 @@
 import { PathnameType, SearchType, StateType, HashType, string } from "../types/index.js";
+import { createSearchParams, generatePath } from "react-router";
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
 
@@ -266,11 +267,6 @@ type OmitIllegalStar<
   TEnd extends boolean = false,
 > = TParam extends "*" ? (TMode extends "in" ? (TEnd extends false ? never : TParam) : TParam) : TParam;
 
-interface CreateRouteOptions {
-  createSearchParams: (init?: Record<string, string | string[]> | URLSearchParams) => URLSearchParams;
-  generatePath: (path: string, params?: PathnameParams) => string;
-}
-
 type RouteOptions<
   TPath extends PathConstraint = undefined,
   // We actually want {} by default, but it breaks autocomplete for some reason.
@@ -470,59 +466,51 @@ type RequiredWithoutUndefined<T> = {
   [P in keyof T]-?: Exclude<T[P], undefined>;
 };
 
-/**
- * Internal helper for creating the `route` helper. Most likely, you should import `route` from a platform-specific
- * entry point instead of using this helper.
- */
-function createRoute(creatorOptions: CreateRouteOptions) {
-  function route<
-    TPath extends PathConstraint = undefined,
-    // We actually want {} by default, but it breaks autocomplete for some reason.
-    TPathnameParams extends Partial<Record<PathParam<TPath>, PathnameType<any>>> = Partial<
-      Record<PathParam<TPath>, PathnameType<any>>
-    >,
-    TSearchParams extends SearchParamsConstraint = {},
-    // Allows to infer hash values from array without const.
-    THashString extends string = string,
-    THash extends HashConstraint<THashString> = [],
-    TState extends StateConstraint = {},
-    // Only allow to compose pathless routes
-    TComposedRoutes extends [...RouteApi<RouteSpec<undefined>>[]] = [],
-    // This should be restricted to Record<string, RouteApi>, but it breaks types for nested routes,
-    // even without names validity check
-    TChildren = {},
-  >(
-    opts: RouteOptions<TPath, TPathnameParams, TSearchParams, THashString, THash, TState, TComposedRoutes, TChildren>,
-  ): Route<
-    MergeRouteSpecList<
-      [
-        ...ExtractRouteSpecList<TComposedRoutes>,
-        RouteSpec<TPath, NormalizePathnameParams<TPathnameParams, TPath>, TSearchParams, THash, TState>,
-      ],
-      "compose"
-    >,
-    SanitizeRouteChildren<TChildren>
-  > {
-    const composedSpecList = (opts.compose ?? []).map(({ $spec }) => $spec) as ExtractRouteSpecList<TComposedRoutes>;
+function route<
+  TPath extends PathConstraint = undefined,
+  // We actually want {} by default, but it breaks autocomplete for some reason.
+  TPathnameParams extends Partial<Record<PathParam<TPath>, PathnameType<any>>> = Partial<
+    Record<PathParam<TPath>, PathnameType<any>>
+  >,
+  TSearchParams extends SearchParamsConstraint = {},
+  // Allows to infer hash values from array without const.
+  THashString extends string = string,
+  THash extends HashConstraint<THashString> = [],
+  TState extends StateConstraint = {},
+  // Only allow to compose pathless routes
+  TComposedRoutes extends [...RouteApi<RouteSpec<undefined>>[]] = [],
+  // This should be restricted to Record<string, RouteApi>, but it breaks types for nested routes,
+  // even without names validity check
+  TChildren = {},
+>(
+  opts: RouteOptions<TPath, TPathnameParams, TSearchParams, THashString, THash, TState, TComposedRoutes, TChildren>,
+): Route<
+  MergeRouteSpecList<
+    [
+      ...ExtractRouteSpecList<TComposedRoutes>,
+      RouteSpec<TPath, NormalizePathnameParams<TPathnameParams, TPath>, TSearchParams, THash, TState>,
+    ],
+    "compose"
+  >,
+  SanitizeRouteChildren<TChildren>
+> {
+  const composedSpecList = (opts.compose ?? []).map(({ $spec }) => $spec) as ExtractRouteSpecList<TComposedRoutes>;
 
-    const ownSpec = {
-      path: opts.path,
-      params: opts?.params ?? {},
-      searchParams: opts?.searchParams ?? {},
-      hash: opts?.hash ?? [],
-      state: opts?.state ?? {},
-    };
+  const ownSpec = {
+    path: opts.path,
+    params: opts?.params ?? {},
+    searchParams: opts?.searchParams ?? {},
+    hash: opts?.hash ?? [],
+    state: opts?.state ?? {},
+  };
 
-    const resolvedSpec = mergeSpecList([...composedSpecList, ownSpec], "compose");
+  const resolvedSpec = mergeSpecList([...composedSpecList, ownSpec], "compose");
 
-    return {
-      ...decorateChildren(resolvedSpec, creatorOptions, opts.children),
-      ...getRouteApi(resolvedSpec, creatorOptions),
-      $: decorateChildren(omitPath(resolvedSpec), creatorOptions, opts.children),
-    };
-  }
-
-  return route;
+  return {
+    ...decorateChildren(resolvedSpec, opts.children),
+    ...getRouteApi(resolvedSpec),
+    $: decorateChildren(omitPath(resolvedSpec), opts.children),
+  };
 }
 
 function omitPath<
@@ -572,7 +560,6 @@ function isHashType<T extends HashType<any>>(value: T | string[] | undefined): v
 
 function decorateChildren<TSpec extends RouteSpec, TChildren>(
   spec: TSpec,
-  creatorOptions: CreateRouteOptions,
   children: TChildren | undefined,
 ): RouteChildren<TSpec, TChildren> {
   const result: Record<string, unknown> = {};
@@ -584,9 +571,9 @@ function decorateChildren<TSpec extends RouteSpec, TChildren>(
 
       result[key] = isRoute(value)
         ? {
-            ...decorateChildren(spec, creatorOptions, value),
-            ...getRouteApi(mergeSpecList([spec, value.$spec], "inherit"), creatorOptions),
-            $: decorateChildren(omitPath(spec), creatorOptions, value.$),
+            ...decorateChildren(spec, value),
+            ...getRouteApi(mergeSpecList([spec, value.$spec], "inherit")),
+            $: decorateChildren(omitPath(spec), value.$),
           }
         : value;
     });
@@ -603,7 +590,7 @@ function getRouteApi<
     HashConstraint,
     StateConstraint
   >,
->(spec: TSpec, creatorOptions: CreateRouteOptions): RouteApi<TSpec> {
+>(spec: TSpec): RouteApi<TSpec> {
   const [allPathParams] = getPathParams(spec.path as TSpec["path"]);
   const absolutePath = makeAbsolute(spec.path as TSpec["path"]);
   const relativePath = removeIntermediateStars(spec.path as TSpec["path"]);
@@ -620,7 +607,12 @@ function getRouteApi<
   }
 
   function buildPathname(opts: BuildPathnameOptions<TSpec>) {
-    const rawBuiltPath = creatorOptions.generatePath(relativePath ?? "", serializeParams(opts));
+    const rawBuiltPath = generatePath(
+      relativePath ?? "",
+      serializeParams(opts) as {
+        [key in PathParam<typeof relativePath>]: string | null;
+      },
+    );
     const relativePathname = rawBuiltPath.startsWith("/") ? rawBuiltPath.substring(1) : rawBuiltPath;
 
     return `${opts?.relative ? "" : "/"}${relativePathname}`;
@@ -637,9 +629,7 @@ function getRouteApi<
   }
 
   function serializeSearchParams(opts: BuildSearchOptions<TSpec>) {
-    const plainParams = creatorOptions.createSearchParams(
-      serializeSearchParamsByTypes(opts.searchParams, resolvedSpec.searchParams),
-    );
+    const plainParams = createSearchParams(serializeSearchParamsByTypes(opts.searchParams, resolvedSpec.searchParams));
 
     if (opts?.untypedSearchParams) {
       appendSearchParams(plainParams, getUntypedSearchParams(opts?.untypedSearchParams));
@@ -649,7 +639,7 @@ function getRouteApi<
   }
 
   function buildSearch(opts: BuildSearchOptions<TSpec>) {
-    const searchString = creatorOptions.createSearchParams(serializeSearchParams(opts)).toString();
+    const searchString = createSearchParams(serializeSearchParams(opts)).toString();
 
     return searchString ? `?${searchString}` : "";
   }
@@ -681,7 +671,7 @@ function getRouteApi<
   }
 
   function getUntypedSearchParams(params: URLSearchParams) {
-    const result = creatorOptions.createSearchParams(params);
+    const result = createSearchParams(params);
 
     if (!resolvedSpec.searchParams) return result;
 
@@ -976,8 +966,7 @@ function appendSearchParams(target: URLSearchParams, source: URLSearchParams) {
 }
 
 export {
-  createRoute,
-  CreateRouteOptions,
+  route,
   RouteOptions,
   Route,
   RouteApi,

@@ -17,21 +17,13 @@
   "license": "MIT",
   "author": "Leonid Fenko <fenok2112@gmail.com>",
   "type": "module",
-  "main": "./common/index.js",
-  "module": "./common/index.js",
-  "types": "./common/index.d.ts",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "exports": {
     ".": {
-      "import": "./common/index.js",
-      "require": "./common/index.cjs"
-    },
-    "./dom": {
-      "import": "./dom/index.js",
-      "require": "./dom/index.cjs"
-    },
-    "./native": {
-      "import": "./native/index.js",
-      "require": "./native/index.cjs"
+      "import": "./lib/index.js",
+      "require": "./lib/index.cjs"
     },
     "./zod": {
       "import": "./zod/index.js",
@@ -45,9 +37,7 @@
   },
   "sideEffects": false,
   "files": [
-    "common",
-    "dom",
-    "native",
+    "lib",
     "zod",
     "yup",
     "docs",
@@ -58,7 +48,7 @@
   },
   "scripts": {
     "format": "prettier --write --ignore-unknown .",
-    "build": "rimraf common dom native zod yup && node create-cts.mjs && tsc --project tsconfig.build.js.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-cts.mjs",
+    "build": "rimraf lib zod yup && node create-cts.mjs && tsc --project tsconfig.build.js.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-cts.mjs",
     "format:check": "prettier --check .",
     "lint": "eslint --max-warnings=0 --report-unused-disable-directives .",
     "test": "jest",
@@ -80,8 +70,7 @@
     "prettier": "^3.0.2",
     "prettier-plugin-jsdoc": "^1.0.1",
     "react": ">=16.8",
-    "react-router-dom": "^6.7.0",
-    "react-router-native": "^6.7.0",
+    "react-router": "^7.0.1",
     "rimraf": "^4.4.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
@@ -90,18 +79,11 @@
   },
   "peerDependencies": {
     "react": ">=16.8",
-    "react-router-dom": "^6.7.0",
-    "react-router-native": "^6.7.0",
+    "react-router": "^7.0.1",
     "yup": "^1.0.0",
     "zod": "^3.0.0"
   },
   "peerDependenciesMeta": {
-    "react-router-dom": {
-      "optional": true
-    },
-    "react-router-native": {
-      "optional": true
-    },
     "yup": {
       "optional": true
     },
