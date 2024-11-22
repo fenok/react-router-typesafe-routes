@@ -1,6 +1,6 @@
 # React Router Typesafe Routes 🍣
 
-Comprehensive and extensible type safety via validation for all route params in React Router v6.
+Enhanced type safety via validation for all route params in React Router v7.
 
 [![NPM Version](https://img.shields.io/npm/v/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
 [![NPM Downloads](https://img.shields.io/npm/dw/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
@@ -24,12 +24,9 @@ The library doesn't restrict or alter React Router API in any way, including nes
 yarn add react-router-typesafe-routes@next
 ```
 
-You have to use one of the platform-specific entry points, each of which requires `react` as a peer dependency:
+Note that `react-router` and `react` are peer dependencies.
 
-- `react-router-typesafe-routes/dom` for web, `react-router-dom` is a peer dependency;
-- `react-router-typesafe-routes/native` for React Native, `react-router-native` is a peer dependency.
-
-Additionally, there are optional entry points for types based on third-party validation libraries:
+There are optional entry points for types based on third-party validation libraries:
 
 - `react-router-typesafe-routes/zod` exports `zod` type, `zod` is a peer dependency;
 - `react-router-typesafe-routes/yup` exports `yup` type, `yup` is a peer dependency;
@@ -57,12 +54,12 @@ The minimal required version of TypeScript is `5.0`, and `strict` mode must be e
 | Customizable built-in types                       | ✅                           | 🚫                                                             | 🚫                                                                  | 🚫                                                                |
 | Nested routes                                     | ✅                           | ✅                                                             | ✅                                                                  | ✅                                                                |
 | Relative links                                    | ✅                           | ✅                                                             | 🚫                                                                  | ✅                                                                |
-| Tailored specifically for React Router v6         | ✅                           | 🚫                                                             | ✅                                                                  | ✅                                                                |
+| Tailored specifically for React Router v7         | ✅                           | 🚫                                                             | 🚫                                                                  | 🚫                                                                |
 | Type-safe actions/loaders                         | 🚫                           | 🚫                                                             | 🚫                                                                  | ✅                                                                |
 
 > Type-safe actions/loaders should be fairly easy to implement, but it's a low-priority task. Please open an issue if you need them.
 
-Other libraries that I was able to find are outdated and not really suitable for React Router v6:
+Other libraries that I was able to find are outdated and not really suitable for React Router v7:
 
 - [typesafe-react-router](https://github.com/AveroLLC/typesafe-react-router)
 - [react-typesafe-routes](https://github.com/innFactory/react-typesafe-routes)
@@ -78,7 +75,7 @@ You might also want to use some other router with built-in type safety:
 Define library routes:
 
 ```tsx
-import { route, string, number, boolean, union } from "react-router-typesafe-routes/dom";
+import { route, string, number, boolean, union } from "react-router-typesafe-routes";
 
 // Start with a pathless route to specify global params.
 const root = route({
@@ -108,8 +105,11 @@ const root = route({
 
 Define React Router routes:
 
+> [!NOTE]  
+> We will use the JSX style of defining routes throughout the documentation, but you can easily define them in any way that React Router enables. See [Routing](https://reactrouter.com/start/framework/routing) for more information.
+
 ```tsx
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router";
 import { root } from "./path/to/routes";
 
 // Absolute paths
@@ -132,13 +132,10 @@ import { root } from "./path/to/routes";
 </Routes>;
 ```
 
-> [!NOTE]  
-> We will use the JSX style of defining routes throughout the documentation, but you can easily define them as route objects as well. See the [Route](https://reactrouter.com/en/main/route/route#route) documentation for more information.
-
 Use `Link` components as usual:
 
 ```tsx
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { root } from "./path/to/routes";
 
 // Absolute link
@@ -178,7 +175,7 @@ import {
   useTypedSearchParams,
   useTypedHash,
   useTypedState,
-} from "react-router-typesafe-routes/dom";
+} from "react-router-typesafe-routes";
 import { root } from "./path/to/routes";
 
 // { userId?: number; postId?: string; }
@@ -206,7 +203,7 @@ const { fromUserList } = useTypedState(root.user.post);
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, number } from "react-router-typesafe-routes/dom";
+import { route, number } from "react-router-typesafe-routes";
 
 const myRoute = route({
   searchParams: {
@@ -228,11 +225,7 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import {
-  route,
-  useTypedParams,
-  useTypedSearchParams,
-} from "react-router-typesafe-routes/dom";
+import { route, useTypedParams, useTypedSearchParams } from "react-router-typesafe-routes";
 
 // Pathless routes can be used for type sharing.
 const fragments = {
@@ -272,7 +265,7 @@ const [{ utm_campaign }] = useTypedSearchParams(root);
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, string } from "react-router-typesafe-routes/dom";
+import { route, string } from "react-router-typesafe-routes";
 
 // Hash can only be extended by child routes if it's specified as an array of strings.
 const myRoute = route({
@@ -304,7 +297,7 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, string } from "react-router-typesafe-routes/dom";
+import { route, string } from "react-router-typesafe-routes";
 
 // A type overwrites parent state completely, and subsequest state objects are ignored.
 const myRoute = route({
@@ -323,7 +316,7 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, string, number } from "react-router-typesafe-routes/dom";
+import { route, string, number } from "react-router-typesafe-routes";
 
 // You don't need to check that this value is a number.
 const integer = (value: number) => {
@@ -360,7 +353,7 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { route } from "react-router-typesafe-routes/dom";
+import { route } from "react-router-typesafe-routes";
 import { zod } from "react-router-typesafe-routes/zod";
 import { z } from "zod";
 
@@ -381,7 +374,7 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { route } from "react-router-typesafe-routes/dom";
+import { route } from "react-router-typesafe-routes";
 import { yup } from "react-router-typesafe-routes/yup";
 import { string } from "yup";
 
@@ -400,7 +393,7 @@ const ROUTE = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { type, parser, Type, ParserHint } from "react-router-typesafe-routes/dom";
+import { type, parser, Type, ParserHint } from "react-router-typesafe-routes";
 // Some abstract third-party library.
 import { v, Schema } from "third-party-library";
 
@@ -432,7 +425,7 @@ const myRoute = route({
   <summary>Click to expand</summary>
 
 ```tsx
-import { Parser, ParserHint, ParserType } from "react-router-typesafe-routes/dom";
+import { Parser, ParserHint, ParserType } from "react-router-typesafe-routes";
 
 // Extend built-in 'ParserHint' if needed.
 type CustomParserHint = ParserHint | "entity";
@@ -473,7 +466,7 @@ function customParser<T extends CustomParserHint>(
   <summary>Click to expand</summary>
 
 ```tsx
-import { route, PathnameType } from "react-router-typesafe-routes/dom";
+import { route, PathnameType } from "react-router-typesafe-routes";
 
 // This type accepts 'string | number | boolean' and returns 'string'.
 // It only implements 'PathnameType', so it can only be used for pathname params.
@@ -512,7 +505,7 @@ Any route can be a child of another route. Child routes inherit everything from 
 Most of the time, it's easier to simply inline child routes:
 
 ```tsx
-import { route } from "react-router-typesafe-routes/dom";
+import { route } from "react-router-typesafe-routes";
 
 const user = route({ path: "user/:id", children: { details: route("details") } });
 
@@ -523,7 +516,7 @@ console.log(user.details.$path()); // "/user/:id/details"
 They can also be uninlined, most likely for usage in multiple places:
 
 ```tsx
-import { route } from "react-router-typesafe-routes/dom";
+import { route } from "react-router-typesafe-routes";
 
 const details = route("details");
 
@@ -592,7 +585,7 @@ If your `<Route/>` is rendered in a nested `<Routes />`, you have to not only ad
 
 ```tsx
 import { Route, Routes } from "react-router-dom";
-import { route } from "react-router-typesafe-routes/dom";
+import { route } from "react-router-typesafe-routes";
 
 const user = route({ path: "user/:id/*", children: { details: route("details") } });
 
@@ -673,7 +666,7 @@ The important thing is that it has to handle both the original value and whateve
 The `type()` helper is a built-in type that all other built-in types are based on. The resulting param type is inferred from the given validator.
 
 ```typescript
-import { type, parser, Validator } from "react-router-typesafe-routes/dom";
+import { type, parser, Validator } from "react-router-typesafe-routes";
 
 const positiveNumber: Validator<number> = (value: unknown): number => {
   if (typeof value !== "number" || value <= 0) {
@@ -779,7 +772,7 @@ Just as usual segments, dynamic segments (pathname params) can be made optional 
 Inferred params will implicitly use `string().defined()` and `string()` for required and optional params respectively.
 
 ```tsx
-import { route, number } from "react-router-typesafe-routes/dom";
+import { route, number } from "react-router-typesafe-routes";
 
 // Here, id is overridden to be a number, and subId and optionalId are strings
 const myRoute = route({
@@ -800,7 +793,7 @@ Parsing behavior is determined by the type objects. Note that React Router parse
 Search params are determined by the provided search type objects.
 
 ```tsx
-import { route, string } from "react-router-typesafe-routes/dom";
+import { route, string } from "react-router-typesafe-routes";
 
 // Here, we define a search parameter 'filter' of 'string' type
 const myRoute = route({ path: "route", searchParams: { filter: string() } });
@@ -813,7 +806,7 @@ Upon building, all search params are optional. Parsing behavior is determined by
 Hash is determined by the provided hash type object. It's also possible to provide an array of possible `string` values if you want to inherit parent values.
 
 ```tsx
-import { route, string, union } from "react-router-typesafe-routes/dom";
+import { route, string, union } from "react-router-typesafe-routes";
 
 const routeWithAnyHash = route({ path: "route", hash: string() });
 
@@ -832,7 +825,7 @@ Upon building, hash is optional. Parsing behavior is determined by the type obje
 State fields are determined by the provided state type objects. It's also possible to use a type object to define the whole state.
 
 ```tsx
-import { route, boolean, string } from "react-router-typesafe-routes/dom";
+import { route, boolean, string } from "react-router-typesafe-routes";
 
 // Here, we define a state field 'fromList' of 'boolean' type
 const myRoute = route({ path: "route", state: { fromList: boolean() } });
@@ -878,7 +871,7 @@ If state type is defined as a set of its fields' types and a whole state type at
 A route is defined via the `route()` helper. All its options are optional.
 
 ```tsx
-import { route, string, number, boolean } from "react-router-typesafe-routes/dom";
+import { route, string, number, boolean } from "react-router-typesafe-routes";
 
 const myFragment = route({ searchParams: { myFragmentParam: string() } });
 

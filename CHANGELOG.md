@@ -72,6 +72,7 @@ setTypedSearchParams((prevParams) => ({
 - **Breaking**: `$` no longer prevents pathname types inheritance.
 - **Breaking**: Some types are changed for convenience and readability.
 - **Breaking**: The minimal required version of TS is now `v5.0` with `strict` mode enabled.
+- **Breaking**: The minimal required version of React Router is now `v7.0`.
 
 ### Removed
 
