@@ -819,7 +819,7 @@ Normally these limitations shouldn't get in your way, but if they do, you can ge
 
 Pathname params are inferred from the provided path pattern and can be overridden (partially or completely) with pathname type objects.
 
-Just as usual segments, dynamic segments (pathname params) can be made optional by adding a `?` to the end. This also applies to star (`*`) segments.
+Just as usual segments, dynamic segments (pathname params) can be made optional by adding a `?` to the end. This doesn't apply to star (`*`) segments though.
 
 Inferred params will implicitly use `string().defined()` and `string()` for required and optional params respectively.
 
@@ -943,7 +943,7 @@ The `path` option is a path pattern that you would put to the `path` property of
 - be a simple segment or a group of segments (`'user'`, `'user/details'`).
 - have any number of dynamic segments (params) anywhere (`':id/user'`, `'user/:id/more'`).
 - **end** with a star segment (`'user/:id/*'`, `'*'`)
-- have any number of optional segments (`user?/:id?/*?`)
+- have any number of optional segments (`user?/:id?`)
 - be an empty string (`''`).
 
 Unspecified (or `undefined`) `path` means that the route is pathless. Pathless routes are intended for types sharing.

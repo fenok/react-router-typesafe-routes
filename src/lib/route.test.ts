@@ -127,32 +127,6 @@ it("preserves intermediate stars in absolute path", () => {
   expect(TEST_ROUTE.CHILD.GRANDCHILD.$path()).toStrictEqual("/test/child/*/grand");
 });
 
-it("preserves optional intermediate stars in absolute path", () => {
-  const GRANDCHILD = route({
-    path: "grand",
-  });
-  const CHILD = route({
-    path: "child/*?",
-    children: { GRANDCHILD },
-  });
-  const TEST_ROUTE = route({
-    path: "test/*?",
-    children: { CHILD },
-  });
-
-  const testRoutePath = TEST_ROUTE.$path();
-  const testRouteChildPath = TEST_ROUTE.CHILD.$path();
-  const testRouteChildGrandchildPath = TEST_ROUTE.CHILD.GRANDCHILD.$path();
-
-  assert<IsExact<typeof testRoutePath, "/test/*?">>(true);
-  assert<IsExact<typeof testRouteChildPath, "/test/*?/child/*?">>(true);
-  assert<IsExact<typeof testRouteChildGrandchildPath, "/test/*?/child/*?/grand">>(true);
-
-  expect(TEST_ROUTE.$path()).toStrictEqual("/test/*?");
-  expect(TEST_ROUTE.CHILD.$path()).toStrictEqual("/test/*?/child/*?");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path()).toStrictEqual("/test/*?/child/*?/grand");
-});
-
 it("provides relative path", () => {
   const GRANDCHILD = route({
     path: "grand",
@@ -256,32 +230,6 @@ it("removes multiple intermediate stars from relative path", () => {
 
   expect(TEST_ROUTE.$path({ relative: true })).toStrictEqual("test/*");
   expect(TEST_ROUTE.CHILD.$path({ relative: true })).toStrictEqual("test/child/*");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true })).toStrictEqual("test/child/grand");
-});
-
-it("removes multiple optional intermediate stars from relative path", () => {
-  const GRANDCHILD = route({
-    path: "grand",
-  });
-  const CHILD = route({
-    path: "child/*?",
-    children: { GRANDCHILD },
-  });
-  const TEST_ROUTE = route({
-    path: "test/*?",
-    children: { CHILD },
-  });
-
-  const testRouteRelativePath = TEST_ROUTE.$path({ relative: true });
-  const testRouteChildRelativePath = TEST_ROUTE.CHILD.$path({ relative: true });
-  const testRouteChildGrandchildRelativePath = TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true });
-
-  assert<IsExact<typeof testRouteRelativePath, "test/*?">>(true);
-  assert<IsExact<typeof testRouteChildRelativePath, "test/child/*?">>(true);
-  assert<IsExact<typeof testRouteChildGrandchildRelativePath, "test/child/grand">>(true);
-
-  expect(TEST_ROUTE.$path({ relative: true })).toStrictEqual("test/*?");
-  expect(TEST_ROUTE.CHILD.$path({ relative: true })).toStrictEqual("test/child/*?");
   expect(TEST_ROUTE.CHILD.GRANDCHILD.$path({ relative: true })).toStrictEqual("test/child/grand");
 });
 
@@ -590,60 +538,9 @@ it("allows implicit star path param", () => {
   );
 });
 
-it.skip("allows implicit optional star path param", () => {
-  const GRANDCHILD = route({
-    path: "grand",
-  });
-  const CHILD = route({
-    path: "child/*?",
-    children: { GRANDCHILD },
-  });
-  const TEST_ROUTE = route({
-    path: "test",
-    children: { CHILD },
-  });
-
-  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
-  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], { "*"?: string | undefined }>>(true);
-  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], Record<never, never>>>(
-    true,
-  );
-
-  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.$buildPathname({ params: { "*": "star/param" } })).toStrictEqual("/test/child/star/param");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { "*": "star/param" } })).toStrictEqual(
-    "/test/child/grand",
-  );
-});
-
 it("allows explicit star path param", () => {
   const GRANDCHILD = route({
     path: "grand/*",
-    params: { "*": number() },
-  });
-  const CHILD = route({
-    path: "child",
-    children: { GRANDCHILD },
-  });
-  const TEST_ROUTE = route({
-    path: "test",
-    children: { CHILD },
-  });
-
-  assert<IsExact<Parameters<typeof TEST_ROUTE.$buildPathname>[0]["params"], Record<never, never>>>(true);
-  assert<IsExact<Parameters<typeof TEST_ROUTE.CHILD.$buildPathname>[0]["params"], Record<never, never>>>(true);
-  assert<
-    IsExact<Parameters<typeof TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname>[0]["params"], { "*"?: number | undefined }>
-  >(true);
-
-  expect(TEST_ROUTE.$buildPathname({ params: {} })).toStrictEqual("/test");
-  expect(TEST_ROUTE.CHILD.$buildPathname({ params: {} })).toStrictEqual("/test/child");
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$buildPathname({ params: { "*": 42 } })).toStrictEqual("/test/child/grand/42");
-});
-
-it.skip("allows explicit optional star path param", () => {
-  const GRANDCHILD = route({
-    path: "grand/*?",
     params: { "*": number() },
   });
   const CHILD = route({
@@ -1177,28 +1074,6 @@ it("allows implicit star path param parsing", () => {
   expect(TEST_ROUTE.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({});
   expect(TEST_ROUTE.CHILD.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({});
   expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({ "*": "foo/bar" });
-});
-
-it("allows implicit optional star path param parsing", () => {
-  const GRANDCHILD = route({
-    path: "grand",
-  });
-  const CHILD = route({
-    path: "child/*?",
-    children: { GRANDCHILD },
-  });
-  const TEST_ROUTE = route({
-    path: "test",
-    children: { CHILD },
-  });
-
-  assert<IsExact<ReturnType<typeof TEST_ROUTE.$deserializeParams>, Record<never, never>>>(true);
-  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.$deserializeParams>, { "*"?: string }>>(true);
-  assert<IsExact<ReturnType<typeof TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams>, { "*"?: string }>>(true);
-
-  expect(TEST_ROUTE.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({});
-  expect(TEST_ROUTE.CHILD.$deserializeParams({ "*": "foo/bar" })).toStrictEqual({ "*": "foo/bar" });
-  expect(TEST_ROUTE.CHILD.GRANDCHILD.$deserializeParams({})).toStrictEqual({});
 });
 
 it("allows explicit star path param parsing", () => {
@@ -2517,20 +2392,10 @@ it("provides a helper for extracting pathname params", () => {
   assert<IsExact<PathParam<"test/:id/*", "optional", "out">, never>>(true);
   assert<IsExact<PathParam<"test/:id/*", "optional", "in">, "*">>(true);
 
-  assert<IsExact<PathParam<"test/:id/*?", "all", "out">, "id" | "*">>(true);
-  assert<IsExact<PathParam<"test/:id/*?", "all", "in">, "id" | "*">>(true);
-  assert<IsExact<PathParam<"test/:id/*?", "optional", "out">, "*">>(true);
-  assert<IsExact<PathParam<"test/:id/*?", "optional", "in">, "*">>(true);
-
   assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "all", "out">, "id" | "subId" | "*">>(true);
   assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "all", "in">, "id" | "subId">>(true);
   assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "optional", "out">, "subId">>(true);
   assert<IsExact<PathParam<"test/:id/test/*/:subId?/test", "optional", "in">, "subId">>(true);
-
-  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "all", "out">, "id" | "subId" | "*">>(true);
-  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "all", "in">, "id" | "subId">>(true);
-  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "optional", "out">, "subId" | "*">>(true);
-  assert<IsExact<PathParam<"test/:id/test/*?/:subId?/test", "optional", "in">, "subId">>(true);
 });
 
 it("supports enums in union()", () => {

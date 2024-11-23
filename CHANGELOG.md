@@ -35,6 +35,7 @@ const [{ page }] = useTypedSearchParams(fragment);
 - `union()` now properly infers values from an inline array without `as const`.
 - Pathname params without explicit types now use `string()` and `string().defined()` for optional and required params respectively instead of custom code.
 - State can now optionally be typed as a whole, so non-object states can now be typed.
+- Optional splats are now explicitly forbidden (they stopped working in React Router v6.9.0)
 - **Breaking**: `union()` no longer accepts its values as multiple arguments.
 - **Breaking**: Types for pathname `params` are now stricter and don't allow params which are not specified in the path pattern. This also fixes autocomplete for such params.
 - **Breaking**: A `$` is added to all fields of a route object, so now child routes can start with a lowercase character and use basically any naming scheme (unless they start with a `$`, which is forbidden).
