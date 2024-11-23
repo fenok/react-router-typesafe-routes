@@ -16,22 +16,21 @@
   },
   "license": "MIT",
   "author": "Leonid Fenko <fenok2112@gmail.com>",
-  "type": "module",
-  "main": "./lib/index.js",
-  "module": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "main": "./lib/index.js",
+  "module": "./lib/index.mjs",
   "exports": {
     ".": {
-      "import": "./lib/index.js",
-      "require": "./lib/index.cjs"
+      "import": "./lib/index.mjs",
+      "default": "./lib/index.js"
     },
     "./zod": {
-      "import": "./zod/index.js",
-      "require": "./zod/index.cjs"
+      "import": "./zod/index.mjs",
+      "default": "./zod/index.js"
     },
     "./yup": {
-      "import": "./yup/index.js",
-      "require": "./yup/index.cjs"
+      "import": "./yup/index.mjs",
+      "default": "./yup/index.js"
     },
     "./package.json": "./package.json"
   },
@@ -48,7 +47,7 @@
   },
   "scripts": {
     "format": "prettier --write --ignore-unknown .",
-    "build": "rimraf lib zod yup && node create-cts.mjs && tsc --project tsconfig.build.js.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-cts.mjs",
+    "build": "rimraf lib zod yup && node create-mts.mjs && tsc --project tsconfig.build.mjs.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-mts.mjs",
     "format:check": "prettier --check .",
     "lint": "eslint --max-warnings=0 --report-unused-disable-directives .",
     "test": "jest",

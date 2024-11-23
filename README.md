@@ -31,7 +31,7 @@ There are optional entry points for types based on third-party validation librar
 - `react-router-typesafe-routes/zod` exports `zod` type, `zod` is a peer dependency;
 - `react-router-typesafe-routes/yup` exports `yup` type, `yup` is a peer dependency;
 
-The library is targeting ES6 (ES2015). ESM is used by default, and CommonJS is only usable in environments that support the `exports` field in `package.json`.
+The library is targeting ES6 (ES2015).
 
 The minimal required version of TypeScript is `5.0`, and `strict` mode must be enabled.
 
@@ -559,7 +559,7 @@ Most of the time, it's easier to simply inline child routes:
 ```tsx
 import { route } from "react-router-typesafe-routes";
 
-const user = route({ path: "user/:id", children: { details: route("details") } });
+const user = route({ path: "user/:id", children: { details: route({ path: "details" }) } });
 
 console.log(user.$path()); // "/user/:id"
 console.log(user.details.$path()); // "/user/:id/details"
@@ -570,10 +570,10 @@ They can also be uninlined, most likely for usage in multiple places:
 ```tsx
 import { route } from "react-router-typesafe-routes";
 
-const details = route("details");
+const details = route({ path: "details" });
 
-const user = route("user/:id", {}, { details });
-const post = route("post/:id", {}, { details });
+const user = route({ path: "user/:id", children: { details } });
+const post = route({ path: "post/:id", children: { details } });
 
 console.log(user.details.$path()); // "/user/:id/details"
 console.log(post.details.$path()); // "/post/:id/details"
@@ -639,7 +639,7 @@ If your `<Route/>` is rendered in a nested `<Routes />`, you have to not only ad
 import { Route, Routes } from "react-router-dom";
 import { route } from "react-router-typesafe-routes";
 
-const user = route({ path: "user/:id/*", children: { details: route("details") } });
+const user = route({ path: "user/:id/*", children: { details: route({ path: "details" }) } });
 
 <Routes>
   {/* '/user/:id/*' */}
