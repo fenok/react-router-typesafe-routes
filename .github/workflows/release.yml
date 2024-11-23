@@ -57,7 +57,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
       - name: Publish to NPM (latest)
-        run: npm tag add react-router-typesafe-routes@${{ steps.package-version.outputs.current-version}} latest
+        run: npm dist-tag add react-router-typesafe-routes@${{ steps.package-version.outputs.current-version}} latest
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
