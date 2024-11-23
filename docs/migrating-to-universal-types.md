@@ -6,7 +6,7 @@
 | `numberType`                         | `number()`[^1]                                          |
 | `booleanType`                        | `boolean()`[^1]                                         |
 | `dateType`                           | `date()`[^1]                                            |
-| `oneOfType('foo', 'bar')`            | `union('foo', 'bar')`[^1]                               |
+| `oneOfType('foo', 'bar')`            | `union(['foo', 'bar'])`[^1]                             |
 | `stringType('')`                     | `string().default('')`[^1][^2]                          |
 | `stringType(throwable)`              | `string().defined()`[^1][^2]                            |
 | `arrayOfType(stringType)`            | `string().array()`/`string().defined().array()`[^1][^3] |

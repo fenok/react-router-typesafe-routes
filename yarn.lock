@@ -5165,7 +5165,7 @@ __metadata:
     jscodeshift: ^0.15.0
     prettier: ^3.0.2
     prettier-plugin-jsdoc: ^1.0.1
-    react: ">=16.8"
+    react: ">=18"
     react-router: ^7.0.1
     rimraf: ^4.4.0
     ts-jest: ^29.1.1
@@ -5173,7 +5173,7 @@ __metadata:
     yup: ^1.0.0
     zod: ^3.0.0
   peerDependencies:
-    react: ">=16.8"
+    react: ">=18"
     react-router: ^7.0.1
     yup: ^1.0.0
     zod: ^3.0.0
@@ -5203,12 +5203,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:>=16.8":
-  version: 18.1.0
-  resolution: "react@npm:18.1.0"
+"react@npm:>=18":
+  version: 18.3.1
+  resolution: "react@npm:18.3.1"
   dependencies:
     loose-envify: ^1.1.0
-  checksum: 5bb296b561b43ef2220395da4faac86c14a087c8c80e1a7598a5740f01ee605c11eaf249985c1e2000971c4cd32ccb46d40f00479bbd9fb6b1c7cf857393b7d4
+  checksum: a27bcfa8ff7c15a1e50244ad0d0c1cb2ad4375eeffefd266a64889beea6f6b64c4966c9b37d14ee32d6c9fcd5aa6ba183b6988167ab4d127d13e7cb5b386a376
   languageName: node
   linkType: hard
 
