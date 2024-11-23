@@ -76,6 +76,7 @@ setTypedSearchParams((prevParams) => ({
 
 ### Removed
 
+- **Breaking**: Removed `/dom` and `/native` entry points. Use the main entry point instead.
 - **Breaking**: Removed all deprecated features.
 - **Breaking**: Removed `hashValues()`. Pass an array of strings or a type instead.
 - **Breaking**: Removed `types()`. Use composition API instead.
