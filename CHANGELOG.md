@@ -73,6 +73,7 @@ setTypedSearchParams((prevParams) => ({
 - **Breaking**: Some types are changed for convenience and readability.
 - **Breaking**: The minimal required version of TS is now `v5.0` with `strict` mode enabled.
 - **Breaking**: The minimal required version of React Router is now `v7.0`.
+- **Breaking**: CommonJS is now used by default, similarly to React Router.
 
 ### Removed
 
