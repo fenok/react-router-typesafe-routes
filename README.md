@@ -5,9 +5,6 @@ Enhanced type safety via validation for all route params in React Router v7.
 [![NPM Version](https://img.shields.io/npm/v/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
 [![NPM Downloads](https://img.shields.io/npm/dw/react-router-typesafe-routes)](https://www.npmjs.com/package/react-router-typesafe-routes)
 
-> [!WARNING]  
-> You're viewing the documentation for the upcoming version 2.0.0, which is currently unstable. If you have any feedback, please leave it [here](https://github.com/fenok/react-router-typesafe-routes/issues/54). For the current version, please refer to the [main branch](https://github.com/fenok/react-router-typesafe-routes/tree/main).
-
 The library provides type safety for all route params (pathname params, search params (including multiple keys), state, and hash) on building and parsing/validating URL parts and state. There are no unsafe type casts whatsoever.
 
 If you want, you can use a validation library. There is first-party support for [Zod](https://github.com/colinhacks/zod) and [Yup](https://github.com/jquense/yup), and other libraries can be integrated with ease. Otherwise, you can use other built-in types and fine-tune their validation instead.
@@ -21,7 +18,7 @@ The library doesn't restrict or alter React Router API in any way, including nes
 ## Installation
 
 ```
-yarn add react-router-typesafe-routes@next
+yarn add react-router-typesafe-routes
 ```
 
 Note that `react-router` and `react` are peer dependencies.
