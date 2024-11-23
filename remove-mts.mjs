@@ -9,7 +9,7 @@ async function process(dir) {
 
     if (dirent.isDirectory()) {
       process(res);
-    } else if (res.endsWith(".cts")) {
+    } else if (res.endsWith(".mts")) {
       unlink(res);
     }
   });

@@ -10,15 +10,15 @@ async function process(dir) {
     if (dirent.isDirectory()) {
       process(res);
     } else if (res.endsWith(".ts")) {
-      createCts(res);
+      createMts(res);
     }
   });
 }
 
-async function createCts(filePath) {
+async function createMts(filePath) {
   const content = await readFile(filePath, { encoding: "utf8" });
-  const ctsContent = content.replaceAll('.js"', '.cjs"');
-  const ctsFilePath = filePath.replace(".ts", ".cts");
+  const ctsContent = content.replaceAll('.js"', '.mjs"');
+  const ctsFilePath = filePath.replace(".ts", ".mts");
 
   await writeFile(ctsFilePath, ctsContent, { encoding: "utf8" });
 }
