@@ -1,4 +1,4 @@
-import { Route, RouteSpec, OutState } from "../index.js";
+import { Route, RouteSpec, OutState } from "../route/index.js";
 import { useLocation } from "react-router";
 import { useMemo } from "react";
 

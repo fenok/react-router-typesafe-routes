@@ -1,4 +1,4 @@
-import { Route, RouteSpec, InSearchParams, OutSearchParams, InState } from "../index.js";
+import { Route, RouteSpec, InSearchParams, OutSearchParams, InState } from "../route/index.js";
 import { useSearchParams, NavigateOptions } from "react-router";
 import { useMemo, useCallback } from "react";
 

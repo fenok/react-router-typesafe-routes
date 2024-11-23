@@ -1,4 +1,4 @@
-import { Route, RouteSpec, OutHash } from "../index.js";
+import { Route, RouteSpec, OutHash } from "../route/index.js";
 import { useLocation } from "react-router";
 import { useMemo } from "react";
 

@@ -197,6 +197,58 @@ const { fromUserList } = useTypedState(root.user.post);
 
 ## Advanced examples
 
+### Preserve unrelated search params
+
+<details>
+<summary>Click to expand</summary>
+
+```tsx
+import { route, string, number, useTypedSearchParams } from "react-router-typesafe-routes";
+import { useSearchParams } from "react-router";
+
+// Pathless route is used for simplicity, this works with any route
+export const searchParamsFragment = route({
+  searchParams: {
+    search: string(),
+    page: number(),
+  },
+});
+
+// In a component body
+const [typedSearchParams, setTypedSearchParams] = useTypedSearchParams(searchParamsFragment);
+const rawSearchParams = useSearchParams();
+
+// In JSX
+<Link
+  to={searchParamsFragment.$buildSearch({
+    searchParams: {
+      // Destructure existing params to preserve params typed by the route
+      ...typedSearchParams,
+      page: 1,
+    },
+    // Pass raw search params to preserve params NOT typed by the route
+    untypedSearchParams: rawSearchParams,
+  })}
+>
+  Click
+</Link>;
+
+// In an event handler
+setTypedSearchParams(
+  (prevParams) => ({
+    // Destructure existing params to preserve params typed by the route
+    ...prevParams,
+    page: 1,
+  }),
+  {
+    // Set this flag to preserve params NOT typed by the route
+    untypedSearchParams: true,
+  },
+);
+```
+
+</details>
+
 ### Define arrays
 
 <details>
