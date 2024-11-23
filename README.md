@@ -31,7 +31,7 @@ There are optional entry points for types based on third-party validation librar
 - `react-router-typesafe-routes/zod` exports `zod` type, `zod` is a peer dependency;
 - `react-router-typesafe-routes/yup` exports `yup` type, `yup` is a peer dependency;
 
-The library is targeting ES6 (ES2015). ESM is used by default, and CommonJS is only usable in environments that support the `exports` field in `package.json`.
+The library is targeting ES6 (ES2015).
 
 The minimal required version of TypeScript is `5.0`, and `strict` mode must be enabled.
 
