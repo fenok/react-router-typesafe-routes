@@ -1,13 +1,13 @@
 {
   "name": "react-router-typesafe-routes",
   "version": "2.0.0-dev.5",
-  "description": "Comprehensive and extensible type-safe routes for React Router v6 with first-class support for nested routes and param validation.",
+  "description": "Enhanced type safety via validation for all route params in React Router v7.",
   "keywords": [
     "typesafe",
     "type-safe",
     "validation",
     "react-router",
-    "react-router6",
+    "react-router7",
     "react"
   ],
   "repository": {
@@ -43,7 +43,7 @@
     "CHANGELOG.md"
   ],
   "engines": {
-    "node": ">=14"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "format": "prettier --write --ignore-unknown .",
@@ -77,7 +77,7 @@
     "zod": "^3.0.0"
   },
   "peerDependencies": {
-    "react": ">=16.8",
+    "react": ">=18",
     "react-router": "^7.0.1",
     "yup": "^1.0.0",
     "zod": "^3.0.0"
