@@ -54,7 +54,6 @@ The minimal required version of TypeScript is `5.0`, and `strict` mode must be e
 | Customizable built-in types                       | ✅                           | 🚫                                                             | 🚫                                                                  | 🚫                                                                |
 | Nested routes                                     | ✅                           | ✅                                                             | ✅                                                                  | ✅                                                                |
 | Relative links                                    | ✅                           | ✅                                                             | 🚫                                                                  | ✅                                                                |
-| Tailored specifically for React Router v7         | ✅                           | 🚫                                                             | 🚫                                                                  | 🚫                                                                |
 | Type-safe actions/loaders                         | 🚫                           | 🚫                                                             | 🚫                                                                  | ✅                                                                |
 
 > Type-safe actions/loaders should be fairly easy to implement, but it's a low-priority task. Please open an issue if you need them.
@@ -106,7 +105,7 @@ const root = route({
 Define React Router routes:
 
 > [!NOTE]  
-> We will use the JSX style of defining routes throughout the documentation, but you can easily define them in any way that React Router enables. See [Routing](https://reactrouter.com/start/framework/routing) for more information.
+> We will use the JSX style of defining routes throughout the documentation, but you can easily define them in any way that React Router enables. See [Framework Routing](https://reactrouter.com/start/framework/routing) and [Library Routing](https://reactrouter.com/start/library/routing) for more information. Note that at the time of writing there are [some issues](https://github.com/remix-run/react-router/issues/12359) with types generation when absolute paths are used.
 
 ```tsx
 import { Route, Routes } from "react-router";
