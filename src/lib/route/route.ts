@@ -204,6 +204,8 @@ type SanitizePath<T> = T extends `/${string}`
   ? ErrorMessage<"Leading slashes are forbidden">
   : T extends `${string}/`
   ? ErrorMessage<"Trailing slashes are forbidden">
+  : T extends `${string}*?${string}`
+  ? ErrorMessage<"Splats can't be optional">
   : T;
 
 type SanitizeRouteChildren<T> = Readable<{
@@ -230,11 +232,6 @@ type PathParam<
   TMode extends "in" | "out" = "out",
 > = string extends TPath
   ? never
-  : TPath extends `${infer TBefore}*?${infer TAfter}`
-  ?
-      | ExtractPathParam<"*?", TKind, TMode, TAfter extends "" ? true : false>
-      | PathParam<TBefore, TKind, TMode>
-      | PathParam<TAfter, TKind, TMode>
   : TPath extends `${infer TBefore}*${infer TAfter}`
   ?
       | ExtractPathParam<"*", TKind, TMode, TAfter extends "" ? true : false>
