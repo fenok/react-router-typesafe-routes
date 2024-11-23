@@ -1,6 +1,6 @@
 {
   "name": "react-router-typesafe-routes",
-  "version": "2.0.0-dev.5",
+  "version": "2.0.0",
   "description": "Enhanced type safety via validation for all route params in React Router v7.",
   "keywords": [
     "typesafe",
@@ -90,6 +90,5 @@
       "optional": true
     }
   },
-  "packageManager": "yarn@3.6.3",
-  "stableVersion": "1.2.1"
+  "packageManager": "yarn@3.6.3"
 }
