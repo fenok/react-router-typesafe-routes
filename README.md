@@ -959,7 +959,7 @@ The `route()` helper returns a route object, which has the following fields:
 - `$deserializeParams()`, `$deserializeSearchParams()`, `$deserializeHash()`, and `$deserializeState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
 - `$serializeParams()` and `$serializeSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `$buildHash()` and `$buildState()` can be used instead.
 - `$spec`, which contains resolved type objects (and possibly hash values) of the route, as well as its `path` option.
-- `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
+- `$`, which contains child routes that lack the parent path pattern.
 - Any number of child routes (that can't start with a `$`).
 
 `$buildPath()` and `$buildPathname()` accept the `relative` option for building relative paths.
