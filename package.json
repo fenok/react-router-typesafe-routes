@@ -1,111 +1,94 @@
 {
-    "name": "react-router-typesafe-routes",
-    "version": "1.2.2",
-    "description": "Comprehensive and extensible type-safe routes for React Router v6 with first-class support for nested routes and param validation.",
-    "keywords": [
-        "typesafe",
-        "type-safe",
-        "validation",
-        "react-router",
-        "react-router6",
-        "react"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/fenok/react-router-typesafe-routes.git"
+  "name": "react-router-typesafe-routes",
+  "version": "2.0.0",
+  "description": "Enhanced type safety via validation for all route params in React Router v7.",
+  "keywords": [
+    "typesafe",
+    "type-safe",
+    "validation",
+    "react-router",
+    "react-router7",
+    "react"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fenok/react-router-typesafe-routes.git"
+  },
+  "license": "MIT",
+  "author": "Leonid Fenko <fenok2112@gmail.com>",
+  "types": "./lib/index.d.ts",
+  "main": "./lib/index.js",
+  "module": "./lib/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./lib/index.mjs",
+      "default": "./lib/index.js"
     },
-    "license": "MIT",
-    "author": "Leonid Fenko <fenok2112@gmail.com>",
-    "type": "module",
-    "main": "./common/index.js",
-    "module": "./common/index.js",
-    "types": "./common/index.d.ts",
-    "exports": {
-        ".": {
-            "import": "./common/index.js",
-            "require": "./common/index.cjs"
-        },
-        "./dom": {
-            "import": "./dom/index.js",
-            "require": "./dom/index.cjs"
-        },
-        "./native": {
-            "import": "./native/index.js",
-            "require": "./native/index.cjs"
-        },
-        "./zod": {
-            "import": "./zod/index.js",
-            "require": "./zod/index.cjs"
-        },
-        "./yup": {
-            "import": "./yup/index.js",
-            "require": "./yup/index.cjs"
-        },
-        "./package.json": "./package.json"
+    "./zod": {
+      "import": "./zod/index.mjs",
+      "default": "./zod/index.js"
     },
-    "sideEffects": false,
-    "files": [
-        "common",
-        "dom",
-        "native",
-        "zod",
-        "yup",
-        "docs",
-        "CHANGELOG.md"
-    ],
-    "engines": {
-        "node": ">=14"
+    "./yup": {
+      "import": "./yup/index.mjs",
+      "default": "./yup/index.js"
     },
-    "scripts": {
-        "format": "prettier --write --ignore-unknown .",
-        "build": "rimraf common dom native zod yup && node create-cts.mjs && tsc --project tsconfig.build.js.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-cts.mjs",
-        "format:check": "prettier --check .",
-        "lint": "eslint --max-warnings=0 --report-unused-disable-directives .",
-        "test": "jest",
-        "prepack": "yarn build",
-        "prepublish": "yarn format:check && yarn lint && yarn test"
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "files": [
+    "lib",
+    "zod",
+    "yup",
+    "docs",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "format": "prettier --write --ignore-unknown .",
+    "build": "rimraf lib zod yup && node create-mts.mjs && tsc --project tsconfig.build.mjs.json --outDir . && tsc --project tsconfig.build.cjs.json --outDir . && node remove-mts.mjs",
+    "format:check": "prettier --check .",
+    "lint": "eslint --max-warnings=0 --report-unused-disable-directives .",
+    "test": "jest",
+    "prepack": "yarn build",
+    "prepublish": "yarn format:check && yarn lint && yarn test"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.4.1",
+    "@types/node": "^18.15.3",
+    "@types/react": "^18.0.9",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/parser": "^6.4.0",
+    "conditional-type-checks": "^1.0.6",
+    "eslint": "^8.47.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "jest": "^29.5.0",
+    "jscodeshift": "^0.15.0",
+    "prettier": "^3.0.2",
+    "prettier-plugin-jsdoc": "^1.0.1",
+    "react": ">=18",
+    "react-router": "^7.0.1",
+    "rimraf": "^4.4.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2",
+    "yup": "^1.0.0",
+    "zod": "^3.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-router": "^7.0.1",
+    "yup": "^1.0.0",
+    "zod": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "yup": {
+      "optional": true
     },
-    "devDependencies": {
-        "@types/jest": "^29.4.1",
-        "@types/node": "^18.15.3",
-        "@types/react": "^18.0.9",
-        "@typescript-eslint/eslint-plugin": "^5.55.0",
-        "@typescript-eslint/parser": "^5.55.0",
-        "conditional-type-checks": "^1.0.6",
-        "eslint": "^8.36.0",
-        "eslint-config-prettier": "^8.7.0",
-        "eslint-plugin-react-hooks": "^4.6.0",
-        "jest": "^29.5.0",
-        "prettier": "^2.8.4",
-        "react": ">=16.8",
-        "react-router-dom": "^6.7.0",
-        "react-router-native": "^6.7.0",
-        "rimraf": "^4.4.0",
-        "ts-jest": "^29.0.5",
-        "typescript": "^4.9.5",
-        "yup": "^1.0.0",
-        "zod": "^3.0.0"
-    },
-    "peerDependencies": {
-        "react": ">=16.8",
-        "react-router-dom": "^6.7.0",
-        "react-router-native": "^6.7.0",
-        "yup": "^1.0.0",
-        "zod": "^3.0.0"
-    },
-    "peerDependenciesMeta": {
-        "react-router-dom": {
-            "optional": true
-        },
-        "react-router-native": {
-            "optional": true
-        },
-        "yup": {
-            "optional": true
-        },
-        "zod": {
-            "optional": true
-        }
-    },
-    "packageManager": "yarn@3.4.1"
+    "zod": {
+      "optional": true
+    }
+  },
+  "packageManager": "yarn@3.6.3"
 }

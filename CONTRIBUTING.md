@@ -1,7 +1,7 @@
 ## Branches
 
--   `main` represents the latest published version. It can only be updated automatically.
--   `dev` represents the latest stable version used for development. At some point, `dev` is published and merged into `main`.
+- `main` represents the latest published version. It can only be updated automatically.
+- `dev` represents the latest stable version used for development. At some point, `dev` is published and merged into `main`.
 
 ## Pull Requests
 
