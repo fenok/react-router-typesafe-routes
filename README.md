@@ -804,7 +804,7 @@ interface StateType<TOut, TIn = TOut> {
 
 There are some limitations in type objects that can be produced by built-in types, for instance:
 
-- `TIn` and `TOut` are the same.
+- `TOut` is basically the same as `TIn` (the only difference is that `undefined` is added to `TOut` as needed).
 - Arrays are somewhat limited.
 - Errors and `undefined` values can't be distinguished during deserialization.
 - Input values must be serializable.
