@@ -804,7 +804,7 @@ interface StateType<TOut, TIn = TOut> {
 
 There are some limitations in type objects that can be produced by built-in types, for instance:
 
-- `TIn` and `TOut` are the same.
+- `TOut` is basically the same as `TIn` (the only difference is that `undefined` is added to `TOut` as needed).
 - Arrays are somewhat limited.
 - Errors and `undefined` values can't be distinguished during deserialization.
 - Input values must be serializable.
@@ -959,7 +959,7 @@ The `route()` helper returns a route object, which has the following fields:
 - `$deserializeParams()`, `$deserializeSearchParams()`, `$deserializeHash()`, and `$deserializeState()` for retrieving typed params from React Router primitives. Untyped params are omitted.
 - `$serializeParams()` and `$serializeSearchParams()` for building React Router primitives from typed params. Note how hash and state don't need these functions because `$buildHash()` and `$buildState()` can be used instead.
 - `$spec`, which contains resolved type objects (and possibly hash values) of the route, as well as its `path` option.
-- `$`, which contains child routes that lack the parent path pattern and the corresponding type objects.
+- `$`, which contains child routes that lack the parent path pattern.
 - Any number of child routes (that can't start with a `$`).
 
 `$buildPath()` and `$buildPathname()` accept the `relative` option for building relative paths.
