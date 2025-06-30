@@ -41,6 +41,7 @@
   "sideEffects": false,
   "files": [
     "lib",
+    "standard-schema",
     "zod",
     "yup",
     "docs",
