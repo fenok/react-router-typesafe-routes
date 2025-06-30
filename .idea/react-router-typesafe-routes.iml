@@ -11,6 +11,7 @@
       <excludeFolder url="file://$MODULE_DIR$/yup" />
       <excludeFolder url="file://$MODULE_DIR$/zod" />
       <excludeFolder url="file://$MODULE_DIR$/lib" />
+      <excludeFolder url="file://$MODULE_DIR$/standard-schema" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
