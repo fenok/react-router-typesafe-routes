@@ -1,5 +1,5 @@
 import { type, Type, ParserHint, parser, Parser } from "../lib/index.js";
-import type { StandardSchemaV1 } from "./spec.js";
+import type { StandardSchemaV1 } from "./standard-schema-spec";
 
 interface ConfigureOptions {
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
