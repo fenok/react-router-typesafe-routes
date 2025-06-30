@@ -791,7 +791,7 @@ There is also somewhat specific `union()` helper that accepts an enum (or an enu
 
 ##### Third-party validation libraries
 
-If you can, you should use a validation library for all types. You can use Standard Schema, Zod, and Yup out of the box via the `schema()`, `zod()`, and `yup()` helpers, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
+If you can, you should use a validation library for all types. You can use Standard Schema, Zod v3, and Yup out of the box via the `schema()`, `zod()`, and `yup()` helpers, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
 
 #### Type objects
 
@@ -1017,7 +1017,7 @@ There are built-in helpers for common types:
 There are also built-in helpers for third-party validation libraries:
 
 - `schema()` - a wrapper around `type()` for creating type objects based on Standard Schemas. Uses a separate entry point: `react-router-typesafe-routes/standard-schema`.
-- `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
+- `zod()` - a wrapper around `type()` for creating type objects based on Zod v3 Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
 - `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
 
 All of them use the built-in parser with auto-detected hint by default, and all of them allow to supply a custom parser.
