@@ -1,1 +1,1 @@
-export * from "./standard-schema";
+export * from "./standard-schema.js";
