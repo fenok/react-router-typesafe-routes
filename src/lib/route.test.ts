@@ -16,12 +16,15 @@ import {
   Parser,
   ParserHint,
   ParserType,
+  parser,
 } from "./index.js";
 import { assert, IsExact } from "conditional-type-checks";
 import { zod, configure as configureZod } from "../zod/index.js";
 import { z } from "zod";
 import { yup, configure as configureYup } from "../yup/index.js";
 import * as y from "yup";
+import { schema } from "../standard-schema/index.js";
+import { z as z4 } from "zod/v4";
 
 it("provides absolute path", () => {
   const GRANDCHILD = route({
@@ -1743,6 +1746,71 @@ it("ensures that arrays don't accept undefined items if a custom type allows und
       }
     >
   >(true);
+});
+
+it("allows to use standard schema v1", () => {
+  const TEST_ROUTE = route({
+    path: "",
+
+    searchParams: {
+      a: schema(z4.string().optional(), parser("string")),
+      b: schema(z4.number(), parser("number")),
+      c: schema(z4.boolean(), parser("boolean")),
+      d: schema(z4.date(), parser("date")),
+      e: schema(z4.string().nullable()),
+      f: schema(z4.string().nullable()),
+      g: schema(z4.object({ d: z4.coerce.date() })), // We have to coerce the result of JSON.parse
+    },
+  });
+
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a?: string;
+        b?: number;
+        c?: boolean;
+        d?: Date;
+        e?: string | null;
+        f?: string | null;
+        g?: { d: Date };
+      }
+    >
+  >(true);
+
+  const testDate = new Date();
+
+  const plainSearchParams = TEST_ROUTE.$serializeSearchParams({
+    searchParams: {
+      a: "test",
+      b: 0,
+      c: false,
+      d: testDate,
+      e: "null",
+      f: null,
+      g: { d: testDate },
+    },
+  });
+
+  expect(urlSearchParamsToRecord(plainSearchParams)).toStrictEqual({
+    a: "test",
+    b: "0",
+    c: "false",
+    d: testDate.toISOString(),
+    e: '"null"',
+    f: "null",
+    g: JSON.stringify({ d: testDate }),
+  });
+
+  expect(TEST_ROUTE.$deserializeSearchParams(plainSearchParams)).toStrictEqual({
+    a: "test",
+    b: 0,
+    c: false,
+    d: testDate,
+    e: "null",
+    f: null,
+    g: { d: testDate },
+  });
 });
 
 it("allows to use zod", () => {

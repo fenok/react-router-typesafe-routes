@@ -24,6 +24,10 @@
       "import": "./lib/index.mjs",
       "default": "./lib/index.js"
     },
+    "./standard-schema": {
+      "import": "./standard-schema/index.mjs",
+      "default": "./standard-schema/index.js"
+    },
     "./zod": {
       "import": "./zod/index.mjs",
       "default": "./zod/index.js"
@@ -74,13 +78,13 @@
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
     "yup": "^1.0.0",
-    "zod": "^3.0.0"
+    "zod": "^3.25.67"
   },
   "peerDependencies": {
     "react": ">=18",
     "react-router": "^7.0.1",
     "yup": "^1.0.0",
-    "zod": "^3.0.0"
+    "zod": ">=3.0.0"
   },
   "peerDependenciesMeta": {
     "yup": {
