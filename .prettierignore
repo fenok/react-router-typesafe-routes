@@ -1,6 +1,7 @@
 .yarn/*
 .pnp.*
 lib/*
+standard-schema/*
 zod/*
 yup/*
 src/**/*.cts

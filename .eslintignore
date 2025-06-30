@@ -1,4 +1,5 @@
 lib/*
+standard-schema/*
 zod/*
 yup/*
 src/**/*.cts
