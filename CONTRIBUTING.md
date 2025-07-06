@@ -7,7 +7,7 @@
 
 All code changes have to be done via pull requests to `dev` branch.
 
-Every pull request have to specify a deferred version bump via [yarn version](https://yarnpkg.com/cli/version) like this:
+Every pull request has to specify a deferred version bump via [yarn version](https://yarnpkg.com/cli/version) like this:
 
 ```bash
 yarn version patch --deferred
