@@ -404,18 +404,16 @@ const myRoute = route({
 ```tsx
 import { route, parser } from "react-router-typesafe-routes";
 import { schema } from "react-router-typesafe-routes/standard-schema";
-import { z } from "zod/v4"; // Zod v4 implements Standard Schema
+import { type } from "arktype"; // Or any other library supporting Standard Schema
 
 const myRoute = route({
   path: ":id",
   // There is no way to get the type hint from a Standard Schema in runtime, so we need to specify it explicitly.
   // For the built-in parser, this is only necessary for strings and dates. It's also type-safe!
   // It's needed for omitting wrapping quotes in serialized values.
-  params: { id: schema(z.string().uuid(), parser("string")) },
+  params: { id: schema(type("string.uuid"), parser("string")) },
 });
 ```
-
-> ❗Zod doesn't do coercion by default, but you may need it for complex values returned from `JSON.parse` (for instance, a date wrapped in an object).
 
 </details>
 
