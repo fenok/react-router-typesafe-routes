@@ -1813,7 +1813,72 @@ it("allows to use standard schema v1", () => {
   });
 });
 
-it("allows to use zod", () => {
+it("allows to use zod v4", () => {
+  const TEST_ROUTE = route({
+    path: "",
+
+    searchParams: {
+      a: zod(z4.string().optional()),
+      b: zod(z4.number()),
+      c: zod(z4.boolean()),
+      d: zod(z4.date()),
+      e: zod(z4.string().nullable()),
+      f: zod(z4.string().nullable()),
+      g: zod(z4.object({ d: z4.coerce.date() })), // We have to coerce the result of JSON.parse
+    },
+  });
+
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a?: string;
+        b?: number;
+        c?: boolean;
+        d?: Date;
+        e?: string | null;
+        f?: string | null;
+        g?: { d: Date };
+      }
+    >
+  >(true);
+
+  const testDate = new Date();
+
+  const plainSearchParams = TEST_ROUTE.$serializeSearchParams({
+    searchParams: {
+      a: "test",
+      b: 0,
+      c: false,
+      d: testDate,
+      e: "null",
+      f: null,
+      g: { d: testDate },
+    },
+  });
+
+  expect(urlSearchParamsToRecord(plainSearchParams)).toStrictEqual({
+    a: "test",
+    b: "0",
+    c: "false",
+    d: testDate.toISOString(),
+    e: '"null"',
+    f: "null",
+    g: JSON.stringify({ d: testDate }),
+  });
+
+  expect(TEST_ROUTE.$deserializeSearchParams(plainSearchParams)).toStrictEqual({
+    a: "test",
+    b: 0,
+    c: false,
+    d: testDate,
+    e: "null",
+    f: null,
+    g: { d: testDate },
+  });
+});
+
+it("allows to use zod v3", () => {
   const TEST_ROUTE = route({
     path: "",
 
