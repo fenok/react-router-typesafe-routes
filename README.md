@@ -7,7 +7,7 @@ Enhanced type safety via validation for all route params in React Router v7.
 
 The library provides type safety for all route params (pathname params, search params (including multiple keys), state, and hash) on building and parsing/validating URL parts and state. There are no unsafe type casts whatsoever.
 
-If you want, you can use a validation library. There is first-party support for [Standard Schema](https://github.com/standard-schema/standard-schema), [Zod (v3)](https://github.com/colinhacks/zod), and [Yup](https://github.com/jquense/yup), and other libraries can be integrated with ease. Otherwise, you can use other built-in types and fine-tune their validation instead.
+If you want, you can use a validation library. There is first-party support for [Standard Schema](https://github.com/standard-schema/standard-schema), [Zod](https://github.com/colinhacks/zod), and [Yup](https://github.com/jquense/yup), and other libraries can be integrated with ease. Otherwise, you can use other built-in types and fine-tune their validation instead.
 
 In built-in types, parsing and validation errors are caught and replaced with `undefined`. You can also return a default value or throw an error in case of an absent or invalid param. All these adjustments reflect in types, too!
 
@@ -26,7 +26,7 @@ Note that `react-router` and `react` are peer dependencies.
 There are optional entry points for types based on third-party validation libraries:
 
 - `react-router-typesafe-routes/standard-schema` exports `schema` type that accepts any Standard Schema;
-- `react-router-typesafe-routes/zod` exports `zod` type (for Zod v3 only), `zod` is a peer dependency;
+- `react-router-typesafe-routes/zod` exports `zod` type, `zod` is a peer dependency;
 - `react-router-typesafe-routes/yup` exports `yup` type, `yup` is a peer dependency;
 
 The library is targeting ES6 (ES2015).
@@ -404,22 +404,20 @@ const myRoute = route({
 ```tsx
 import { route, parser } from "react-router-typesafe-routes";
 import { schema } from "react-router-typesafe-routes/standard-schema";
-import { z } from "zod/v4"; // Zod v4 implements Standard Schema
+import { type } from "arktype"; // Or any other library supporting Standard Schema
 
 const myRoute = route({
   path: ":id",
   // There is no way to get the type hint from a Standard Schema in runtime, so we need to specify it explicitly.
   // For the built-in parser, this is only necessary for strings and dates. It's also type-safe!
   // It's needed for omitting wrapping quotes in serialized values.
-  params: { id: schema(z.string().uuid(), parser("string")) },
+  params: { id: schema(type("string.uuid"), parser("string")) },
 });
 ```
 
-> ❗Zod doesn't do coercion by default, but you may need it for complex values returned from `JSON.parse` (for instance, a date wrapped in an object).
-
 </details>
 
-### Use Zod v3
+### Use Zod
 
 <details>
   <summary>Click to expand</summary>
@@ -427,7 +425,7 @@ const myRoute = route({
 ```tsx
 import { route } from "react-router-typesafe-routes";
 import { zod } from "react-router-typesafe-routes/zod";
-import { z } from "zod";
+import { z } from "zod"; // zod/v4 or zod/v3
 
 const myRoute = route({
   path: ":id",
@@ -791,7 +789,7 @@ There is also somewhat specific `union()` helper that accepts an enum (or an enu
 
 ##### Third-party validation libraries
 
-If you can, you should use a validation library for all types. You can use Standard Schema, Zod v3, and Yup out of the box via the `schema()`, `zod()`, and `yup()` helpers, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
+If you can, you should use a validation library for all types. You can use Standard Schema, Zod, and Yup out of the box via the `schema()`, `zod()`, and `yup()` helpers, and you should be able to integrate any third-party validation library via the `type()` helper. See [Advanced examples](#advanced-examples).
 
 #### Type objects
 
@@ -1017,7 +1015,7 @@ There are built-in helpers for common types:
 There are also built-in helpers for third-party validation libraries:
 
 - `schema()` - a wrapper around `type()` for creating type objects based on Standard Schemas. Uses a separate entry point: `react-router-typesafe-routes/standard-schema`.
-- `zod()` - a wrapper around `type()` for creating type objects based on Zod v3 Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
+- `zod()` - a wrapper around `type()` for creating type objects based on Zod Types. Uses a separate entry point: `react-router-typesafe-routes/zod`.
 - `yup()` - a wrapper around `type()` for creating type objects based on Yup Schemas. Uses a separate entry point: `react-router-typesafe-routes/yup`.
 
 All of them use the built-in parser with auto-detected hint by default, and all of them allow to supply a custom parser.
