@@ -1,5 +1,5 @@
 import { type, Type, ParserHint, parser, Parser } from "../lib/index.js";
-import { ZodType, ZodOptional, ZodString, ZodDate, ZodNumber, ZodBoolean } from "zod/v4";
+import { ZodType, ZodOptional } from "zod/v4";
 import {
   ZodType as ZodTypeV3,
   ZodOptional as ZodOptionalV3,
@@ -26,13 +26,25 @@ function configure({ parserFactory }: ConfigureOptions) {
 
     let typeHint: ParserHint = "unknown";
 
-    if (unwrappedZodType instanceof ZodString || unwrappedZodType instanceof ZodStringV3) {
+    if (
+      (unwrappedZodType instanceof ZodType && unwrappedZodType.def.type === "string") ||
+      unwrappedZodType instanceof ZodStringV3
+    ) {
       typeHint = "string";
-    } else if (unwrappedZodType instanceof ZodNumber || unwrappedZodType instanceof ZodNumberV3) {
+    } else if (
+      (unwrappedZodType instanceof ZodType && unwrappedZodType.def.type === "number") ||
+      unwrappedZodType instanceof ZodNumberV3
+    ) {
       typeHint = "number";
-    } else if (unwrappedZodType instanceof ZodBoolean || unwrappedZodType instanceof ZodBooleanV3) {
+    } else if (
+      (unwrappedZodType instanceof ZodType && unwrappedZodType.def.type === "boolean") ||
+      unwrappedZodType instanceof ZodBooleanV3
+    ) {
       typeHint = "boolean";
-    } else if (unwrappedZodType instanceof ZodDate || unwrappedZodType instanceof ZodDateV3) {
+    } else if (
+      (unwrappedZodType instanceof ZodType && unwrappedZodType.def.type === "date") ||
+      unwrappedZodType instanceof ZodDateV3
+    ) {
       typeHint = "date";
     }
 

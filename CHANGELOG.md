@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Zod string formats (e.g. `z.uuid()`) are now properly recognized as strings by the `zod()` helper.
+
 ## [2.2.0] - 2025-07-20
 
 ### Added
@@ -209,6 +215,7 @@ setTypedSearchParams((prevParams) => ({
 - Hook dependencies are now properly listed, which is checked by ESLint. This fixes `useTypedSearchParams` for dynamic routes.
 - Prevent access to internal `useUpdatingRef` helper.
 
+[unreleased]: https://github.com/fenok/react-router-typesafe-routes/tree/dev
 [2.2.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v2.2.0
 [2.1.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v2.1.0
 [2.0.0]: https://github.com/fenok/react-router-typesafe-routes/tree/v2.0.0
