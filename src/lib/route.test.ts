@@ -1878,6 +1878,39 @@ it("allows to use zod v4", () => {
   });
 });
 
+it("recognizes zod v4 string formats as strings", () => {
+  const TEST_ROUTE = route({
+    path: "",
+
+    searchParams: {
+      a: zod(z4.uuid()),
+    },
+  });
+
+  assert<
+    IsExact<
+      ReturnType<typeof TEST_ROUTE.$deserializeSearchParams>,
+      {
+        a?: string;
+      }
+    >
+  >(true);
+
+  const plainSearchParams = TEST_ROUTE.$serializeSearchParams({
+    searchParams: {
+      a: "6a5158f2-169a-4fbb-a3f2-0565774e59e4",
+    },
+  });
+
+  expect(urlSearchParamsToRecord(plainSearchParams)).toStrictEqual({
+    a: "6a5158f2-169a-4fbb-a3f2-0565774e59e4",
+  });
+
+  expect(TEST_ROUTE.$deserializeSearchParams(plainSearchParams)).toStrictEqual({
+    a: "6a5158f2-169a-4fbb-a3f2-0565774e59e4",
+  });
+});
+
 it("allows to use zod v3", () => {
   const TEST_ROUTE = route({
     path: "",
